@@ -19,36 +19,57 @@ namespace t
             public:
                 constexpr Value() = default;
 
-                Value( Value const& data )
-                {
-                    *this = data.copy();
-                }
-
-                explicit Value( Value&& data ) noexcept:
+                Value( Value const& data ):
                     m_data( data.m_data ),
+                    m_refs( data.m_refs ),
                     m_type( data.m_type )
                 {
+                    if ( m_refs == nullptr )
+                        return;
+                    *m_refs += 1;
+                }
+
+                Value( Value&& data ) noexcept:
+                    m_data( data.m_data ),
+                    m_refs( data.m_refs ),
+                    m_type( data.m_type )
+                {
+                    data.m_refs = nullptr;
                     data.m_data = nullptr;
                     data.m_type = VOID;
                 }
 
                 explicit Value( const char* str ):
                     m_data( new String( str ) ),
+                    m_refs( new uint64_t( 1 ) ),
                     m_type( templateToVariantType< String >() ) {}
 
-                template< typename T, typename = std::enable_if_t< !std::is_arithmetic_v< T > && ( ALLOWED_TYPES( std::decay_t< T > ) ) > >
+                template< typename T, typename = std::enable_if_t< !std::is_arithmetic_v< T > && ( ALLOWED_TYPES( T ) ) > >
                 explicit Value( T const& data ):
                     m_data( new std::decay_t< T >{ data } ),
+                    m_refs( new uint64_t( 1 ) ),
                     m_type( templateToVariantType< std::decay_t< T > >() ) {}
-                
-                template< typename T, typename = std::enable_if_t< !std::is_arithmetic_v< T > && ( ALLOWED_TYPES( std::decay< T > ) ) > >
+
+                /**
+                 * @brief Need this overload (as far as I know) to be able to move data into the constructor.
+                 * This actually does move the data
+                 */
+                template< typename T >
+                explicit Value( T const&& data ):
+                    m_data( new std::decay_t< T >( const_cast< T&& >( data ) ) ),
+                    m_refs( new uint64_t( 1 ) ),
+                    m_type( templateToVariantType< std::decay_t< T > >() ) {}
+
+                template< typename T, typename = std::enable_if_t< !std::is_arithmetic_v< std::decay_t< T > > && (ALLOWED_TYPES( std::decay< T > )) > >
                 explicit Value( T&& data ):
                     m_data( new std::decay_t< T >{ std::move( data ) } ),
+                    m_refs( new uint64_t( 1 ) ),
                     m_type( templateToVariantType< std::decay_t< T > >() ) {}
 
                 template< typename T, typename = std::enable_if_t< std::is_arithmetic_v< T > && ( ALLOWED_TYPES( T ) ) > >
                 explicit Value( T data ):
                     m_data( new T{ data } ),
+                    m_refs( new uint64_t( 1 ) ),
                     m_type( templateToVariantType< T >() ) {}
 
                 Value& operator=( Value const& rhs )
@@ -58,7 +79,14 @@ namespace t
                     
                     DestroyData();
 
-                    *this = rhs.copy();
+                    m_data = rhs.m_data;
+                    m_refs = rhs.m_refs;
+                    m_type = rhs.m_type;
+
+                    if ( m_refs == nullptr )
+                        throw std::runtime_error( "hey" );
+
+                    *m_refs += 1;
 
                     return *this;
                 }
@@ -71,9 +99,11 @@ namespace t
                     DestroyData();
 
                     m_data = rhs.m_data;
+                    m_refs = rhs.m_refs;
                     m_type = rhs.m_type;
 
                     rhs.m_data = nullptr;
+                    rhs.m_refs = nullptr;
                     rhs.m_type = VOID;
 
                     return *this;
@@ -81,22 +111,22 @@ namespace t
 
                 Value& operator=( const char* str )
                 {
-                    *this = Value( String( str ) );
+                    *this = Value( str );
                     return *this;
                 }
 
-                template< typename T, std::enable_if_t< !std::is_arithmetic_v< T > > >
+                template< typename T, typename = std::enable_if_t< !std::is_arithmetic_v< std::decay_t< T > > > >
                 Value& operator=( T const& data )
                 {
                     *this = Value( data );
                     return *this;
                 }
 
-                template< typename T, typename = std::enable_if_t< !std::is_arithmetic_v< T > > >
+                template< typename T, typename = std::enable_if_t< !std::is_arithmetic_v< std::decay_t< T > > > >
                 Value& operator=( T&& data )
                 {
                     if constexpr ( std::is_lvalue_reference_v< T > )
-                        *this = Value( static_cast<T const&>(data) );
+                        *this = Value( static_cast< T const& >( data ) );
                     else
                         *this = Value( std::move( data ) );
                     return *this;
@@ -150,11 +180,10 @@ namespace t
             private:
                 void DestroyData();
 
-                Value copy() const;
-
             private:
-                void* m_data = nullptr;
-                Type m_type = VOID;
+                void*     m_data = nullptr;
+                uint64_t* m_refs = nullptr;
+                Type      m_type = VOID;
             };
         }
         namespace v1

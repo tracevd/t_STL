@@ -1,6 +1,7 @@
 #include "Value.h"
-
 #include "Map.h"
+
+#include <iostream>
 
 namespace t
 {
@@ -10,8 +11,18 @@ namespace t
         {
             void Value::DestroyData()
             {
-                #define delete_as( type ) delete static_cast< type* >( m_data ); return
-                #define delete_as_vector( type ) delete static_cast< Vector< type >* >( m_data ); return
+                #define delete_as( type ) delete static_cast< type* >( m_data ); m_data = nullptr; return
+                #define delete_as_vector( type ) delete static_cast< Vector< type >* >( m_data ); m_data = nullptr; return
+                if ( m_refs == nullptr )
+                    return;
+                *m_refs -= 1;
+                if ( *m_refs > 0 )
+                    return;
+
+                std::cout << "Deleting data: ";
+                std::cout << typeToString( m_type ) << "\n\n";
+
+                delete m_refs;
                 switch ( m_type )
                 {
                 case VOID:
@@ -69,65 +80,6 @@ namespace t
                 }
                 #undef delete_as
                 #undef delete_as_vector
-            }
-
-            Value Value::copy() const
-            {
-                switch ( m_type )
-                {
-                case VOID:
-                    return Value();
-                case INT8:
-                    return Value( As< int8_t >() );
-                case INT16:
-                    return Value( As< int16_t >() );
-                case INT32:
-                    return Value( As< int32_t >() );
-                case INT64:
-                    return Value( As< int64_t >() );
-                case UINT8:
-                    return Value( As< uint8_t >() );
-                case UINT16:
-                    return Value( As< uint16_t >() );
-                case UINT32:
-                    return Value( As< uint32_t >() );
-                case UINT64:
-                    return Value( As< uint64_t >() );
-                case FLOAT:
-                    return Value( As< float >() );
-                case DOUBLE:
-                    return Value( As< double >() );
-                case STRING:
-                    return Value( As< String const& >() );
-                case MAP:
-                    return Value( As< Map const& >() );
-                case INT8_VECTOR:
-                    return Value( As< Vector< int8_t > const& >() );
-                case INT16_VECTOR:
-                    return Value( As< Vector< int16_t > const& >() );
-                case INT32_VECTOR:
-                    return Value( As< Vector< int32_t > const& >() );
-                case INT64_VECTOR:
-                    return Value( As< Vector< int64_t > const& >() );
-                case UINT8_VECTOR:
-                    return Value( As< Vector< uint8_t > const& >() );
-                case UINT16_VECTOR:
-                    return Value( As< Vector< uint16_t > const& >() );
-                case UINT32_VECTOR:
-                    return Value( As< Vector< uint32_t > const& >() );
-                case UINT64_VECTOR:
-                    return Value( As< Vector< uint64_t > const& >() );
-                case FLOAT_VECTOR:
-                    return Value( As< Vector< float > const& >() );
-                case DOUBLE_VECTOR:
-                    return Value( As< Vector< double > const& >() );
-                case STRING_VECTOR:
-                    return Value( As< Vector< String > const& >() );
-                case MAP_VECTOR:
-                    return Value( As< Vector< Map > const& >() );
-                default:
-                    throw std::runtime_error( "Unknown type attempting to be deleted" );
-                }
             }
 
             bool Value::operator==( Value const& rhs ) const
