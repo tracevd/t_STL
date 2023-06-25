@@ -176,6 +176,8 @@ namespace t
                 return "String[]";
             case MAP_VECTOR:
                 return "Map[]";
+            default:
+                return "void";
             }
         }
     }
