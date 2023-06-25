@@ -2,7 +2,7 @@
 #include <chrono>
 
 #include "t.h"
-#include "variant/serialize/Serialize.h"
+//#include "variant/serialize/Serialize.h"
 #include "Timer.h"
 
 template< typename T >
@@ -58,7 +58,7 @@ int main()
 
         t.start();
 
-        t::v::Value const val;
+        map["hello__"] = int8_t( 1 );
 
         map["hello"] = "hello";
         map["hi"]    = "hi";
@@ -70,16 +70,15 @@ int main()
         map.insert( {"map_copy", map["map"] } );
         map["nested"] = Map();
         map["nested"].As< Map& >()["test"] = map;
-        map["val"] = val;
 
-        auto val_ = t::v::Value( std::forward< t::Vector< int > >( t::Vector< int >{ 1, 2, 3, 4 } ) );
+        //auto val_ = t::v::Value( std::forward< t::Vector< int > >( t::Vector< int >{ 1, 2, 3, 4 } ) );
 
-        testDepth( map, 0 );
+        //testDepth( map, 0 );
 
-        // auto float_value = map["heyyo"].As< float >();
-        // auto& string_value = map["hello"].As< t::String const& >();
-        // auto& vec_v2 = map["vector"].As< t::Vector< int8_t >& >();
-        // vec_v2[ 0 ] += 1;
+        auto float_value = map["heyyo"].As< float >();
+        auto& string_value = map["hello"].As< t::String const& >();
+        auto& vec_v2 = map["vector"].As< t::Vector< int8_t >& >();
+        vec_v2[ 0 ] += 1;
 
         //auto copy_v2 { map };
 
@@ -94,6 +93,8 @@ int main()
     
     std::cout << "V2: ";
     std::cout << time_v2 / NumOfLoops << '\n';
+
+    printSizeOf< t::v::Value >();
 
     return 0;
 }
