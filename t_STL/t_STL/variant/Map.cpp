@@ -6,41 +6,34 @@ namespace t
 {
     namespace v
     {
-		inline namespace v2
+		bool Map::operator==( const Map& rhs ) const
 		{
-			bool Map::operator==( const Map& rhs ) const
-			{
-				if ( this->size() != rhs.size() )
-					return false;
+			if ( this->size() != rhs.size() )
+				return false;
 
-				for ( const auto& [key, value] : *this )
-				{
-					auto it = rhs.find( key );
-					if ( it == rhs.cend() )
-						return false;
-					if ( it->second != value )
-						return false;
-				}
-				return true;
+			for ( const auto& [key, value] : *this )
+			{
+				auto it = rhs.find( key );
+				if ( it == rhs.cend() )
+					return false;
+				if ( it->second != value )
+					return false;
 			}
+			return true;
 		}
-		namespace v1
+		Map Map::Clone() const
 		{
-			bool Map::operator==( const Map& rhs ) const
-			{
-				if ( this->size() != rhs.size() )
-					return false;
+			Map copy;
 
-				for ( const auto& [key, value] : *this )
-				{
-					auto it = rhs.find( key );
-					if ( it == rhs.cend() )
-						return false;
-					if ( it->second != value )
-						return false;
-				}
-				return true;
-			}
+            for ( const auto& [ key, value ] : *this )
+            {
+				if ( value.Is< Map >() || value.Is< Vector< Map > >() )
+					copy.insert( { key, value.Clone() } );
+				else
+					copy.insert( { key, value } );
+            }
+                
+            return copy;
 		}
     }
 }
