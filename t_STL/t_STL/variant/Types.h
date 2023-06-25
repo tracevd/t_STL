@@ -47,5 +47,11 @@ namespace t
         }
 
         const char* typeToString( Type type );
+
+        template< typename T >
+        constexpr const char* templateToString()
+        {
+            return TtoType< T >::string;
+        }
     }
 }

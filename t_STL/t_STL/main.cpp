@@ -67,9 +67,9 @@ int main()
         map["heyyo"] = 0.77f;
         map["vector"] = t::Vector< int8_t >{ 1, 2, 3, 4, 5, 6, 7 };
         map["map"] = map;
-        map.insert( {"map_copy", map["map"] } );
+        /*map.insert( {"map_copy", map["map"] } );
         map["nested"] = Map();
-        map["nested"].As< Map& >()["test"] = map;
+        map["nested"].As< Map& >()["test"] = map;*/
 
         //auto val_ = t::v::Value( std::forward< t::Vector< int > >( t::Vector< int >{ 1, 2, 3, 4 } ) );
 
@@ -95,6 +95,8 @@ int main()
     std::cout << time_v2 / NumOfLoops << '\n';
 
     printSizeOf< t::v::Value >();
+
+    std::cout << t::v::templateToString< t::Vector< t::String > >() << '\n';
 
     return 0;
 }

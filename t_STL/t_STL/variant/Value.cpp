@@ -25,53 +25,53 @@ namespace t
             case VOID:
                 return Value();
             case INT8:
-                return Value( *static_cast< int8_t* >( m_data ) );
+                return Value( static_cast< Data< int8_t >* >( m_data )->val );
             case INT16:
-                return Value( *static_cast< int16_t* >( m_data ) );
+                return Value( static_cast< Data< int16_t >* >( m_data )->val );
             case INT32:
-                return Value( *static_cast< int32_t* >( m_data ) );
+                return Value( static_cast< Data< int32_t >* >( m_data )->val );
             case INT64:
-                return Value( *static_cast< int64_t* >( m_data ) );
+                return Value( static_cast< Data< int64_t >* >( m_data )->val );
             case UINT8:
-                return Value( *static_cast< uint8_t* >( m_data ) );
+                return Value( static_cast< Data< uint8_t >* >( m_data )->val );
             case UINT16:
-                return Value( *static_cast< uint16_t* >( m_data ) );
+                return Value( static_cast< Data< uint16_t >* >( m_data )->val );
             case UINT32:
-                return Value( *static_cast< uint32_t* >( m_data ) );
+                return Value( static_cast< Data< uint32_t >* >( m_data )->val );
             case UINT64:
-                return Value( *static_cast< uint64_t* >( m_data ) );
+                return Value( static_cast< Data< uint64_t >* >( m_data )->val );
             case FLOAT:
-                return Value( *static_cast< float* >( m_data ) );
+                return Value( static_cast< Data< float >* >( m_data )->val );
             case DOUBLE:
-                return Value( *static_cast< double* >( m_data ) );
+                return Value( static_cast< Data< double >* >( m_data )->val );
             case STRING:
-                return Value( *static_cast< String* >( m_data ) );
+                return Value( static_cast< Data< String >* >( m_data )->val );
             case MAP:
-                return Value( ( *static_cast< Map* >( m_data ) ).Clone() );
+                return Value( static_cast< Data< Map >* >( m_data )->val.Clone() );
             case INT8_VECTOR:
-                return Value( *static_cast< Vector< int8_t >* >( m_data ) );
+                return Value( static_cast< Data< Vector< int8_t > >* >( m_data )->val );
             case INT16_VECTOR:
-                return Value( *static_cast< Vector< int16_t >* >( m_data ) );
+                return Value( static_cast< Data< Vector< int16_t > >* >( m_data )->val );
             case INT32_VECTOR:
-                return Value( *static_cast< Vector< int32_t >* >( m_data ) );
+                return Value( static_cast< Data< Vector< int32_t > >* >( m_data )->val );
             case INT64_VECTOR:
-                return Value( *static_cast< Vector< int64_t >* >( m_data ) );
+                return Value( static_cast< Data< Vector< int64_t > >* >( m_data )->val );
             case UINT8_VECTOR:
-                return Value( *static_cast< Vector< uint8_t >* >( m_data ) );
+                return Value( static_cast< Data< Vector< uint8_t > >* >( m_data )->val );
             case UINT16_VECTOR:
-                return Value( *static_cast< Vector< uint16_t >* >( m_data ) );
+                return Value( static_cast< Data< Vector< uint16_t > >* >( m_data )->val );
             case UINT32_VECTOR:
-                return Value( *static_cast< Vector< uint32_t >* >( m_data ) );
+                return Value( static_cast< Data< Vector< uint32_t > >* >( m_data )->val );
             case UINT64_VECTOR:
-                return Value( *static_cast< Vector< uint64_t >* >( m_data ) );
+                return Value( static_cast< Data< Vector< uint64_t > >* >( m_data )->val );
             case FLOAT_VECTOR:
-                return Value( *static_cast< Vector< float >* >( m_data ) );
+                return Value( static_cast< Data< Vector< float > >* >( m_data )->val );
             case DOUBLE_VECTOR:
-                return Value( *static_cast< Vector< double >* >( m_data ) );
+                return Value( static_cast< Data< Vector< double > >* >( m_data )->val );
             case STRING_VECTOR:
-                return Value( *static_cast< Vector< String >* >( m_data ) );
+                return Value( static_cast< Data< Vector< String > >* >( m_data )->val );
             case MAP_VECTOR:
-                return Value( CloneVectorOfMaps( *static_cast< Vector< Map >* >( m_data ) ) );
+                return Value( CloneVectorOfMaps( static_cast< Data< Vector< Map > >* >( m_data )->val ) );
             default:
                 throw std::runtime_error( "Unknown type attempting to be deleted" );
             }
@@ -79,18 +79,17 @@ namespace t
 
         void Value::DestroyData()
         {
-            #define delete_as( type ) delete static_cast< type* >( m_data ); m_data = nullptr; return
-            #define delete_as_vector( type ) delete static_cast< Vector< type >* >( m_data ); m_data = nullptr; return
-            if ( m_refs == nullptr )
+            #define delete_as( T ) delete static_cast< Data< T >* >( m_data ); m_data = nullptr; return
+            #define delete_as_vector( T ) delete static_cast< Data< Vector< T > >* >( m_data ); m_data = nullptr; return
+            if ( m_data == nullptr )
                 return;
-            *m_refs -= 1;
-            if ( *m_refs > 0 )
+            *static_cast< uint64_t* >( m_data ) -= 1;
+            if ( *static_cast< uint64_t* >( m_data ) > 0 )
                 return;
 
-            std::cout << "Deleting data: ";
-            std::cout << typeToString( m_type ) << "\n\n";
+            // std::cout << "Deleting data: ";
+            // std::cout << typeToString( m_type ) << "\n\n";
 
-            delete m_refs;
             switch ( m_type )
             {
             case VOID:
