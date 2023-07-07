@@ -163,6 +163,8 @@ public:
 		m_data = vec.m_data;
 		m_size = vec.m_size;
 		m_capacity = vec.m_capacity;
+		vec.m_size = 0;
+		vec.m_capacity = 0;
 		vec.m_data = nullptr;
 	}
 	template< typename U >

@@ -7,21 +7,23 @@ namespace t
 {
 	namespace v
 	{
-		inline namespace v2
+		class Map : public std::unordered_map< String, Value >
 		{
-			class Map : public std::unordered_map< String, Value >
+		public:
+			bool operator==( Map const& rhs ) const;
+			Map Clone() const;
+			Map() = default;
+			Map( Map const& other )
 			{
-			public:
-				bool operator==( Map const& rhs ) const;
-			};
-		}
-		namespace v1
-		{
-			class Map : public std::unordered_map< String, Value >
+				*this = other.Clone();
+			}
+			Map( Map&& ) = default;
+			Map& operator=( Map&& ) = default;
+			Map& operator=( Map const& rhs )
 			{
-			public:
-				bool operator==( Map const& rhs ) const;
-			};
-		}
+				*this = rhs.Clone();
+				return *this;
+			}
+		};
 	}
 }

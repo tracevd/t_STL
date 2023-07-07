@@ -6,16 +6,8 @@ namespace t
 {
 	namespace v
 	{
-		inline namespace v2
-		{
-			class Map;
-			class Value;
-		}
-		namespace v1
-		{
-			class Map;
-			class Value;
-		}
+		class Map;
+		class Value;
 	}
 }
 
