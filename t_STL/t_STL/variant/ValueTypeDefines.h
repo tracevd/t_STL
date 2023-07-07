@@ -30,7 +30,7 @@
 template<> \
 struct TtoType< T > \
 { \
-    static constexpr auto type          = type_; \
+    static constexpr t::v::Type type          = type_; \
     static constexpr const char* string = str; \
 };
 
@@ -39,7 +39,7 @@ struct TtoType< T > \
 template< typename T > \
 struct TtoType \
 { \
-    static constexpr auto type          = VOID; \
+    static constexpr t::v::Type type          = VOID; \
     static constexpr const char* string = "void"; \
 }; \
 \

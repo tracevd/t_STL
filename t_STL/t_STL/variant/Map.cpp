@@ -6,12 +6,14 @@ namespace t
 {
     namespace v
     {
-		bool Map::operator==( const Map& rhs ) const
+		bool Map::operator==( Map const& rhs ) const
 		{
-			if ( this->size() != rhs.size() )
+			if ( this == &rhs )
+				return true;
+			if ( size() != rhs.size() )
 				return false;
-
-			for ( const auto& [key, value] : *this )
+			
+			for ( const auto& [ key, value ] : *this )
 			{
 				auto it = rhs.find( key );
 				if ( it == rhs.cend() )

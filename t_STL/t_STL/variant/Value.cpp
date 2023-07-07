@@ -87,9 +87,6 @@ namespace t
             if ( *static_cast< uint64_t* >( m_data ) > 0 )
                 return;
 
-            // std::cout << "Deleting data: ";
-            // std::cout << typeToString( m_type ) << "\n\n";
-
             switch ( m_type )
             {
             case VOID:
@@ -153,8 +150,9 @@ namespace t
         {
             if ( m_type != rhs.m_type )
                 return false;
-            if ( this == &rhs )
+            if ( this == &rhs || m_data == rhs.m_data )
                 return true;
+
             switch ( m_type )
             {
             case INT8:

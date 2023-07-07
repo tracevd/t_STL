@@ -2,35 +2,76 @@
 
 namespace t
 {
-template< typename T, size_t S >
-class array
-{
-private:
-	T m_data[ S ];
-public:
-	constexpr array() { m_data = nullptr; };
+	template< typename T, size_t Size >
+	class Array
+	{
+	private:
+		T m_data[ Size ];
+	public:
+		constexpr Array() = default;
 
-	constexpr size_t size() const { return S; };
+		constexpr Array( std::initializer_list< T > list )
+		{
+			if ( list.size() > Size )
+				throw std::runtime_error("Invalid size of initializer list");
 
-	constexpr const T& operator[]( size_t i ) const
-	{ 
-		return m_data[ i ];
-	}
+			auto it = list.begin();
 
-	constexpr T& operator[]( size_t i ) 
-	{ 
-		return m_data[ i ];
-	}
+			for ( size_t i = 0; i < Size && it != list.end(); ++i, ++it )
+			{
+				m_data[ i ] = std::move( *it );
+			}
+		}
 
-	constexpr const T& front() const 
-	{ 
-		return m_data[ 0 ]; 
-	}
+		Array& operator=( Array&& rhs )
+		{
+			for ( size_t i = 0; i < Size; ++i )
+			{
+				m_data[ i ] = std::move( rhs[ i ] );
+			}
+			return *this;
+		}
 
-	constexpr T& front() 
-	{ 
-		return m_data[ 0 ]; 
-	}
-};
+		Array& operator=( Array const& rhs )
+		{
+			for ( size_t i = 0; i < Size; ++i )
+			{
+				m_data[ i ] = rhs[ i ];
+			}
+			return *this;
+		}
+
+		constexpr size_t size() const { return Size; };
+
+		constexpr const T& operator[]( size_t i ) const
+		{
+			return m_data[ i ];
+		}
+
+		constexpr T& operator[]( size_t i ) 
+		{ 
+			return m_data[ i ];
+		}
+
+		constexpr const T& front() const 
+		{ 
+			return m_data[ 0 ]; 
+		}
+
+		constexpr T& front() 
+		{ 
+			return m_data[ 0 ]; 
+		}
+
+		constexpr T const& back() const
+		{
+			return m_data[ Size - 1 ];
+		}
+
+		constexpr T& back()
+		{
+			return m_data[ Size - 1 ];
+		}
+	};
 
 }

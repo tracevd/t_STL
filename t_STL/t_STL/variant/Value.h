@@ -48,35 +48,11 @@ namespace t
                 m_type( templateToVariantType< String >() ) {}
 
             /**
-             * @brief Create a Value with a copy of the input data
-             */
-            template< typename T, typename = std::enable_if_t< !std::is_arithmetic_v< T > && ( ALLOWED_TYPES( decay< T > ) ) > >
-            explicit Value( T const& data ):
-                m_data( new Data< decay< T > >( data ) ),
-                m_type( templateToVariantType< decay< T > >() ) {}
-
-            /**
-             * @brief Need this overload (as far as I know) to be able to move data into the constructor. Analagous to T&& constructor
-             * --- ACTUALLY MOVES DATA ---
-             */
-            template< typename T >
-            explicit Value( T const&& data ):
-                m_data( new Data< decay< T > >( const_cast< T&& >( data ) ) ),
-                m_type( templateToVariantType< decay< T > >() ) {}
-
-            // useless ?
-            // template< typename T, typename = std::enable_if_t< !std::is_lvalue_reference_v< T > && !std::is_arithmetic_v< std::decay_t< T > > && (ALLOWED_TYPES( std::decay< T > )) > >
-            // explicit Value( T&& data ):
-            //     m_data( new std::decay_t< T >{ std::move( data ) } ),
-            //     m_refs( new uint64_t( 1 ) ),
-            //     m_type( templateToVariantType< std::decay_t< T > >() ) {}
-
-            /**
              * @brief Create a Value containing a stdint or float/double
              */
-            template< typename T, typename = std::enable_if_t< std::is_arithmetic_v< T > && ( ALLOWED_TYPES( T ) ) > >
+            template< typename T, typename = std::enable_if_t< ALLOWED_TYPES( T ) > >
             explicit Value( T data ):
-                m_data( new Data< T >{ data } ),
+                m_data( new Data< T >( std::is_arithmetic_v< T > ? data : std::move( data ) ) ),
                 m_type( templateToVariantType< T >() ) {}
 
             /**
@@ -95,7 +71,7 @@ namespace t
                 if ( m_data == nullptr )
                     return *this;
 
-                *static_cast< uint64_t* >( m_data ) += 1;
+                *static_cast<uint64_t*>(m_data) += 1;
 
                 return *this;
             }
@@ -129,35 +105,12 @@ namespace t
             }
 
             /**
-             * @brief Assign the value to be copy of the given data
-             */
-            template< typename T, typename = std::enable_if_t< !std::is_arithmetic_v< decay< T > > > >
-            Value& operator=( T const& data )
-            {
-                *this = Value( data );
-                return *this;
-            }
-
-            /**
-             * @brief Assign the value to a moved object (unless T&& is interpreted as T&, in which case it will be copied)
-             */
-            template< typename T, typename = std::enable_if_t< !std::is_arithmetic_v< decay< T > > > >
-            Value& operator=( T&& data )
-            {
-                if constexpr ( std::is_lvalue_reference_v< T > )
-                    *this = Value( static_cast< T const& >( data ) );
-                else
-                    *this = Value( std::move( data ) );
-                return *this;
-            }
-
-            /**
              * @brief Assign the value to be a stdint or float/double
              */
-            template< typename T, typename = std::enable_if_t< std::is_arithmetic_v< T > > >
+            template< typename T >
             Value& operator=( T data )
             {
-                *this = Value( data );
+                *this = Value( std::move( data ) );
                 return *this;
             }
 
@@ -249,12 +202,9 @@ namespace t
                 if ( type != m_type )
                     throw std::runtime_error( "Invalid type" );
 
-                return static_cast< Data< decay< T > >* >(m_data)->val;
+                return static_cast< Data< decay< T > >* >( m_data )->val;
             }
 
-            /**
-             * @brief Return a completely unique copy of this value
-             */
             Value Clone() const;
 
             ~Value()
@@ -278,7 +228,7 @@ namespace t
                     val( data ),
                     references( 1 ) {}
                 template< typename = std::enable_if_t< !std::is_arithmetic_v< T > > >
-                Data( T&& data ):
+                Data( T&& data ) noexcept:
                     val( std::move( data ) ),
                     references( 1 ) {}
                 template< typename = std::enable_if_t< std::is_arithmetic_v< T > > >
@@ -296,9 +246,6 @@ namespace t
             {
                 Data() = delete;
                 Data( const char* str ):
-                    val( str ),
-                    references( 1 ) {}
-                Data( String const& str ):
                     val( str ),
                     references( 1 ) {}
                 Data( String&& str ):
