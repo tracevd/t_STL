@@ -146,6 +146,9 @@ int main()
     std::cout << t::v::templateToString< t::Vector< t::String > >() << '\n';
 #endif
 
+    printSizeOf< std::string >();
+    printSizeOf< String >();
+
     Map vm;
 
     vm["string"]    = "hello";
@@ -174,6 +177,7 @@ int main()
     map.insert( { String("test"), Value("value") } );
     map.insert( { String("test2"), Value("value2") } );
     vm["vm"] = std::move( map );
+    vm["vm vector"] = Vector< Map >{ map, map, map };
 
     Timer< microseconds > t;
 

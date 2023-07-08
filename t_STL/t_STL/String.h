@@ -55,8 +55,6 @@ namespace t
 		}
 		[[nodiscard]] const char* c_str() const
 		{
-			if ( m_size == 0 )
-				return "";
 			return m_data;
 		}
 		char* begin()

@@ -124,7 +124,7 @@ namespace t
 
 		inline namespace bitstream_v1
 		{
-			BufferType Serialize( BufferType& buffer, Map const& map );
+			void Serialize( BufferType& buffer, Map const& map );
 
 			void Serialize( BufferType& buffer, String const& str )
 			{
@@ -164,6 +164,18 @@ namespace t
 			{
 				AddToBuffer( buffer, (uint8_t) templateToVariantType< Map >() );
 				Serialize( buffer, data );
+			}
+
+			template<>
+			void SerializeValue< Vector< Map >, void >( BufferType& buffer, Vector< Map > const& data )
+			{
+				AddToBuffer( buffer, (uint8_t) templateToVariantType< Vector< Map > >() );
+				AddToBuffer< uint64_t >( buffer, data.size() );
+
+				for ( size_t i = 0; i < data.size(); ++i )
+				{
+					Serialize( buffer, data[ i ] );
+				}
 			}
 
 			template<>
@@ -229,12 +241,14 @@ namespace t
 					return SerializeValue( buffer, val.As< Vector< double > const& >() );
 				case Type::STRING_VECTOR:
 					return SerializeValue( buffer, val.As< Vector< String > const& >() );
+				case Type::MAP_VECTOR:
+					return SerializeValue( buffer, val.As< Vector< Map > const& >() );
 				default:
 					throw std::runtime_error( "Type not supported" );
 				}
 			}
 
-			BufferType Serialize( BufferType& buffer, Map const& map )
+			void Serialize( BufferType& buffer, Map const& map )
 			{
 				buffer.pushBack( 't' );
 				buffer.pushBack( 'v' );
@@ -249,21 +263,22 @@ namespace t
 					Serialize( buffer, key );
 					SerializeValue( buffer, value );
 				}
-				return buffer;
 			}
 
 			BufferType Serialize( Map const& map )
 			{
 				BufferType buffer;
 
-				return Serialize( buffer, map );
+				Serialize( buffer, map );
+
+				return buffer;
 			}
 		}
 
 		template< typename T >
 		T ReadValueFromBuffer( const uint8_t* buffer )
 		{
-			return *reinterpret_cast<const T*>(buffer);
+			return *reinterpret_cast< const T* >( buffer );
 		}
 
 		String DeserializeString( const uint8_t* buffer, size_t& bufferOffset )
@@ -318,10 +333,6 @@ namespace t
 				bufferOffset += length;
 				return Value( std::move( str ) );
 			}
-			if constexpr ( std::is_same_v< T, Map > )
-			{
-				Deserialize( buffer, bufferOffset );
-			}
 			
 			auto val = ReadValueFromBuffer< T >( &buffer[ bufferOffset ] );
 			bufferOffset += sizeof( val );
@@ -331,6 +342,42 @@ namespace t
 		namespace bitstream_v1
 		{
 			Map Deserialize( const uint8_t* buffer, size_t bufferSize, size_t& bufferOffset );
+		}
+
+		void DeserializeAndInsertMapVector( Map& map, String&& key, const uint8_t* buffer, size_t bufferSize, size_t& bufferOffset )
+		{
+			auto numel = ReadValueFromBuffer< uint64_t >( &buffer[ bufferOffset ] );
+			bufferOffset += sizeof( uint64_t );
+
+			Vector< Map > vec;
+			vec.reserve( numel );
+
+			for ( auto numel_ = numel; numel_ > 0; --numel_ )
+			{
+				//                "tvm<n>"     endianness         numel
+				if ( bufferSize < 4 + sizeof( uint16_t ) + sizeof( uint64_t ) )
+				{
+					throw std::runtime_error( "Invalid buffer length! Must be long enough for Header!" );
+				}
+				const auto t = buffer[ bufferOffset ];
+				const auto v = buffer[ bufferOffset + 1 ];
+				const auto m = buffer[ bufferOffset + 2 ];
+
+				if ( t != 't' || v != 'v' || m != 'm' )
+				{
+					throw std::runtime_error( "Expected valid Header!" );
+				}
+
+				const auto version = buffer[ bufferOffset + 3 ];
+
+				if ( version != 1 )
+					throw std::runtime_error( "Invalid Map version!" );
+
+				bufferOffset += 4;
+				vec.pushBack( Deserialize( buffer, bufferSize, bufferOffset ) );
+			}
+
+			map.insert( { std::move( key ), Value( std::move( vec ) ) } );
 		}
 
 		void DeserializeAndInsertMap( Map& map, String&& key, const uint8_t* buffer, size_t bufferSize, size_t& bufferOffset )
@@ -472,6 +519,9 @@ namespace t
 						continue;
 					case STRING_VECTOR:
 						DeserializeAndInsertVector< Vector< String > >( out_vm, std::move( key ), buffer, bufferOffset );
+						continue;
+					case MAP_VECTOR:
+						DeserializeAndInsertMapVector( out_vm, std::move( key ), buffer, bufferSize, bufferOffset );
 						continue;
 					default:
 						throw std::runtime_error( "De-Serialization for this type is unsupported" );
