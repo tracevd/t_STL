@@ -12,6 +12,7 @@ namespace t
 		public:
 			bool operator==( Map const& rhs ) const;
 			Map Clone() const;
+			Map SemiClone() const;
 			Map() = default;
 			Map( Map const& other )
 			{
@@ -21,7 +22,7 @@ namespace t
 			Map& operator=( Map&& ) = default;
 			Map& operator=( Map const& rhs )
 			{
-				*this = rhs.Clone();
+				*this = rhs.SemiClone();
 				return *this;
 			}
 		};

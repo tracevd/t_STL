@@ -9,6 +9,18 @@ namespace t
     template< typename T >
     class Vector;
 
+    template< typename T >
+    struct is_vector
+    {
+        static constexpr bool value = false;
+    };
+
+    template< typename T >
+    struct is_vector< Vector< T > >
+    {
+        static constexpr bool value = true;
+    };
+
     namespace v
     {
         class Map;

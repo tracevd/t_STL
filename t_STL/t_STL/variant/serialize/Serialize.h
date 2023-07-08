@@ -7,7 +7,15 @@ namespace t
 {
 	namespace v
 	{
-		Vector< uint8_t > Serialize( Map const& map );
-		Map Deserialize( Vector< uint8_t > const& buffer );
+		using BufferType = Vector< uint8_t >;
+
+		inline namespace bitstream_v1
+		{
+			Vector< uint8_t > Serialize( Map const& map );
+		}
+		
+		Map Deserialize( BufferType const& buffer );
+
+		Map Deserialize( const uint8_t* buffer, size_t bufferSize );
 	}
 }

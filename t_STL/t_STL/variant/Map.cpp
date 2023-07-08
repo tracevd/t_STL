@@ -23,16 +23,24 @@ namespace t
 			}
 			return true;
 		}
+		Map Map::SemiClone() const
+		{
+			Map copy;
+
+            for ( const auto& [ key, value ] : *this )
+            {
+				copy.insert( { key, value.SemiClone() } );
+            }
+                
+            return copy;
+		}
 		Map Map::Clone() const
 		{
 			Map copy;
 
             for ( const auto& [ key, value ] : *this )
             {
-				if ( value.Is< Map >() || value.Is< Vector< Map > >() )
-					copy.insert( { key, value.Clone() } );
-				else
-					copy.insert( { key, value } );
+				copy.insert( { key, value.Clone() } );
             }
                 
             return copy;

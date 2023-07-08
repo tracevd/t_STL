@@ -180,7 +180,7 @@ namespace t
                 if constexpr ( std::is_reference_v< T > )
                 {
                     if ( data->references > 1 )
-                        *this = Clone();
+                        *this = SemiClone();
                 }
 
                 return data->val;
@@ -206,6 +206,8 @@ namespace t
             }
 
             Value Clone() const;
+
+            Value SemiClone() const;
 
             ~Value()
             {

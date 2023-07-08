@@ -12,7 +12,7 @@
         std::is_same_v< T, uint64_t > ||\
         std::is_same_v< T, double > ||\
         std::is_same_v< T, float > ||\
-        std::is_same_v< T, Map > ||\
+        std::is_same_v< T, t::v::Map > ||\
         std::is_same_v< T, Vector< int8_t > > ||\
         std::is_same_v< T, Vector< int16_t > > ||\
         std::is_same_v< T, Vector< int32_t > > ||\
@@ -24,7 +24,7 @@
         std::is_same_v< T, Vector< float > > ||\
         std::is_same_v< T, Vector< double > > ||\
         std::is_same_v< T, Vector< String > > ||\
-        std::is_same_v< T, Vector< Map > >
+        std::is_same_v< T, Vector< t::v::Map > >
 
 #define DefineType( T, type_, str ) \
 template<> \

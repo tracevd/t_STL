@@ -266,6 +266,9 @@ public:
 		m_data = newdata;
 	}
 
+	const T* data() const { return m_data; }
+	T* data() { return m_data; }
+
 	[[nodiscard]] size_t size() const
 	{
 		return m_size;

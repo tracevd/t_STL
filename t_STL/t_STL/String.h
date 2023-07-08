@@ -18,7 +18,8 @@ namespace t
 		{
 			m_data = new char[length+1];
 			m_size = length;
-			memcpy_s(m_data, m_size+1, inStr, m_size+1 );
+			memcpy_s(m_data, m_size, inStr, m_size );
+			m_data[ m_size ] = '\0';
 		}
 		String( const char* inStr )
 		{

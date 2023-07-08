@@ -18,6 +18,18 @@ namespace t
 
             return copy;
         }
+        Value Value::SemiClone() const
+        {
+            switch ( m_type )
+            {
+            case MAP:
+                return Value( static_cast< Data< Map >* >( m_data )->val );
+            case MAP_VECTOR:
+                return Value( static_cast< Data< Vector< Map > >* >( m_data )->val );
+            default:
+                return Value( *this );
+            }
+        }
         Value Value::Clone() const
         {
             switch ( m_type )

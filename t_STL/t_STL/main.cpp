@@ -2,7 +2,7 @@
 #include <chrono>
 
 #include "t.h"
-//#include "variant/serialize/Serialize.h"
+#include "variant/serialize/Serialize.h"
 #include "Timer.h"
 
 template< typename T >
@@ -40,10 +40,15 @@ void testDepth( t::v::Map const& map, uint8_t depth )
     }
 }
 
+using std::chrono::microseconds;
+using t::v::Map;
+using t::String;
+using t::Vector;
+using t::v::Value;
+
 int main()
 {
-    using t::v::Map;
-
+#if 0
     printSizeOf< t::HashTable< t::String, t::v::Value > >();
     printSizeOf< t::HashMap< t::String, t::v::Value > >();
 
@@ -76,8 +81,6 @@ int main()
     {
         Map map;
 
-        using std::chrono::microseconds;
-
         Timer< microseconds > t;
 
         t.start();
@@ -106,8 +109,6 @@ int main()
     for ( size_t i = 0; i < NumOfLoops; ++i )
     {
         t::HashTable< t::String, t::v::Value > map;
-
-        using std::chrono::microseconds;
 
         Timer< microseconds > t;
 
@@ -143,6 +144,55 @@ int main()
     printSizeOf< t::v::Value >();
 
     std::cout << t::v::templateToString< t::Vector< t::String > >() << '\n';
+#endif
+
+    Map vm;
+
+    vm["string"]    = "hello";
+    vm["uint8"]     = uint8_t( 1 );
+    vm["uint16"]    = uint16_t( 2 );
+    vm["uint32"]    = uint32_t( 3 );
+    vm["uint64"]    = uint64_t( 4 );
+    vm["int8"]      = int8_t( 5 );
+    vm["int16"]     = int16_t( 6 );
+    vm["int32"]     = int32_t( 7 );
+    vm["int64"]     = int64_t( 8 );
+    vm["float"]     = float( 9 );
+    vm["double"]    = double( 10 );
+    vm["u8 vector"] = Vector< uint8_t >{ 1, 2, 3, 4, 5 };
+    vm["u16 vector"] = Vector< uint16_t >{ 6, 7, 8, 9, 10 };
+    vm["u32 vector"] = Vector< uint32_t >{ 11, 12, 13, 14 };
+    vm["u64 vector"] = Vector< uint64_t >{ 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
+    vm["i8 vector"] = Vector< int8_t >{ 1, 2, 3, 4, 5 };
+    vm["i16 vector"] = Vector< int16_t >{ 6, 7, 8, 9, 10 };
+    vm["i32 vector"] = Vector< int32_t >{ 11, 12, 13, 14 };
+    vm["i64 vector"] = Vector< int64_t >{ 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
+    vm["str vector"] = Vector< String >{ "hey", "blahblah", "broke" };
+    vm["float vector"] = Vector< float >{ 1.f, 2.f, 3.f, 4.5f, 5.f, 7.69420f };
+    vm["double vector"] = Vector< double >{ 25, 26, 27, 28, 29, 30, 31 };
+    Map map;
+    map.insert( { String("test"), Value("value") } );
+    map.insert( { String("test2"), Value("value2") } );
+    vm["vm"] = std::move( map );
+
+    Timer< microseconds > t;
+
+    t.start();
+
+    auto buffer = t::v::Serialize( vm );
+
+    auto ser = t.stop();
+
+    t.start();
+
+    Map vm_2 = t::v::Deserialize( buffer );
+
+    auto deser = t.stop();
+
+    std::cout << "Serialize:   " << ser << "us\n";
+    std::cout << "Deserialize: " << deser << "us\n";
+
+    std::cout << "Maps are equal: " << std::boolalpha << ( vm_2 == vm ) << '\n';
 
     return 0;
 }
