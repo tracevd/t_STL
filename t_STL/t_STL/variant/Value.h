@@ -180,7 +180,12 @@ namespace t
                 if constexpr ( std::is_reference_v< T > )
                 {
                     if ( data->references > 1 )
-                        *this = SemiClone();
+                    {
+                        if constexpr ( std::is_same_v< rm_ref< T >, Map > || std::is_same_v< rm_ref< T >, Vector< Map > > )
+                            *this = SemiClone();
+                        else
+                            *this = Clone();
+                    }
                 }
 
                 return data->val;
