@@ -5,7 +5,7 @@
 
 namespace t
 {
-    namespace v
+    namespace variant
     {
         static Vector< Map > CloneVectorOfMaps( Vector< Map > const& vec )
         {

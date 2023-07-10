@@ -14,23 +14,23 @@ void printSizeOf()
 
 constexpr uint8_t MAX_DEPTH = 8;
 
-void testDepth( t::v::Map const& map, uint8_t depth );
+void testDepth( t::variant::Map const& map, uint8_t depth );
 
-void testDepth( t::v::Value const& val, uint8_t depth )
+void testDepth( t::variant::Value const& val, uint8_t depth )
 {
     if ( depth == MAX_DEPTH )
         throw std::runtime_error("Bad things happened!");
-    if ( val.Is< t::v::Map >() )
+    if ( val.Is< t::variant::Map >() )
     {
-        testDepth( val.As< t::v::Map const& >(), depth + 1 );
+        testDepth( val.As< t::variant::Map const& >(), depth + 1 );
     }
-    else if ( val.Is< t::Vector< t::v::Map > >() )
+    else if ( val.Is< t::Vector< t::variant::Map > >() )
     {
 
     }
 }
 
-void testDepth( t::v::Map const& map, uint8_t depth )
+void testDepth( t::variant::Map const& map, uint8_t depth )
 {
     if ( depth == MAX_DEPTH )
         throw std::runtime_error("Bad things happened!");
@@ -40,11 +40,23 @@ void testDepth( t::v::Map const& map, uint8_t depth )
     }
 }
 
+void printHexStr( uint64_t val )
+{
+    std::cout << "0x " << std::hex << val << '\n';
+}
+
+void hashAndPrint( t::fast::String const& str )
+{
+    std::cout << str << ":\n";
+    printHexStr( std::hash< t::fast::String >{}( str ) );
+}
+
 using std::chrono::microseconds;
-using t::v::Map;
+using t::variant::Map;
 using t::String;
+using fString = t::fast::String;
 using t::Vector;
-using t::v::Value;
+using t::variant::Value;
 
 int main()
 {
@@ -176,20 +188,20 @@ int main()
     Map map;
     map.insert( { String("test"), Value("value") } );
     map.insert( { String("test2"), Value("value2") } );
-    vm["vm"] = std::move( map );
     vm["vm vector"] = Vector< Map >{ map, map, map };
+    vm["vm"] = std::move( map );
 
     Timer< microseconds > t;
 
     t.start();
 
-    auto buffer = t::v::Serialize( vm );
+    auto buffer = t::variant::Serialize( vm );
 
     auto ser = t.stop();
 
     t.start();
 
-    Map vm_2 = t::v::Deserialize( buffer );
+    Map vm_2 = t::variant::Deserialize( buffer );
 
     auto deser = t.stop();
 
@@ -197,6 +209,72 @@ int main()
     std::cout << "Deserialize: " << deser << "us\n";
 
     std::cout << "Maps are equal: " << std::boolalpha << ( vm_2 == vm ) << '\n';
+
+    printSizeOf< fString >();
+
+    fString x;
+
+    std::string_view xy = "hello";
+
+    x.reserve( 70 );
+
+    x += "This is a really cool sentence.";
+
+    x += '\n';
+
+    x += "This is another cool sentence.";
+
+    constexpr t::StringView s ("hello");
+
+    t::StringView str = x;
+
+    std::cout << str << '\n';
+
+    fString str1 = "hello";
+
+    hashAndPrint( str1 );
+
+    fString str2 = "blah blah";
+
+    hashAndPrint( str2 );
+
+    fString str_ = "bleh bleh";
+
+    hashAndPrint( str_ );
+
+    fString str3 = "ayyo whatup broski";
+
+    hashAndPrint( str3 );
+
+    fString str4 = "Image_Data";
+
+    hashAndPrint( str4 );
+
+    fString str5 = "Image_data";
+
+    hashAndPrint( str5 );
+
+    fString str6 = "hi";
+
+    hashAndPrint( str6 );
+
+    t::HashTable< fString, Value > m;
+
+    t.start();
+
+    auto teststr = fString( std::numeric_limits< uint64_t >::max() );
+
+    std::cout << t.stop() << '\n';
+
+    std::cout << "ToString: " << teststr << '\n';
+    
+    t.start();
+
+    auto teststr2 = fString( std::numeric_limits< uint64_t >::min() );
+
+    std::cout << t.stop() << '\n';
+
+    std::cout << "ToString: " << teststr2 << '\n';
 
     return 0;
 }

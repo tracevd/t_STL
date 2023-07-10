@@ -3,7 +3,7 @@
 
 namespace t
 {
-	namespace v
+	namespace variant
 	{
 		const char* typeToString( Type type )
         {

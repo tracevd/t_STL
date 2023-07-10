@@ -267,6 +267,8 @@ namespace t
 	public:
 		HashTable() { m_data.resize( 20 ); }
 
+		explicit HashTable( size_t size ) { m_data.resize( size ); }
+
 		bool isEmpty() const { return size() == 0; }
 
 		size_t size() const
@@ -343,6 +345,13 @@ namespace t
 				return &m_data[ hash ].add( std::move( pair ) );
 			}
 			return nullptr;
+		}
+
+		void setNumberOfBuckets( size_t size )
+		{
+			if ( m_size != 0 )
+				throw std::runtime_error("Cannot set NumberOfBuckets after inserting elements");
+			m_data.resize( size );
 		}
 
 		void printBucketSizes() const
@@ -489,11 +498,6 @@ namespace t
 			if ( pair == nullptr )
 				throw std::runtime_error( "Cannot find key" );
 			return pair->val;
-		}
-
-		HashTable( size_t capacity )
-		{
-
 		}
 
 		HashTable rehash()

@@ -4,7 +4,7 @@
 
 namespace t
 {
-	namespace v
+	namespace variant
 	{
 		class Map;
 		class Value;

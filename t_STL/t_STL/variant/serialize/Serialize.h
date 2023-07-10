@@ -5,7 +5,7 @@
 
 namespace t
 {
-	namespace v
+	namespace variant
 	{
 		using BufferType = Vector< uint8_t >;
 

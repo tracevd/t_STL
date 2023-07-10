@@ -1,7 +1,6 @@
 #pragma once
 
 #include <type_traits>
-#include <exception>
 
 namespace t
 {
@@ -21,7 +20,7 @@ namespace t
         static constexpr bool value = true;
     };
 
-    namespace v
+    namespace variant
     {
         class Map;
 

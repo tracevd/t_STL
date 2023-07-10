@@ -4,7 +4,7 @@
 
 namespace t
 {
-    namespace v
+    namespace variant
     {
 		bool Map::operator==( Map const& rhs ) const
 		{

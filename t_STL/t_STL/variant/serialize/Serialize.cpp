@@ -7,15 +7,8 @@
 
 namespace t
 {
-	namespace v
+	namespace variant
 	{
-		struct MapHeader
-		{
-			uint8_t version;
-			uint16_t endianness;
-			size_t size;
-		};
-
 		template< typename T >
 		T byteswap( T data );
 

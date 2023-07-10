@@ -10,7 +10,7 @@
 
 namespace t
 {
-    namespace v
+    namespace variant
     {
         template< typename T >
         using decay = std::decay_t< T >;

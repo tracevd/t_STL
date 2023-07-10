@@ -5,7 +5,7 @@
 
 namespace t
 {
-	namespace v
+	namespace variant
 	{
 		class Map : public std::unordered_map< String, Value >
 		{
