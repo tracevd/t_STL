@@ -1,6 +1,14 @@
 # Prerequisites
 *.d
 
+# visual studio stuff
+.vs/*
+*.vs*
+*Debug*
+*Release*
+*.vcxproj*
+*.sln
+
 # Compiled Object files
 *.slo
 *.lo
