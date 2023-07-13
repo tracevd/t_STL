@@ -11,6 +11,15 @@ namespace t
         }
     }
 
+    template< typename Source_It1, typename SourceIt2, typename Dest_It, typename Func >
+    constexpr void transform( Source_It1 begin1, Source_It1 const end1, SourceIt2 begin2, Dest_It dest_begin, Func func )
+    {
+        for ( ; begin1 != end1; ++begin1, ++begin2, ++dest_begin )
+        {
+            *dest_begin = func( *begin1, *begin2 );
+        }
+    }
+
     template< typename It, typename Comp >
     constexpr It find( It begin, const It end, Comp const& val )
     {
@@ -31,5 +40,14 @@ namespace t
                 return begin;
         }
         return begin;
+    }
+
+    template< typename It, typename Func >
+    constexpr void forEach( It begin, const It end, Func func )
+    {
+        for ( ; begin != end; ++begin )
+        {
+            func( *begin );
+        }
     }
 }

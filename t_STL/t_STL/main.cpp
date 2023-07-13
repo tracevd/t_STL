@@ -119,6 +119,8 @@ struct Blah
     String x;
 };
 
+#include <array>
+
 int main()
 {
     auto str = fString( 12345678 );
@@ -158,6 +160,20 @@ int main()
     std::cout << "Found: " << *strit << '\n';
 
     std::cout << "Took: " << findif_stop << "us \n";
+
+    t::forEach( arr.data(), arr.data() + arr.size(),
+        []( auto const& str ){ std::cout << str << '\n'; } );
+
+    std::unordered_map< int, int > x;
+
+    std::array< int, 7 > _g = { 0, 1, 2, 3, 4, 5, 6 };
+    std::array< int, 7 > _h = { 7, 8, 9, 10, 11, 12, 13 };
+
+    t::transform( _g.cbegin(), _g.cend(), _h.cbegin(), std::inserter( x, x.begin() ),
+        []( int a, int b ){ return std::pair< int, int >{ a, b }; } );
+
+    t::forEach( x.cbegin(), x.cend(),
+        []( auto const& pair ){ std::cout << pair.first << ": " << pair.second << '\n'; } );
 
     return 0;
 }
