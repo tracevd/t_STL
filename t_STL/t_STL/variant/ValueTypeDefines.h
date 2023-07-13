@@ -32,6 +32,11 @@ struct TtoType< T > \
 { \
     static constexpr t::variant::Type type = type_; \
     static constexpr const char* string    = str; \
+}; \
+template<> \
+struct TypeToT< type_ > \
+{ \
+    using type = typename T; \
 };
 
 #define TtoTypeDef \
@@ -42,6 +47,8 @@ struct TtoType \
     static constexpr t::variant::Type type = VOID; \
     static constexpr const char* string    = "void"; \
 }; \
+template< Type t > \
+struct TypeToT; \
 \
 DefineType( int8_t, INT8, "i8" ) \
 DefineType( int16_t, INT16, "i16" ) \

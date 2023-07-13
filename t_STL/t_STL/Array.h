@@ -12,8 +12,6 @@ namespace t
 
 		constexpr Array( std::initializer_list< T > list )
 		{
-			if ( list.size() > Size )
-				throw std::runtime_error("Invalid size of initializer list");
 
 			auto it = list.begin();
 
@@ -72,6 +70,9 @@ namespace t
 		{
 			return m_data[ Size - 1 ];
 		}
+
+		constexpr T* data() { return m_data; }
+		constexpr const T* data() const { return m_data; }
 	};
 
 }

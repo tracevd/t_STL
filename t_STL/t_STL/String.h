@@ -353,7 +353,13 @@ namespace t
 					}
 				}
 
-				*this = String( end, &buff[ 21 ] - end );
+				*this = String( end, static_cast< uint32_t >( &buff[21] - end ) );
+			}
+
+			template< size_t N >
+			String( char const ( &str )[ N ] )
+			{
+				*this = String( str, static_cast< uint32_t >( N-1 ) );
 			}
 
 			String( const char* str, uint32_t length )
@@ -365,11 +371,11 @@ namespace t
 				m_data[ m_size ] = '\0';
 			}
 
-			String( const char* str )
+			/*String( const char* str )
 			{
 				uint32_t length = (uint32_t) strlen( str );
 				*this = String( str, length );
-			}
+			}*/
 
 			String( String const& str )
 			{
@@ -403,6 +409,9 @@ namespace t
 				return *this;
 			}
 
+			const char* data() const { return m_data; }
+			char* data() { return m_data; }
+
 			String& operator=( String const& rhs )
 			{
 				if ( m_capacity >= rhs.m_size && m_data != nullptr )
@@ -426,7 +435,7 @@ namespace t
 					m_data[ m_size ] = '\0';
 					return *this;
 				}
-				*this = String( rhs );
+				*this = String( rhs, length );
 				return *this;
 			}
 

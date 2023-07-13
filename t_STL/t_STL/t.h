@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Algorithm.h"
 #include "String.h"
 #include "Vector.h"
 #include "Array.h"

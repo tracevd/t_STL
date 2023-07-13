@@ -173,7 +173,9 @@ namespace t
                     throw std::runtime_error("Data is null!");
 
                 if ( type != m_type )
+                {
                     throw std::runtime_error( "Invalid type" );
+                }
 
                 auto data = static_cast< Data< decay< T > >* >( m_data );
 
@@ -192,10 +194,10 @@ namespace t
             }
 
             /**
-             * Cast to const reference or literal
+             * Cast to const reference or plain type
              */
             template< typename T, typename = std::enable_if_t< std::is_const_v< rm_ref< T > > || !std::is_reference_v< T > > >
-            T As() const
+            inline T As() const
             {
                 auto constexpr type = templateToVariantType< decay< T > >();
 
@@ -205,7 +207,9 @@ namespace t
                     throw std::runtime_error("Data is null!");
 
                 if ( type != m_type )
+                {
                     throw std::runtime_error( "Invalid type" );
+                }
 
                 return static_cast< Data< decay< T > >* >( m_data )->val;
             }
