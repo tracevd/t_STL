@@ -32,11 +32,11 @@ namespace t
     }
 
     template< typename It, typename Func >
-    constexpr It findIf( It begin, const It end, Func func )
+    constexpr It findIf( It begin, const It end, Func condition )
     {
         for ( ; begin != end; ++begin )
         {
-            if ( func( *begin ) )
+            if ( condition( *begin ) )
                 return begin;
         }
         return begin;

@@ -23,13 +23,28 @@ namespace t
 			}
 			return true;
 		}
-		Map Map::SemiClone() const
+		Map Map::QuickClone() const
 		{
 			Map copy;
 
             for ( const auto& [ key, value ] : *this )
             {
-				copy.insert( { key, value.SemiClone() } );
+				copy.insert( { key, value.QuickClone( 1 ) } );
+            }
+                
+            return copy;
+		}
+		Map Map::QuickClone( uint64 depth ) const
+		{
+			if ( depth > 0 )
+				return *this;
+			
+			Map copy;
+			copy.reserve( size() );
+
+            for ( const auto& [ key, value ] : *this )
+            {
+				copy.insert( { key, value.QuickClone( depth == 0 ? 0 : depth + 1 ) } );
             }
                 
             return copy;
@@ -37,6 +52,7 @@ namespace t
 		Map Map::Clone() const
 		{
 			Map copy;
+			copy.reserve( size() );
 
             for ( const auto& [ key, value ] : *this )
             {

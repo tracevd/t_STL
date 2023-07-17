@@ -3,6 +3,7 @@
 #include "Serialize.h"
 
 #include <iostream>
+#include <type_traits>
 
 
 namespace t
@@ -13,20 +14,20 @@ namespace t
 		T byteswap( T data );
 
 		template<>
-		uint64_t byteswap( uint64_t data )
+		uint64 byteswap( uint64 data )
 		{
 			return (data >> 56 & 0xff) | (data >> 48 & 0xff) << 8 | (data >> 40 & 0xff) << 16 | (data >> 32 & 0xff) << 24 |
 				   (data >> 24 & 0xff) << 32 | (data >> 16 & 0xff) << 40 | (data >>  8 & 0xff) << 48 | (data & 0xff) << 56;
 		}
 
 		template<>
-		uint32_t byteswap( uint32_t data )
+		uint32 byteswap( uint32 data )
 		{
 			return (data >> 24 & 0xff) | (data >> 16 & 0xff) << 8 | (data >> 8 & 0xff) << 16 | (data & 0xff) << 24;
 		}
 
 		template<>
-		uint16_t byteswap( uint16_t data )
+		uint16 byteswap( uint16 data )
 		{
 			return (data >> 8 & 0xff) | (data & 0xff) << 8;
 		}
@@ -35,31 +36,31 @@ namespace t
 		void AddToBuffer( BufferType& buffer, T data );
 
 		template<>
-		void AddToBuffer< uint8_t >( BufferType& buffer, uint8_t data )
+		void AddToBuffer< uint8 >( BufferType& buffer, uint8 data )
 		{
 			buffer.pushBack( data );
 		}
 
 		template<>
-		void AddToBuffer< uint16_t >( BufferType& buffer, uint16_t data )
+		void AddToBuffer< uint16 >( BufferType& buffer, uint16 data )
 		{
-			const uint8_t* const ptr = reinterpret_cast<uint8_t*>(&data);
+			const uint8* const ptr = reinterpret_cast<uint8*>(&data);
 			buffer.pushBack( ptr[ 0 ] );
 			buffer.pushBack( ptr[ 1 ] );
 		}
 		template<>
-		void AddToBuffer< uint32_t >( BufferType& buffer, uint32_t data )
+		void AddToBuffer< uint32 >( BufferType& buffer, uint32 data )
 		{
-			const uint8_t* const ptr = reinterpret_cast< uint8_t* >( &data );
+			const uint8* const ptr = reinterpret_cast< uint8* >( &data );
 			buffer.pushBack( ptr[ 0 ] );
 			buffer.pushBack( ptr[ 1 ] );
 			buffer.pushBack( ptr[ 2 ] );
 			buffer.pushBack( ptr[ 3 ] );
 		}
 		template<>
-		void AddToBuffer< uint64_t >( BufferType& buffer, uint64_t data )
+		void AddToBuffer< uint64 >( BufferType& buffer, uint64 data )
 		{
-			const uint8_t* const ptr = reinterpret_cast<uint8_t*>(&data);
+			const uint8* const ptr = reinterpret_cast<uint8*>(&data);
 			buffer.pushBack( ptr[ 0 ] );
 			buffer.pushBack( ptr[ 1 ] );
 			buffer.pushBack( ptr[ 2 ] );
@@ -71,45 +72,45 @@ namespace t
 		}
 
 		template<>
-		void AddToBuffer< int8_t >( BufferType& buffer, int8_t data )
+		void AddToBuffer< int8 >( BufferType& buffer, int8 data )
 		{
-			AddToBuffer< uint8_t >( buffer, *reinterpret_cast< uint8_t* >( &data ) );
+			AddToBuffer< uint8 >( buffer, *reinterpret_cast< uint8* >( &data ) );
 		}
 
 		template<>
-		void AddToBuffer< int16_t >( BufferType& buffer, int16_t data )
+		void AddToBuffer< int16 >( BufferType& buffer, int16 data )
 		{
-			AddToBuffer< uint16_t >( buffer, *reinterpret_cast< uint16_t* >( &data ) );
+			AddToBuffer< uint16 >( buffer, *reinterpret_cast< uint16* >( &data ) );
 		}
 
 		template<>
-		void AddToBuffer< int32_t >( BufferType& buffer, int32_t data )
+		void AddToBuffer< int32 >( BufferType& buffer, int32 data )
 		{
-			AddToBuffer< uint32_t >( buffer, *reinterpret_cast< uint32_t* >( &data ) );
+			AddToBuffer< uint32 >( buffer, *reinterpret_cast< uint32* >( &data ) );
 		}
 
 		template<>
-		void AddToBuffer< int64_t >( BufferType& buffer, int64_t data )
+		void AddToBuffer< int64 >( BufferType& buffer, int64 data )
 		{
-			AddToBuffer< uint64_t >( buffer, *reinterpret_cast< uint64_t* >( &data ) );
+			AddToBuffer< uint64 >( buffer, *reinterpret_cast< uint64* >( &data ) );
 		}
 
 		template<>
 		void AddToBuffer< float >( BufferType& buffer, float data )
 		{
-			AddToBuffer< uint32_t >( buffer, *reinterpret_cast< uint32_t* >( &data ) );
+			AddToBuffer< uint32 >( buffer, *reinterpret_cast< uint32* >( &data ) );
 		}
 
 		template<>
 		void AddToBuffer< double >( BufferType& buffer, double data )
 		{
-			AddToBuffer< uint64_t >( buffer, *reinterpret_cast< uint64_t* >( &data ) );
+			AddToBuffer< uint64 >( buffer, *reinterpret_cast< uint64* >( &data ) );
 		}
 
 		template< typename T >
 		void AddToBuffer( BufferType& buffer, Vector< T > const& data )
 		{
-			for ( size_t i = 0; i < data.size(); ++i )
+			for ( uint64 i = 0; i < data.size(); ++i )
 			{
 				AddToBuffer( buffer, data[ i ] );
 			}
@@ -121,62 +122,69 @@ namespace t
 
 			void Serialize( BufferType& buffer, String const& str )
 			{
-				AddToBuffer( buffer, (uint16_t) str.size() );
-				for ( size_t i = 0; i < str.size(); ++i )
+				AddToBuffer( buffer, (uint16) str.size() );
+				for ( uint64 i = 0; i < str.size(); ++i )
 				{
-					AddToBuffer( buffer, *(uint8_t*) &str[i] );
+					AddToBuffer( buffer, *(uint8*) &str[i] );
 				}
 			}
 
-			template< typename T, typename = std::enable_if_t< !std::is_arithmetic_v< T > > >
-			void SerializeValue( BufferType& buffer, T const& data )
-			{
-				AddToBuffer( buffer, (uint8_t) templateToVariantType< T >() );
-				AddToBuffer< uint64_t >( buffer, data.size() );
-				AddToBuffer( buffer, data );
-			}
+			template< typename T >
+			void SerializeComplexValue( BufferType& buffer, T const& data );
 
-			template< typename T, typename = std::enable_if_t< std::is_arithmetic_v< T > > >
-			void SerializeValue( BufferType& buffer, T data )
+			template< typename T >
+			void SerializePrimitiveValue( BufferType& buffer, T data )
 			{
 				auto constexpr type = templateToVariantType< T >();
 				static_assert( type != VOID, "Invalid Type attempting to be serialized" );
-				AddToBuffer< uint8_t >( buffer, type );
+				AddToBuffer< uint8 >( buffer, type );
 				AddToBuffer< T >( buffer, data );
 			}
 
-			template<>
-			void SerializeValue< String, void >( BufferType& buffer, String const& data )
+			template< typename T >
+			void SerializeVectorValue( BufferType& buffer, Vector< T > const& data )
 			{
-				AddToBuffer( buffer, (uint8_t) templateToVariantType< String >() );
+				AddToBuffer< uint8 >( buffer, templateToVariantType< Vector< T > >() );
+				AddToBuffer< uint64 >( buffer, data.size() );
+
+				for ( uint64 i = 0; i < data.size(); ++i )
+				{
+					AddToBuffer< T >( buffer, data[ i ] );
+				}
+			}
+
+			template<>
+			void SerializeComplexValue< String >( BufferType& buffer, String const& data )
+			{
+				AddToBuffer( buffer, (uint8) templateToVariantType< String >() );
 				Serialize( buffer, data );
 			}
 
 			template<>
-			void SerializeValue< Map, void >( BufferType& buffer, Map const& data )
+			void SerializeComplexValue< Map >( BufferType& buffer, Map const& data )
 			{
-				AddToBuffer( buffer, (uint8_t) templateToVariantType< Map >() );
+				AddToBuffer( buffer, (uint8) templateToVariantType< Map >() );
 				Serialize( buffer, data );
 			}
 
 			template<>
-			void SerializeValue< Vector< Map >, void >( BufferType& buffer, Vector< Map > const& data )
+			void SerializeComplexValue< Vector< Map > >( BufferType& buffer, Vector< Map > const& data )
 			{
-				AddToBuffer( buffer, (uint8_t) templateToVariantType< Vector< Map > >() );
-				AddToBuffer< uint64_t >( buffer, data.size() );
+				AddToBuffer( buffer, (uint8) templateToVariantType< Vector< Map > >() );
+				AddToBuffer< uint64 >( buffer, data.size() );
 
-				for ( size_t i = 0; i < data.size(); ++i )
+				for ( uint64 i = 0; i < data.size(); ++i )
 				{
 					Serialize( buffer, data[ i ] );
 				}
 			}
 
 			template<>
-			void SerializeValue< Vector< String >, void >( BufferType& buffer, Vector< String > const& data )
+			void SerializeComplexValue< Vector< String > >( BufferType& buffer, Vector< String > const& data )
 			{
-				AddToBuffer< uint8_t >( buffer, (uint8_t) templateToVariantType< Vector< String > >() );
-				AddToBuffer< uint64_t >( buffer, data.size() );
-				for ( size_t i = 0; i < data.size(); ++i )
+				AddToBuffer< uint8 >( buffer, (uint8) templateToVariantType< Vector< String > >() );
+				AddToBuffer< uint64 >( buffer, data.size() );
+				for ( uint64 i = 0; i < data.size(); ++i )
 				{
 					Serialize( buffer, data[ i ] );
 				}
@@ -189,53 +197,53 @@ namespace t
 				switch ( type )
 				{
 				case Type::INT8:
-					return SerializeValue( buffer, val.As< int8_t >() );
+					return SerializePrimitiveValue( buffer, val.As< int8 >() );
 				case Type::INT16:
-					return SerializeValue( buffer, val.As< int16_t >() );
+					return SerializePrimitiveValue( buffer, val.As< int16 >() );
 				case Type::INT32:
-					return SerializeValue( buffer, val.As< int32_t >() );
+					return SerializePrimitiveValue( buffer, val.As< int32 >() );
 				case Type::INT64:
-					return SerializeValue( buffer, val.As< int64_t >() );
+					return SerializePrimitiveValue( buffer, val.As< int64 >() );
 				case Type::UINT8:
-					return SerializeValue( buffer, val.As< uint8_t >() );
+					return SerializePrimitiveValue( buffer, val.As< uint8 >() );
 				case Type::UINT16:
-					return SerializeValue( buffer, val.As< uint16_t >() );
+					return SerializePrimitiveValue( buffer, val.As< uint16 >() );
 				case Type::UINT32:
-					return SerializeValue( buffer, val.As< uint32_t >() );
+					return SerializePrimitiveValue( buffer, val.As< uint32 >() );
 				case Type::UINT64:
-					return SerializeValue( buffer, val.As< uint64_t >() );
+					return SerializePrimitiveValue( buffer, val.As< uint64 >() );
 				case Type::FLOAT:
-					return SerializeValue( buffer, val.As< float >() );
+					return SerializePrimitiveValue( buffer, val.As< float >() );
 				case Type::DOUBLE:
-					return SerializeValue( buffer, val.As< double >() );
+					return SerializePrimitiveValue( buffer, val.As< double >() );
 				case Type::STRING:
-					return SerializeValue( buffer, val.As< String const& >() );
+					return SerializeComplexValue( buffer, val.As< String const& >() );
 				case Type::MAP:
-					return SerializeValue( buffer, val.As< Map const& >() );
+					return SerializeComplexValue( buffer, val.As< Map const& >() );
 				case Type::INT8_VECTOR:
-					return SerializeValue( buffer, val.As< Vector< int8_t > const& >() );
+					return SerializeVectorValue( buffer, val.As< Vector< int8 > const& >() );
 				case Type::INT16_VECTOR:
-					return SerializeValue( buffer, val.As< Vector< int16_t > const& >() );
+					return SerializeVectorValue( buffer, val.As< Vector< int16 > const& >() );
 				case Type::INT32_VECTOR:
-					return SerializeValue( buffer, val.As< Vector< int32_t > const& >() );
+					return SerializeVectorValue( buffer, val.As< Vector< int32 > const& >() );
 				case Type::INT64_VECTOR:
-					return SerializeValue( buffer, val.As< Vector< int64_t > const& >() );
+					return SerializeVectorValue( buffer, val.As< Vector< int64 > const& >() );
 				case Type::UINT8_VECTOR:
-					return SerializeValue( buffer, val.As< Vector< uint8_t > const& >() );
+					return SerializeVectorValue( buffer, val.As< Vector< uint8 > const& >() );
 				case Type::UINT16_VECTOR:
-					return SerializeValue( buffer, val.As< Vector< uint16_t > const& >() );
+					return SerializeVectorValue( buffer, val.As< Vector< uint16 > const& >() );
 				case Type::UINT32_VECTOR:
-					return SerializeValue( buffer, val.As< Vector< uint32_t > const& >() );
+					return SerializeVectorValue( buffer, val.As< Vector< uint32 > const& >() );
 				case Type::UINT64_VECTOR:
-					return SerializeValue( buffer, val.As< Vector< uint64_t > const& >() );
+					return SerializeVectorValue( buffer, val.As< Vector< uint64 > const& >() );
 				case Type::FLOAT_VECTOR:
-					return SerializeValue( buffer, val.As< Vector< float > const& >() );
+					return SerializeVectorValue( buffer, val.As< Vector< float > const& >() );
 				case Type::DOUBLE_VECTOR:
-					return SerializeValue( buffer, val.As< Vector< double > const& >() );
+					return SerializeVectorValue( buffer, val.As< Vector< double > const& >() );
 				case Type::STRING_VECTOR:
-					return SerializeValue( buffer, val.As< Vector< String > const& >() );
+					return SerializeComplexValue( buffer, val.As< Vector< String > const& >() );
 				case Type::MAP_VECTOR:
-					return SerializeValue( buffer, val.As< Vector< Map > const& >() );
+					return SerializeComplexValue( buffer, val.As< Vector< Map > const& >() );
 				default:
 					throw std::runtime_error( "Type not supported" );
 				}
@@ -248,8 +256,8 @@ namespace t
 				buffer.pushBack( 'm' );
 				buffer.pushBack( 1 );
 
-				AddToBuffer< uint16_t >( buffer, 1 );
-				AddToBuffer< uint64_t >( buffer, map.size() );
+				AddToBuffer< uint16 >( buffer, 1 );
+				AddToBuffer< uint64 >( buffer, map.size() );
 				
 				for ( const auto& [ key, value ] : map )
 				{
@@ -269,14 +277,14 @@ namespace t
 		}
 
 		template< typename T >
-		T ReadValueFromBuffer( const uint8_t* buffer )
+		T ReadValueFromBuffer( const uint8* buffer )
 		{
 			return *reinterpret_cast< const T* >( buffer );
 		}
 
-		String DeserializeString( const uint8_t* buffer, size_t& bufferOffset )
+		String DeserializeString( const uint8* buffer, uint64& bufferOffset )
 		{
-			auto length = ReadValueFromBuffer< uint16_t >( &buffer[ bufferOffset ] );
+			auto length = ReadValueFromBuffer< uint16 >( &buffer[ bufferOffset ] );
 			bufferOffset += sizeof( length );
 			auto str = String( reinterpret_cast< const char* >( &buffer[ bufferOffset ] ), length );
 			bufferOffset += length;
@@ -284,7 +292,7 @@ namespace t
 		}
 
 		template< typename T >
-		Value DeserializeVector( const uint8_t* buffer, size_t& bufferOffset, size_t numel )
+		Value DeserializeVector( const uint8* buffer, uint64& bufferOffset, uint64 numel )
 		{
 			if constexpr ( std::is_same_v< T, Vector< String > > )
 			{
@@ -316,11 +324,11 @@ namespace t
 		}
 
 		template< typename T >
-		Value DeserializeValue( const uint8_t* buffer, size_t& bufferOffset )
+		Value DeserializeValue( const uint8* buffer, uint64& bufferOffset )
 		{
 			if constexpr ( std::is_same_v< T, String > )
 			{
-				auto length = ReadValueFromBuffer< uint16_t >( &buffer[ bufferOffset ] );
+				auto length = ReadValueFromBuffer< uint16 >( &buffer[ bufferOffset ] );
 				bufferOffset += sizeof( length );
 				auto str = String( reinterpret_cast< const char* >( &buffer[ bufferOffset ] ), length );
 				bufferOffset += length;
@@ -334,13 +342,13 @@ namespace t
 
 		namespace bitstream_v1
 		{
-			Map Deserialize( const uint8_t* buffer, size_t bufferSize, size_t& bufferOffset );
+			Map Deserialize( const uint8* buffer, uint64 bufferSize, uint64& bufferOffset );
 		}
 
-		void DeserializeAndInsertMapVector( Map& map, String&& key, const uint8_t* buffer, size_t bufferSize, size_t& bufferOffset )
+		void DeserializeAndInsertMapVector( Map& map, String&& key, const uint8* buffer, uint64 bufferSize, uint64& bufferOffset )
 		{
-			auto numel = ReadValueFromBuffer< uint64_t >( &buffer[ bufferOffset ] );
-			bufferOffset += sizeof( uint64_t );
+			auto numel = ReadValueFromBuffer< uint64 >( &buffer[ bufferOffset ] );
+			bufferOffset += sizeof( uint64 );
 
 			Vector< Map > vec;
 			vec.reserve( numel );
@@ -348,7 +356,7 @@ namespace t
 			for ( auto numel_ = numel; numel_ > 0; --numel_ )
 			{
 				//                "tvm<n>"     endianness         numel
-				if ( bufferSize < 4 + sizeof( uint16_t ) + sizeof( uint64_t ) )
+				if ( bufferSize < 4 + sizeof( uint16 ) + sizeof( uint64 ) )
 				{
 					throw std::runtime_error( "Invalid buffer length! Must be long enough for Header!" );
 				}
@@ -373,10 +381,10 @@ namespace t
 			map.insert( { std::move( key ), Value( std::move( vec ) ) } );
 		}
 
-		void DeserializeAndInsertMap( Map& map, String&& key, const uint8_t* buffer, size_t bufferSize, size_t& bufferOffset )
+		void DeserializeAndInsertMap( Map& map, String&& key, const uint8* buffer, uint64 bufferSize, uint64& bufferOffset )
 		{
 			//                "tvm<n>"     endianness         numel
-			if ( bufferSize < 4 + sizeof( uint16_t ) + sizeof( uint64_t ) )
+			if ( bufferSize < 4 + sizeof( uint16 ) + sizeof( uint64 ) )
 			{
 				throw std::runtime_error( "Invalid buffer length! Must be long enough for Header!" );
 			}
@@ -402,38 +410,38 @@ namespace t
 		namespace bitstream_v1
 		{
 			template< typename T >
-			void DeserializeAndInsertVector( Map& map, String&& key, const uint8_t* buffer, size_t& bufferOffset )
+			void DeserializeAndInsertVector( Map& map, String&& key, const uint8* buffer, uint64& bufferOffset )
 			{
-				auto numel = ReadValueFromBuffer< uint64_t >( &buffer[ bufferOffset ] );
-				bufferOffset += sizeof( uint64_t );
+				auto numel = ReadValueFromBuffer< uint64 >( &buffer[ bufferOffset ] );
+				bufferOffset += sizeof( uint64 );
 				map.insert( { std::move( key ), DeserializeVector< T >( buffer, bufferOffset, numel ) } );
 			}
 
 			template< typename T >
-			void DeserializeAndInsertValue( Map& map, String&& key, const uint8_t* buffer, size_t& bufferOffset )
+			void DeserializeAndInsertValue( Map& map, String&& key, const uint8* buffer, uint64& bufferOffset )
 			{
 				map.insert( { std::move( key ), DeserializeValue< T >( buffer, bufferOffset ) } );
 			}
 
-			Map Deserialize( const uint8_t* buffer, size_t bufferSize, size_t& bufferOffset )
+			Map Deserialize( const uint8* buffer, uint64 bufferSize, uint64& bufferOffset )
 			{
-				auto const endianness = *reinterpret_cast<const uint16_t*>(&buffer[bufferOffset]);
-				bufferOffset += sizeof( uint16_t );
+				auto const endianness = *reinterpret_cast<const uint16*>(&buffer[bufferOffset]);
+				bufferOffset += sizeof( uint16 );
 
 				const bool endianness_is_same = endianness == 1;
 
 				if ( !endianness_is_same )
 					throw std::runtime_error( "Conversion from different endianness is not supported yet" );
 
-				const auto numel = *reinterpret_cast< const uint64_t* >( &buffer[ bufferOffset ] );
+				const auto numel = *reinterpret_cast< const uint64* >( &buffer[ bufferOffset ] );
 
-				bufferOffset += sizeof( uint64_t );
+				bufferOffset += sizeof( uint64 );
 
 				Map out_vm;
 
 				out_vm.reserve( numel );
 
-				for ( size_t numel_found = 0; numel_found < numel; ++numel_found )
+				for ( uint64 numel_found = 0; numel_found < numel; ++numel_found )
 				{
 					String key = DeserializeString( buffer, bufferOffset );
 
@@ -445,28 +453,28 @@ namespace t
 					switch ( type )
 					{
 					case INT8:
-						DeserializeAndInsertValue< int8_t >( out_vm, std::move( key ), buffer, bufferOffset );
+						DeserializeAndInsertValue< int8 >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
 					case INT16:
-						DeserializeAndInsertValue< int16_t >( out_vm, std::move( key ), buffer, bufferOffset );
+						DeserializeAndInsertValue< int16 >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
 					case INT32:
-						DeserializeAndInsertValue< int32_t >( out_vm, std::move( key ), buffer, bufferOffset );
+						DeserializeAndInsertValue< int32 >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
 					case INT64:
-						DeserializeAndInsertValue< int64_t >( out_vm, std::move( key ), buffer, bufferOffset );
+						DeserializeAndInsertValue< int64 >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
 					case UINT8:
-						DeserializeAndInsertValue< uint8_t >( out_vm, std::move( key ), buffer, bufferOffset );
+						DeserializeAndInsertValue< uint8 >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
 					case UINT16:
-						DeserializeAndInsertValue< uint16_t >( out_vm, std::move( key ), buffer, bufferOffset );
+						DeserializeAndInsertValue< uint16 >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
 					case UINT32:
-						DeserializeAndInsertValue< uint32_t >( out_vm, std::move( key ), buffer, bufferOffset );
+						DeserializeAndInsertValue< uint32 >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
 					case UINT64:
-						DeserializeAndInsertValue< uint64_t >( out_vm, std::move( key ), buffer, bufferOffset );
+						DeserializeAndInsertValue< uint64 >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
 					case FLOAT:
 						DeserializeAndInsertValue< float >( out_vm, std::move( key ), buffer, bufferOffset );
@@ -481,28 +489,28 @@ namespace t
 						DeserializeAndInsertMap( out_vm, std::move( key ), buffer, bufferSize, bufferOffset );
 						continue;
 					case INT8_VECTOR:
-						DeserializeAndInsertVector< Vector< int8_t > >( out_vm, std::move( key ), buffer, bufferOffset );
+						DeserializeAndInsertVector< Vector< int8 > >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
 					case INT16_VECTOR:
-						DeserializeAndInsertVector< Vector< int16_t > >( out_vm, std::move( key ), buffer, bufferOffset );
+						DeserializeAndInsertVector< Vector< int16 > >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
 					case INT32_VECTOR:
-						DeserializeAndInsertVector< Vector< int32_t > >( out_vm, std::move( key ), buffer, bufferOffset );
+						DeserializeAndInsertVector< Vector< int32 > >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
 					case INT64_VECTOR:
-						DeserializeAndInsertVector< Vector< int64_t > >( out_vm, std::move( key ), buffer, bufferOffset );
+						DeserializeAndInsertVector< Vector< int64 > >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
 					case UINT8_VECTOR:
-						DeserializeAndInsertVector< Vector< uint8_t > >( out_vm, std::move( key ), buffer, bufferOffset );
+						DeserializeAndInsertVector< Vector< uint8 > >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
 					case UINT16_VECTOR:
-						DeserializeAndInsertVector< Vector< uint16_t > >( out_vm, std::move( key ), buffer, bufferOffset );
+						DeserializeAndInsertVector< Vector< uint16 > >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
 					case UINT32_VECTOR:
-						DeserializeAndInsertVector< Vector< uint32_t > >( out_vm, std::move( key ), buffer, bufferOffset );
+						DeserializeAndInsertVector< Vector< uint32 > >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
 					case UINT64_VECTOR:
-						DeserializeAndInsertVector< Vector< uint64_t > >( out_vm, std::move( key ), buffer, bufferOffset );
+						DeserializeAndInsertVector< Vector< uint64 > >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
 					case FLOAT_VECTOR:
 						DeserializeAndInsertVector< Vector< float > >( out_vm, std::move( key ), buffer, bufferOffset );
@@ -525,10 +533,10 @@ namespace t
 			}
 		}
 
-		Map Deserialize( const uint8_t* buffer, size_t bufferSize )
+		Map Deserialize( const uint8* buffer, uint64 bufferSize )
 		{
 			//                "tvm<n>"     endianness         numel
-			if ( bufferSize < 4 + sizeof( uint16_t ) + sizeof( uint64_t ) )
+			if ( bufferSize < 4 + sizeof( uint16 ) + sizeof( uint64 ) )
 			{
 				throw std::runtime_error("Invalid buffer length! Must be long enough for Header!");
 			}
@@ -546,7 +554,7 @@ namespace t
 			if ( version != 1 )
 				throw std::runtime_error("Invalid Map version!");
 
-			size_t offset = 4;
+			uint64 offset = 4;
 
 			return bitstream_v1::Deserialize( buffer, bufferSize, offset );
 		}

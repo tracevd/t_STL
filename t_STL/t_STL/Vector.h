@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Tint.h"
+
 namespace t
 {
 	template< typename Vector >
@@ -34,7 +36,7 @@ namespace t
 			--(*this);
 			return it;
 		}
-		VectorIterator operator+( size_t offset )
+		VectorIterator operator+( uint64 offset )
 		{
 			return VectorIterator( m_ptr + offset );
 		}
@@ -144,7 +146,7 @@ public:
 		m_data = new T[ m_capacity ];
 		m_size = 0;
 	}
-	explicit Vector( size_t size )
+	explicit Vector( uint64 size )
 	{
 		m_data = new T[ size ];
 		m_size = size;
@@ -153,7 +155,7 @@ public:
 	Vector( const Vector& vec )
 	{
 		m_data = new T[ vec.m_capacity ];
-		for ( size_t i = 0; i < vec.m_size; i++ )
+		for ( uint64 i = 0; i < vec.m_size; i++ )
 			m_data[ i ] = vec[ i ];
 		m_size = vec.m_size;
 		m_capacity = vec.m_capacity;
@@ -167,32 +169,10 @@ public:
 		vec.m_capacity = 0;
 		vec.m_data = nullptr;
 	}
-	template< typename U >
-	Vector( Vector< U > const& other )
-	{
-		m_size = other.m_size;
-		m_capacity = m_size;
-		m_data = new T[ other.m_size ];
-		for ( size_t i = 0; i < m_size; ++i )
-		{
-			m_data[ i ] = T{ other.m_data[ i ] };
-		}
-	}
-	template< typename U >
-	Vector( Vector< U >&& other )
-	{
-		m_size = other.m_size;
-		m_capacity = m_size;
-		m_data = new T[ other.m_size ];
-		for ( size_t i = 0; i < m_size; ++i )
-		{
-			m_data[ i ] = T{ std::move( other.m_data[ i ] ) };
-		}
-	}
 	Vector( std::initializer_list< T > list )
 	{
 		resize( list.size() );
-		size_t i = 0;
+		uint64 i = 0;
 		for ( auto it = list.begin(); it != list.end(); ++it, ++i )
 		{
 			m_data[ i ] = std::move( *it );
@@ -209,7 +189,7 @@ public:
 			return *this;
 		delete[] m_data;
 		m_data = new T[ vec.m_capacity ];
-		for ( size_t i = 0; i < vec.m_size; i++ )
+		for ( uint64 i = 0; i < vec.m_size; i++ )
 			m_data[ i ] = vec[ i ];
 		m_size = vec.m_size;
 		m_capacity = vec.m_capacity;
@@ -229,14 +209,14 @@ public:
 	{
 		if ( m_size != rhs.m_size )
 			return false;
-		for ( size_t i = 0; i < m_size; ++i )
+		for ( uint64 i = 0; i < m_size; ++i )
 		{
 			if ( m_data[ i ] != rhs.m_data[ i ] )
 				return false;
 		}
 		return true;
 	}
-	void reserve( size_t capacity )
+	void reserve( uint64 capacity )
 	{
 		if ( m_data != nullptr )
 			delete[] m_data;
@@ -244,10 +224,10 @@ public:
 		m_capacity = capacity;
 		m_size = 0;
 	}
-	void resize( size_t size )
+	void resize( uint64 size )
 	{
 		T* newData = new T[ size ];
-		for ( size_t i = 0; i < m_size; ++i )
+		for ( uint64 i = 0; i < m_size; ++i )
 			newData[ i ] = std::move( m_data[ i ] );
 		delete[] m_data;
 		m_data = newData;
@@ -257,7 +237,7 @@ public:
 	void shrinkToFit()
 	{
 		auto newdata = new T[ m_size ];
-		for ( size_t i = 0; i < m_size; ++i )
+		for ( uint64 i = 0; i < m_size; ++i )
 		{
 			newdata[ i ] = std::move( m_data[ i ] );
 		}
@@ -269,7 +249,7 @@ public:
 	const T* data() const { return m_data; }
 	T* data() { return m_data; }
 
-	[[nodiscard]] size_t size() const
+	[[nodiscard]] uint64 size() const
 	{
 		return m_size;
 	}
@@ -304,7 +284,7 @@ public:
 			return;
 		}
 		bool deleted = false;
-		for ( size_t i = 0; i < m_size; i++ )
+		for ( uint64 i = 0; i < m_size; i++ )
 		{
 			if ( deleted )
 			{
@@ -348,13 +328,13 @@ public:
 			realloc();
 		return m_data[ m_size++ ] = std::move( in );
 	}
-	T& operator[]( size_t i )
+	T& operator[]( uint64 i )
 	{
 		if ( i > m_size )
 			throw std::runtime_error("Exceeded Max Array Bounds");
 		return m_data[ i ];
 	}
-	const T& operator[]( size_t i ) const
+	const T& operator[]( uint64 i ) const
 	{
 		if ( i > m_size )
 			throw std::runtime_error("Exceeded Max Array Bounds");
@@ -394,12 +374,12 @@ public:
 	}
 private:
 	T* m_data = nullptr;
-	size_t m_size = 0;
-	size_t m_capacity = 0;
+	uint64 m_size = 0;
+	uint64 m_capacity = 0;
 private:
 	T* find_w_linearSweep( const T& elem )
 	{
-		for ( size_t i = 0; i < m_size; i++ )
+		for ( uint64 i = 0; i < m_size; i++ )
 		{
 			if ( m_data[ i ] == elem )
 				return m_data + i;
@@ -408,7 +388,7 @@ private:
 	}
 	const T* const find_w_linearSweep( const T& elem ) const
 	{
-		for ( size_t i = 0; i < m_size; i++ )
+		for ( uint64 i = 0; i < m_size; i++ )
 		{
 			if ( m_data[i] == elem )
 				return m_data + i;
@@ -417,7 +397,7 @@ private:
 	}
 	T* find_w_convergingSweep( const T& elem )
 	{
-		for ( size_t i = 0, j = m_size-1; i < m_size && i <= j; i++, j-- )
+		for ( uint64 i = 0, j = m_size-1; i < m_size && i <= j; i++, j-- )
 		{
 			if ( m_data[ i ] == elem )
 				return m_data + i;
@@ -428,7 +408,7 @@ private:
 	}
 	const T* const find_w_convergingSweep( const T& elem ) const
 	{
-		for ( size_t i = 0, j = m_size - 1; i < m_size && i <= j; i++, j-- )
+		for ( uint64 i = 0, j = m_size - 1; i < m_size && i <= j; i++, j-- )
 		{
 			if ( m_data[i] == elem )
 				return m_data + i;
@@ -439,21 +419,21 @@ private:
 	}
 	void realloc()
 	{
-		size_t newSize = m_capacity * 2;
+		uint64 newSize = m_capacity * 2;
 		// std::cout << "Realloc Vector: " << m_capacity << " -> " << newSize << "\n";
 		auto temp = m_data;
 		m_data = new T[ newSize ];
-		for ( size_t i = 0; i < m_size; i++ )
+		for ( uint64 i = 0; i < m_size; i++ )
 			m_data[ i ] = std::move( temp[ i ] );
 		m_capacity = newSize;
 		delete[] temp;
 	}
-	void realloc( size_t newSize )
+	void realloc( uint64 newSize )
 	{
 		// std::cout << "Realloc Vector: " << m_capacity << " -> " << newSize << "\n";
 		auto temp = m_data;
 		m_data = new T[newSize];
-		for ( size_t i = 0; i < m_size; i++ )
+		for ( uint64 i = 0; i < m_size; i++ )
 			m_data[ i ] = std::move( temp[i] );
 		m_capacity = newSize;
 		delete[] temp;

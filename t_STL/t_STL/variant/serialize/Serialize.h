@@ -7,7 +7,7 @@ namespace t
 {
 	namespace variant
 	{
-		using BufferType = Vector< uint8_t >;
+		using BufferType = Vector< uint8 >;
 
 		inline namespace bitstream_v1
 		{
@@ -16,6 +16,6 @@ namespace t
 		
 		Map Deserialize( BufferType const& buffer );
 
-		Map Deserialize( const uint8_t* buffer, size_t bufferSize );
+		Map Deserialize( const uint8_t* buffer, uint64 bufferSize );
 	}
 }

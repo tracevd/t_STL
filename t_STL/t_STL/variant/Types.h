@@ -1,6 +1,6 @@
 #pragma once
 
-#include <type_traits>
+#include "../Type.h"
 
 namespace t
 {
@@ -24,7 +24,7 @@ namespace t
     {
         class Map;
 
-        enum Type : uint8_t
+        enum Type : uint8
         {
             VOID,
             INT8, INT16, INT32, INT64,

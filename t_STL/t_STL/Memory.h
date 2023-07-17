@@ -1,7 +1,7 @@
 #pragma once
 
-#include <stdint.h>
-#include <type_traits>
+#include "Tint.h"
+#include "Type.h"
 
 namespace t
 {
@@ -10,20 +10,20 @@ namespace t
     {
     public:
         constexpr UniquePtr() = default;
-        UniquePtr( T* allocation ):
+        constexpr UniquePtr( T* allocation ):
             m_data( allocation ) {}
-        UniquePtr( const T& in ):
-            m_data ( new T{ in } ) {}
-        UniquePtr( T&& in ):
-            m_data ( new T{ std::move( in ) } ) {}
+        constexpr UniquePtr( const T& in ):
+            m_data ( new T( in ) ) {}
+        constexpr UniquePtr( T&& in ):
+            m_data ( new T( move( in ) ) ) {}
         UniquePtr( const UniquePtr& al ) = delete;
-        UniquePtr( UniquePtr&& other ) noexcept
+        constexpr UniquePtr( UniquePtr&& other ) noexcept
         {
             m_data = other.m_data;
             other.m_data = nullptr;
         }
         UniquePtr& operator=( const UniquePtr& rhs ) = delete;
-        UniquePtr& operator=( UniquePtr&& rhs ) noexcept
+        constexpr UniquePtr& operator=( UniquePtr&& rhs ) noexcept
         {
             if ( this == &rhs )
                 return *this;
@@ -32,32 +32,32 @@ namespace t
             rhs.m_data = nullptr;
             return *this;
         }
-        ~UniquePtr()
+        constexpr ~UniquePtr()
         {
             DestroyData();
         }
-        T* release() { auto cpy_ptr = m_data; m_data = nullptr; return cpy_ptr; }
-        T* get() const noexcept { return m_data; }
-        T* operator->() const noexcept { return m_data; }
-        T& operator*() { return *m_data; }
-        T const& operator*() const { return *m_data; }
-        bool operator==( const UniquePtr& rhs ) const { return m_data == rhs.m_data; }
-        bool operator!=( const UniquePtr& rhs ) const { return m_data != rhs.m_data; }
-        bool operator< ( const UniquePtr& rhs ) const { return m_data < rhs.m_data; }
-        bool operator>=( const UniquePtr& rhs ) const { return m_data >= rhs.m_data; }
-        bool operator> ( const UniquePtr& rhs ) const { return m_data > rhs.m_data; }
-        bool operator<=( const UniquePtr& rhs ) const { return m_data <= rhs.m_data; }
-        bool operator==( const void* const rhs ) const { return m_data == rhs; }
-        bool operator!=( const void* const rhs ) const { return m_data != rhs; }
-        bool operator< ( const void* const rhs ) const { return m_data < rhs; }
-        bool operator>=( const void* const rhs ) const { return m_data >= rhs; }
-        bool operator> ( const void* const rhs ) const { return m_data > rhs; }
-        bool operator<=( const void* const rhs ) const { return m_data <= rhs; }
-        operator bool() const { return m_data != nullptr; }
+        constexpr T* release() { auto cpy_ptr = m_data; m_data = nullptr; return cpy_ptr; }
+        constexpr T* get() const noexcept { return m_data; }
+        constexpr T* operator->() const noexcept { return m_data; }
+        constexpr T& operator*() { return *m_data; }
+        constexpr T const& operator*() const { return *m_data; }
+        constexpr bool operator==( const UniquePtr& rhs ) const { return m_data == rhs.m_data; }
+        constexpr bool operator!=( const UniquePtr& rhs ) const { return m_data != rhs.m_data; }
+        constexpr bool operator< ( const UniquePtr& rhs ) const { return m_data < rhs.m_data; }
+        constexpr bool operator>=( const UniquePtr& rhs ) const { return m_data >= rhs.m_data; }
+        constexpr bool operator> ( const UniquePtr& rhs ) const { return m_data > rhs.m_data; }
+        constexpr bool operator<=( const UniquePtr& rhs ) const { return m_data <= rhs.m_data; }
+        constexpr bool operator==( const void* const rhs ) const { return m_data == rhs; }
+        constexpr bool operator!=( const void* const rhs ) const { return m_data != rhs; }
+        constexpr bool operator< ( const void* const rhs ) const { return m_data < rhs; }
+        constexpr bool operator>=( const void* const rhs ) const { return m_data >= rhs; }
+        constexpr bool operator> ( const void* const rhs ) const { return m_data > rhs; }
+        constexpr bool operator<=( const void* const rhs ) const { return m_data <= rhs; }
+        constexpr operator bool() const { return m_data != nullptr; }
     private:
-        void DestroyData()
+        constexpr void DestroyData()
         {
-            if constexpr ( std::is_array_v< T > )
+            if constexpr ( type::is_array< T > )
             {
                 delete[] m_data;
             }
@@ -74,11 +74,11 @@ namespace t
     {
     public:
         constexpr SharedPtr() = default;
-        SharedPtr( const T& in ):
-            m_data( new Data{ in } ) {}
-        SharedPtr( T&& in ):
-            m_data( new Data{ std::move( in ) } ) {}
-        SharedPtr( const SharedPtr& ptr ):
+        constexpr SharedPtr( const T& in ):
+            m_data( new Data( in ) ) {}
+        constexpr SharedPtr( T&& in ):
+            m_data( new Data( move( in ) ) ) {}
+        constexpr SharedPtr( const SharedPtr& ptr ):
             m_data( ptr.m_data )
         {
             if ( m_data != nullptr )
@@ -86,16 +86,16 @@ namespace t
                 m_data->references += 1;
             }
         }
-        SharedPtr( SharedPtr&& ptr ) noexcept:
+        constexpr SharedPtr( SharedPtr&& ptr ) noexcept:
             m_data( ptr.m_data )
         {
             ptr.m_data = nullptr;
         }
-        ~SharedPtr()
+        constexpr ~SharedPtr()
         {
             DestroyData();
         }
-        SharedPtr& operator=( SharedPtr const& rhs )
+        constexpr SharedPtr& operator=( SharedPtr const& rhs )
         {
             if ( this == &rhs || m_data == rhs.m_data )
                 return *this;
@@ -105,7 +105,7 @@ namespace t
             if ( rhs.m_data != nullptr )
                 m_data->references += 1;
         }
-        SharedPtr& operator=( SharedPtr&& rhs )
+        constexpr SharedPtr& operator=( SharedPtr&& rhs )
         {
             if ( this == &rhs )
                 return *this;
@@ -114,24 +114,27 @@ namespace t
             m_data = rhs.m_data;
             rhs.m_data = nullptr;
         }
-        T* get() const noexcept { return &m_data->data; }
-        T* operator->() const noexcept { return get(); }
-        T& operator*() { return m_data->data; }
-        T const& operator*() const { return m_data->data; }
-        bool operator==( const SharedPtr& rhs ) const { return m_data == rhs.m_data; }
-        bool operator!=( const SharedPtr& rhs ) const { return m_data != rhs.m_data; }
-        bool operator< ( const SharedPtr& rhs ) const { return m_data < rhs.m_data; }
-        bool operator>=( const SharedPtr& rhs ) const { return m_data >= rhs.m_data; }
-        bool operator> ( const SharedPtr& rhs ) const { return m_data > rhs.m_data; }
-        bool operator<=( const SharedPtr& rhs ) const { return m_data <= rhs.m_data; }
-        bool operator==( const void* const rhs ) const { return m_data == rhs; }
-        bool operator!=( const void* const rhs ) const { return m_data != rhs; }
-        bool operator< ( const void* const rhs ) const { return m_data < rhs; }
-        bool operator>=( const void* const rhs ) const { return m_data >= rhs; }
-        bool operator> ( const void* const rhs ) const { return m_data > rhs; }
-        bool operator<=( const void* const rhs ) const { return m_data <= rhs; }
+        constexpr T* get() const noexcept { return &m_data->data; }
+        constexpr T* operator->() const noexcept { return get(); }
+        constexpr T& operator*() { return m_data->data; }
+        constexpr T const& operator*() const { return m_data->data; }
+        constexpr bool operator==( const SharedPtr& rhs ) const { return m_data == rhs.m_data; }
+        constexpr bool operator!=( const SharedPtr& rhs ) const { return m_data != rhs.m_data; }
+        constexpr bool operator< ( const SharedPtr& rhs ) const { return m_data < rhs.m_data; }
+        constexpr bool operator>=( const SharedPtr& rhs ) const { return m_data >= rhs.m_data; }
+        constexpr bool operator> ( const SharedPtr& rhs ) const { return m_data > rhs.m_data; }
+        constexpr bool operator<=( const SharedPtr& rhs ) const { return m_data <= rhs.m_data; }
+        constexpr bool operator==( const T* const rhs )   const { return getPointer() == rhs; }
+        constexpr bool operator!=( const T* const rhs )   const { return getPointer() != rhs; }
+        constexpr bool operator< ( const T* const rhs )   const { return getPointer() < rhs; }
+        constexpr bool operator>=( const T* const rhs )   const { return getPointer() >= rhs; }
+        constexpr bool operator> ( const T* const rhs )   const { return getPointer() > rhs; }
+        constexpr bool operator<=( const T* const rhs )   const { return getPointer() <= rhs; }
+        constexpr bool operator==( std::nullptr_t )       const { return m_data == nullptr; }
+        constexpr bool operator!=( std::nullptr_t )       const { return m_data !=  nullptr; }
+        constexpr operator bool() const { return m_data != nullptr; }
     private:
-        void DestroyData()
+        constexpr void DestroyData()
         {
             if ( m_data == nullptr )
                 return;
@@ -139,12 +142,13 @@ namespace t
             if ( m_data->references == 0 )
                 delete m_data;
         }
+        constexpr inline const void* const getPointer() const { return m_data ? &m_data->data : m_data; }
         struct Data
         {
-            Data( T data ):
-                data( std::move( data ) ),
+            constexpr Data( T data ):
+                data( move( data ) ),
                 references( 1 ) {}
-            uint64_t references;
+            uint64 references;
             T data;
         };
         Data* m_data;

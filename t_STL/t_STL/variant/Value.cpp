@@ -18,18 +18,26 @@ namespace t
 
             return copy;
         }
-        Value Value::SemiClone() const
+        Value Value::QuickClone() const
         {
+            return QuickClone( 0 );
+        }
+        Value Value::QuickClone( uint64 depth ) const
+        {
+            if ( depth > 0 )
+                return *this;
+            
             switch ( m_type )
             {
             case MAP:
-                return Value( static_cast< Data< Map >* >( m_data )->val );
+                return Value( static_cast< Data< Map >* >( m_data )->val.QuickClone( depth + 1 ) );
             case MAP_VECTOR:
                 return Value( static_cast< Data< Vector< Map > >* >( m_data )->val );
             default:
                 return Value( *this );
             }
         }
+
         Value Value::Clone() const
         {
             switch ( m_type )
@@ -37,21 +45,21 @@ namespace t
             case VOID:
                 return Value();
             case INT8:
-                return Value( static_cast< Data< int8_t >* >( m_data )->val );
+                return Value( static_cast< Data< int8 >* >( m_data )->val );
             case INT16:
-                return Value( static_cast< Data< int16_t >* >( m_data )->val );
+                return Value( static_cast< Data< int16 >* >( m_data )->val );
             case INT32:
-                return Value( static_cast< Data< int32_t >* >( m_data )->val );
+                return Value( static_cast< Data< int32 >* >( m_data )->val );
             case INT64:
-                return Value( static_cast< Data< int64_t >* >( m_data )->val );
+                return Value( static_cast< Data< int64 >* >( m_data )->val );
             case UINT8:
-                return Value( static_cast< Data< uint8_t >* >( m_data )->val );
+                return Value( static_cast< Data< uint8 >* >( m_data )->val );
             case UINT16:
-                return Value( static_cast< Data< uint16_t >* >( m_data )->val );
+                return Value( static_cast< Data< uint16 >* >( m_data )->val );
             case UINT32:
-                return Value( static_cast< Data< uint32_t >* >( m_data )->val );
+                return Value( static_cast< Data< uint32 >* >( m_data )->val );
             case UINT64:
-                return Value( static_cast< Data< uint64_t >* >( m_data )->val );
+                return Value( static_cast< Data< uint64 >* >( m_data )->val );
             case FLOAT:
                 return Value( static_cast< Data< float >* >( m_data )->val );
             case DOUBLE:
@@ -61,21 +69,21 @@ namespace t
             case MAP:
                 return Value( static_cast< Data< Map >* >( m_data )->val.Clone() );
             case INT8_VECTOR:
-                return Value( static_cast< Data< Vector< int8_t > >* >( m_data )->val );
+                return Value( static_cast< Data< Vector< int8 > >* >( m_data )->val );
             case INT16_VECTOR:
-                return Value( static_cast< Data< Vector< int16_t > >* >( m_data )->val );
+                return Value( static_cast< Data< Vector< int16 > >* >( m_data )->val );
             case INT32_VECTOR:
-                return Value( static_cast< Data< Vector< int32_t > >* >( m_data )->val );
+                return Value( static_cast< Data< Vector< int32 > >* >( m_data )->val );
             case INT64_VECTOR:
-                return Value( static_cast< Data< Vector< int64_t > >* >( m_data )->val );
+                return Value( static_cast< Data< Vector< int64 > >* >( m_data )->val );
             case UINT8_VECTOR:
-                return Value( static_cast< Data< Vector< uint8_t > >* >( m_data )->val );
+                return Value( static_cast< Data< Vector< uint8 > >* >( m_data )->val );
             case UINT16_VECTOR:
-                return Value( static_cast< Data< Vector< uint16_t > >* >( m_data )->val );
+                return Value( static_cast< Data< Vector< uint16 > >* >( m_data )->val );
             case UINT32_VECTOR:
-                return Value( static_cast< Data< Vector< uint32_t > >* >( m_data )->val );
+                return Value( static_cast< Data< Vector< uint32 > >* >( m_data )->val );
             case UINT64_VECTOR:
-                return Value( static_cast< Data< Vector< uint64_t > >* >( m_data )->val );
+                return Value( static_cast< Data< Vector< uint64 > >* >( m_data )->val );
             case FLOAT_VECTOR:
                 return Value( static_cast< Data< Vector< float > >* >( m_data )->val );
             case DOUBLE_VECTOR:
@@ -104,21 +112,21 @@ namespace t
             case VOID:
                 return;
             case INT8:
-                delete_as( int8_t );
+                delete_as( int8 );
             case INT16:
-                delete_as( int16_t );
+                delete_as( int16 );
             case INT32:
-                delete_as( int32_t );
+                delete_as( int32 );
             case INT64:
-                delete_as( int64_t );
+                delete_as( int64 );
             case UINT8:
-                delete_as( uint8_t );
+                delete_as( uint8 );
             case UINT16:
-                delete_as( uint16_t );
+                delete_as( uint16 );
             case UINT32:
-                delete_as( uint32_t );
+                delete_as( uint32 );
             case UINT64:
-                delete_as( uint64_t );
+                delete_as( uint64 );
             case FLOAT:
                 delete_as( float );
             case DOUBLE:
@@ -128,21 +136,21 @@ namespace t
             case MAP:
                 delete_as( Map );
             case INT8_VECTOR:
-                delete_as_vector( int8_t );
+                delete_as_vector( int8 );
             case INT16_VECTOR:
-                delete_as_vector( int16_t );
+                delete_as_vector( int16 );
             case INT32_VECTOR:
-                delete_as_vector( int32_t );
+                delete_as_vector( int32 );
             case INT64_VECTOR:
-                delete_as_vector( int64_t );
+                delete_as_vector( int64 );
             case UINT8_VECTOR:
-                delete_as_vector( uint8_t );
+                delete_as_vector( uint8 );
             case UINT16_VECTOR:
-                delete_as_vector( uint16_t );
+                delete_as_vector( uint16 );
             case UINT32_VECTOR:
-                delete_as_vector( uint32_t );
+                delete_as_vector( uint32 );
             case UINT64_VECTOR:
-                delete_as_vector( uint64_t );
+                delete_as_vector( uint64 );
             case FLOAT_VECTOR:
                 delete_as_vector( float );
             case DOUBLE_VECTOR:
@@ -168,21 +176,21 @@ namespace t
             switch ( m_type )
             {
             case INT8:
-                return As< int8_t >() == rhs.As< int8_t >();
+                return As< int8 >() == rhs.As< int8 >();
             case INT16:
-                return As< int16_t >() == rhs.As< int16_t >();
+                return As< int16 >() == rhs.As< int16 >();
             case INT32:
-                return As< int32_t >() == rhs.As< int32_t >();
+                return As< int32 >() == rhs.As< int32 >();
             case INT64:
-                return As< int64_t >() == rhs.As< int64_t >();
+                return As< int64 >() == rhs.As< int64 >();
             case UINT8:
-                return As< uint8_t >() == rhs.As< uint8_t >();
+                return As< uint8 >() == rhs.As< uint8 >();
             case UINT16:
-                return As< uint16_t >() == rhs.As< uint16_t >();
+                return As< uint16 >() == rhs.As< uint16 >();
             case UINT32:
-                return As< uint32_t >() == rhs.As< uint32_t >();
+                return As< uint32 >() == rhs.As< uint32 >();
             case UINT64:
-                return As< uint64_t >() == rhs.As< uint64_t >();
+                return As< uint64 >() == rhs.As< uint64 >();
             case FLOAT:
                 return As< float >() == rhs.As< float >();
             case DOUBLE:
@@ -192,21 +200,21 @@ namespace t
             case MAP:
                 return As< Map const& >() == rhs.As< Map const& >();
             case INT8_VECTOR:
-                return As< Vector< int8_t > const& >() == rhs.As< Vector< int8_t > const& >();
+                return As< Vector< int8 > const& >() == rhs.As< Vector< int8 > const& >();
             case INT16_VECTOR:
-                return As< Vector< int16_t > const& >() == rhs.As< Vector< int16_t > const& >();
+                return As< Vector< int16 > const& >() == rhs.As< Vector< int16 > const& >();
             case INT32_VECTOR:
-                return As< Vector< int32_t > const& >() == rhs.As< Vector< int32_t > const& >();
+                return As< Vector< int32 > const& >() == rhs.As< Vector< int32 > const& >();
             case INT64_VECTOR:
-                return As< Vector< int64_t > const& >() == rhs.As< Vector< int64_t > const& >();
+                return As< Vector< int64 > const& >() == rhs.As< Vector< int64 > const& >();
             case UINT8_VECTOR:
-                return As< Vector< uint8_t > const& >() == rhs.As< Vector< uint8_t > const& >();
+                return As< Vector< uint8 > const& >() == rhs.As< Vector< uint8 > const& >();
             case UINT16_VECTOR:
-                return As< Vector< uint16_t > const& >() == rhs.As< Vector< uint16_t > const& >();
+                return As< Vector< uint16 > const& >() == rhs.As< Vector< uint16 > const& >();
             case UINT32_VECTOR:
-                return As< Vector< uint32_t > const& >() == rhs.As< Vector< uint32_t > const& >();
+                return As< Vector< uint32 > const& >() == rhs.As< Vector< uint32 > const& >();
             case UINT64_VECTOR:
-                return As< Vector< uint64_t > const& >() == rhs.As< Vector< uint64_t > const& >();
+                return As< Vector< uint64 > const& >() == rhs.As< Vector< uint64 > const& >();
             case FLOAT_VECTOR:
                 return As< Vector< float > const& >() == rhs.As< Vector< float > const& >();
             case DOUBLE_VECTOR:

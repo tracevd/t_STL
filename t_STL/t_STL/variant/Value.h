@@ -5,6 +5,8 @@
 #include "../String.h"
 #include "../Vector.h"
 
+#include "../Type.h"
+
 #include <iostream>
 #include <string>
 
@@ -12,12 +14,6 @@ namespace t
 {
     namespace variant
     {
-        template< typename T >
-        using decay = std::decay_t< T >;
-
-        template< typename T >
-        using rm_ref = std::remove_reference_t< T >;
-
         class Value
         {
         public:
@@ -50,7 +46,7 @@ namespace t
             /**
              * @brief Create a Value containing a stdint or float/double
              */
-            template< typename T, typename = std::enable_if_t< ALLOWED_TYPES( T ) > >
+            template< typename T, typename = type::enable_if< ALLOWED_TYPES( T ) > >
             explicit Value( T data ):
                 m_data( new Data< T >( std::is_arithmetic_v< T > ? data : std::move( data ) ) ),
                 m_type( templateToVariantType< T >() ) {}
@@ -152,7 +148,7 @@ namespace t
             template< typename T >
             bool Is() const
             {
-                auto constexpr type = templateToVariantType< decay< T > >();
+                auto constexpr type = templateToVariantType< type::decay< T > >();
 
                 static_assert( type != VOID, "Value cannot be of this type" );
 
@@ -162,7 +158,7 @@ namespace t
             /**
              * Cast to mutable reference. If underlying data is shared, create unique copy to be changed
              */
-            template< typename T, typename = std::enable_if_t< std::is_reference_v< T > && !std::is_const_v< rm_ref< T > > > >
+            template< typename T, typename = type::enable_if< type::is_reference< T > && !type::is_const< type::remove_reference< T > > > >
             T As()
             {
                 auto constexpr type = templateToVariantType< decay< T > >();
@@ -184,7 +180,7 @@ namespace t
                     if ( data->references > 1 )
                     {
                         if constexpr ( std::is_same_v< rm_ref< T >, Map > || std::is_same_v< rm_ref< T >, Vector< Map > > )
-                            *this = SemiClone();
+                            *this = QuickClone( 0 );
                         else
                             *this = Clone();
                     }
@@ -196,10 +192,10 @@ namespace t
             /**
              * Cast to const reference or plain type
              */
-            template< typename T, typename = std::enable_if_t< std::is_const_v< rm_ref< T > > || !std::is_reference_v< T > > >
+            template< typename T, typename = type::enable_if< type::is_const< type::remove_reference< T > > || !type::is_reference< T > > >
             inline T As() const
             {
-                auto constexpr type = templateToVariantType< decay< T > >();
+                auto constexpr type = templateToVariantType< type::decay< T > >();
 
                 static_assert( type != VOID, "Value cannot be this type!" );
 
@@ -211,12 +207,12 @@ namespace t
                     throw std::runtime_error( "Invalid type" );
                 }
 
-                return static_cast< Data< decay< T > >* >( m_data )->val;
+                return static_cast< Data< type::decay< T > >* >( m_data )->val;
             }
 
             Value Clone() const;
 
-            Value SemiClone() const;
+            Value QuickClone() const;
 
             ~Value()
             {
@@ -226,6 +222,8 @@ namespace t
         private:
             void DestroyData();
 
+            Value QuickClone( size_t depth ) const;
+
             /**
              * Used to store the data for t::v::Value in one allocation
              */
@@ -234,15 +232,15 @@ namespace t
             {
             public:
                 Data() = delete;
-                template< typename = std::enable_if_t< !std::is_arithmetic_v< T > > >
+                template< typename = type::enable_if< !std::is_arithmetic_v< T > > >
                 Data( T const& data ):
                     val( data ),
                     references( 1 ) {}
-                template< typename = std::enable_if_t< !std::is_arithmetic_v< T > > >
+                template< typename = type::enable_if< !std::is_arithmetic_v< T > > >
                 Data( T&& data ) noexcept:
                     val( std::move( data ) ),
                     references( 1 ) {}
-                template< typename = std::enable_if_t< std::is_arithmetic_v< T > > >
+                template< typename = type::enable_if< std::is_arithmetic_v< T > > >
                 Data( T data ):
                     val( data ),
                     references( 1 ) {}
@@ -269,6 +267,7 @@ namespace t
         private:
             void*     m_data = nullptr;
             Type      m_type = VOID;
+            friend    Map;
         };
     }
 }

@@ -2,7 +2,7 @@
 
 namespace t
 {
-	template< typename T, size_t Size >
+	template< typename T, uint64 Size >
 	class Array
 	{
 	private:
@@ -39,7 +39,7 @@ namespace t
 			return *this;
 		}
 
-		constexpr size_t size() const { return Size; };
+		constexpr uint64 size() const { return Size; };
 
 		constexpr const T& operator[]( size_t i ) const
 		{
@@ -73,6 +73,12 @@ namespace t
 
 		constexpr T* data() { return m_data; }
 		constexpr const T* data() const { return m_data; }
+
+		constexpr const T* cbegin() const { return m_data; }
+		constexpr const T* cend() const { return m_data + Size; }
+
+		constexpr T* begin() const { return m_data; }
+		constexpr T* end() const { return m_data + Size; }
 	};
 
 }
