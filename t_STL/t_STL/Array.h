@@ -5,8 +5,9 @@ namespace t
 	template< typename T, uint64 Size >
 	class Array
 	{
-	private:
-		T m_data[ Size ];
+	public:
+		using ValueType = T;
+		using SizeType  = uint64;
 	public:
 		constexpr Array() = default;
 
@@ -41,44 +42,25 @@ namespace t
 
 		constexpr uint64 size() const { return Size; };
 
-		constexpr const T& operator[]( size_t i ) const
-		{
-			return m_data[ i ];
-		}
+		constexpr const T& operator[]( uint64 i ) const { return m_data[ i ]; }
+		constexpr T& operator[]( uint64 i ) { return m_data[ i ]; }
 
-		constexpr T& operator[]( size_t i ) 
-		{ 
-			return m_data[ i ];
-		}
+		constexpr const T& front() const { return m_data[ 0 ]; }
+		constexpr T& front() { return m_data[ 0 ]; }
 
-		constexpr const T& front() const 
-		{ 
-			return m_data[ 0 ]; 
-		}
+		constexpr T const& back() const { return m_data[ Size - 1 ]; }
+		constexpr T& back() { return m_data[ Size - 1 ]; }
 
-		constexpr T& front() 
-		{ 
-			return m_data[ 0 ]; 
-		}
-
-		constexpr T const& back() const
-		{
-			return m_data[ Size - 1 ];
-		}
-
-		constexpr T& back()
-		{
-			return m_data[ Size - 1 ];
-		}
-
-		constexpr T* data() { return m_data; }
 		constexpr const T* data() const { return m_data; }
+		constexpr T* data() { return m_data; }
 
 		constexpr const T* cbegin() const { return m_data; }
 		constexpr const T* cend() const { return m_data + Size; }
 
-		constexpr T* begin() const { return m_data; }
-		constexpr T* end() const { return m_data + Size; }
+		constexpr T* begin() { return m_data; }
+		constexpr T* end()   { return m_data + Size; }
+	private:
+		T m_data[ Size ];
 	};
 
 }

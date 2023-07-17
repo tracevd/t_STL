@@ -140,19 +140,19 @@ public:
 	using Iterator = VectorIterator< Vector< T > >;
 	using Const_Iterator = VectorIteratorConst< Vector< T > >;
 public:
-	Vector()
+	constexpr Vector()
 	{
 		m_capacity = 2;
 		m_data = new T[ m_capacity ];
 		m_size = 0;
 	}
-	explicit Vector( uint64 size )
+	constexpr explicit Vector( uint64 size )
 	{
 		m_data = new T[ size ];
 		m_size = size;
 		m_capacity = size;
 	}
-	Vector( const Vector& vec )
+	constexpr Vector( const Vector& vec )
 	{
 		m_data = new T[ vec.m_capacity ];
 		for ( uint64 i = 0; i < vec.m_size; i++ )
@@ -160,7 +160,7 @@ public:
 		m_size = vec.m_size;
 		m_capacity = vec.m_capacity;
 	}
-	Vector( Vector&& vec ) noexcept
+	constexpr Vector( Vector&& vec ) noexcept
 	{
 		m_data = vec.m_data;
 		m_size = vec.m_size;
@@ -169,7 +169,7 @@ public:
 		vec.m_capacity = 0;
 		vec.m_data = nullptr;
 	}
-	Vector( std::initializer_list< T > list )
+	constexpr Vector( std::initializer_list< T > list )
 	{
 		resize( list.size() );
 		uint64 i = 0;
@@ -178,12 +178,12 @@ public:
 			m_data[ i ] = std::move( *it );
 		}
 	}
-	~Vector()
+	constexpr ~Vector()
 	{
 		if ( m_size != 0 )
 			delete[] m_data;
 	}
-	Vector& operator=( Vector& vec )
+	constexpr Vector& operator=( Vector& vec )
 	{
 		if ( this == &vec )
 			return *this;
@@ -196,7 +196,7 @@ public:
 
 		return *this;
 	}
-	Vector& operator=( Vector&& vec )
+	constexpr Vector& operator=( Vector&& vec )
 	{
 		m_data = vec.m_data;
 		m_size = vec.m_size;
@@ -205,7 +205,7 @@ public:
 
 		return *this;
 	}
-	bool operator==( Vector const& rhs ) const
+	constexpr bool operator==( Vector const& rhs ) const
 	{
 		if ( m_size != rhs.m_size )
 			return false;
@@ -216,7 +216,7 @@ public:
 		}
 		return true;
 	}
-	void reserve( uint64 capacity )
+	constexpr void reserve( uint64 capacity )
 	{
 		if ( m_data != nullptr )
 			delete[] m_data;
@@ -224,7 +224,7 @@ public:
 		m_capacity = capacity;
 		m_size = 0;
 	}
-	void resize( uint64 size )
+	constexpr void resize( uint64 size )
 	{
 		T* newData = new T[ size ];
 		for ( uint64 i = 0; i < m_size; ++i )
@@ -234,7 +234,7 @@ public:
 		m_size = size;
 		m_capacity = size;
 	}
-	void shrinkToFit()
+	constexpr void shrinkToFit()
 	{
 		auto newdata = new T[ m_size ];
 		for ( uint64 i = 0; i < m_size; ++i )
@@ -246,36 +246,20 @@ public:
 		m_data = newdata;
 	}
 
-	const T* data() const { return m_data; }
-	T* data() { return m_data; }
+	constexpr const T* data() const { return m_data; }
+	constexpr T* data() { return m_data; }
 
-	[[nodiscard]] uint64 size() const
+	constexpr [[nodiscard]] uint64 size() const
 	{
 		return m_size;
 	}
-	template< typename Fn >
-	void forEach( const Fn& fn )
-	{
-		for ( T& elem : *this )
-		{
-			fn( elem );
-		}
-	}
-	template< typename Fn >
-	void forEach( const Fn& fn ) const
-	{
-		for ( const T& elem : *this )
-		{
-			fn( elem );
-		}
-	}
-	T& pop()
+	constexpr T& pop()
 	{
 		if ( m_size == 0 )
 			throw std::runtime_error("Empty Vector!");
 		return m_data[ --m_size ];
 	}
-	void removeFirst( const T& elem )
+	constexpr void removeFirst( const T& elem )
 	{
 		if ( m_size == 1 )
 		{
@@ -300,47 +284,47 @@ public:
 		if ( deleted )
 			--m_size;
 	}
-	Iterator begin()
+	constexpr Iterator begin()
 	{
 		return Iterator( m_data );
 	}
-	const Const_Iterator cbegin() const
+	constexpr const Const_Iterator cbegin() const
 	{
 		return Const_Iterator( m_data );
 	}
-	Iterator end()
+	constexpr Iterator end()
 	{
 		return Iterator( m_data + m_size );
 	}
-	const Const_Iterator cend() const
+	constexpr const Const_Iterator cend() const
 	{
 		return Const_Iterator( m_data + m_size );
 	}
-	T& pushBack( const T& in )
+	constexpr T& pushBack( const T& in )
 	{
 		if ( m_size == m_capacity )
 			realloc();
 		return m_data[ m_size++ ] = in;
 	}
-	T& pushBack( T&& in )
+	constexpr T& pushBack( T&& in )
 	{
 		if ( m_size == m_capacity )
 			realloc();
 		return m_data[ m_size++ ] = std::move( in );
 	}
-	T& operator[]( uint64 i )
+	constexpr T& operator[]( uint64 i )
 	{
 		if ( i > m_size )
 			throw std::runtime_error("Exceeded Max Array Bounds");
 		return m_data[ i ];
 	}
-	const T& operator[]( uint64 i ) const
+	constexpr const T& operator[]( uint64 i ) const
 	{
 		if ( i > m_size )
 			throw std::runtime_error("Exceeded Max Array Bounds");
 		return m_data[ i ];
 	}
-	T* find( const T& elem )
+	constexpr T* find( const T& elem )
 	{
 		if ( m_size == 0 )
 			return nullptr;
@@ -350,7 +334,7 @@ public:
 		}
 		return find_w_convergingSweep( elem );
 	}
-	const T* const find( const T& elem ) const
+	constexpr const T* const find( const T& elem ) const
 	{
 		if ( m_size == 0 )
 			return nullptr;
@@ -360,7 +344,7 @@ public:
 		}
 		return find_w_convergingSweep( elem );
 	}
-	void remove( const T& elem )
+	constexpr void remove( const T& elem )
 	{
 		T* toRemove = find( elem );
 		if ( toRemove == nullptr )
@@ -377,7 +361,7 @@ private:
 	uint64 m_size = 0;
 	uint64 m_capacity = 0;
 private:
-	T* find_w_linearSweep( const T& elem )
+	constexpr T* find_w_linearSweep( const T& elem )
 	{
 		for ( uint64 i = 0; i < m_size; i++ )
 		{
@@ -386,7 +370,7 @@ private:
 		}
 		return nullptr;
 	}
-	const T* const find_w_linearSweep( const T& elem ) const
+	constexpr const T* const find_w_linearSweep( const T& elem ) const
 	{
 		for ( uint64 i = 0; i < m_size; i++ )
 		{
@@ -395,7 +379,7 @@ private:
 		}
 		return nullptr;
 	}
-	T* find_w_convergingSweep( const T& elem )
+	constexpr T* find_w_convergingSweep( const T& elem )
 	{
 		for ( uint64 i = 0, j = m_size-1; i < m_size && i <= j; i++, j-- )
 		{
@@ -406,7 +390,7 @@ private:
 		}
 		return nullptr;
 	}
-	const T* const find_w_convergingSweep( const T& elem ) const
+	constexpr const T* const find_w_convergingSweep( const T& elem ) const
 	{
 		for ( uint64 i = 0, j = m_size - 1; i < m_size && i <= j; i++, j-- )
 		{
@@ -417,7 +401,7 @@ private:
 		}
 		return nullptr;
 	}
-	void realloc()
+	constexpr void realloc()
 	{
 		uint64 newSize = m_capacity * 2;
 		// std::cout << "Realloc Vector: " << m_capacity << " -> " << newSize << "\n";
@@ -428,7 +412,7 @@ private:
 		m_capacity = newSize;
 		delete[] temp;
 	}
-	void realloc( uint64 newSize )
+	constexpr void realloc( uint64 newSize )
 	{
 		// std::cout << "Realloc Vector: " << m_capacity << " -> " << newSize << "\n";
 		auto temp = m_data;

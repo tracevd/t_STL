@@ -7,24 +7,27 @@ namespace t
 	template< typename T >
 	struct Node
 	{
+	public:
 		using ValueType = T;
-		T m_data;
-		UniquePtr< Node< T > > m_next;
-		Node< T >* m_prev;
-		Node( Node&& n ) noexcept:
+	public:
+		constexpr Node( Node&& n ) noexcept:
 			m_data( std::move( n.m_data ) ),
 			m_next( std::move( n.m_next ) ),
 			m_prev( n.m_prev ) {}
-		Node( T&& val ):
+		constexpr Node( T&& val ):
 			m_data( std::move( val ) ) {}
-		Node( const T& val ):
+		constexpr Node( const T& val ):
 			m_data( val ) {}
-		Node& operator=( Node&& n )
+		constexpr Node& operator=( Node&& n ) noexcept
 		{
 			m_data = std::move( n.m_data );
 			m_next = UniquePtr< Node< T > >( std::move( n.m_next ) );
 			m_prev = n.m_prev;
 		}
+	public:
+		T m_data;
+		UniquePtr< Node< T > > m_next;
+		Node< T >* m_prev;
 	};
 
 	template< typename LinkedList >
@@ -73,15 +76,15 @@ namespace t
 		using ValueType = T;
 		using Iterator = LinkedListIterator< LinkedList< T > >;
 		constexpr LinkedList() = default;
-		LinkedList( LinkedList&& list ):
+		constexpr LinkedList( LinkedList&& list ) noexcept:
 			m_head( list.m_head.release() ),
 			m_size( list.m_size ) {}
-		LinkedList& operator=( LinkedList&& list )
+		constexpr LinkedList& operator=( LinkedList&& list ) noexcept
 		{
 			m_head = list.m_head.release();
 			m_size = list.m_size;
 		}
-		~LinkedList()
+		constexpr ~LinkedList()
 		{
 			if ( m_tail == nullptr )
 				return;
@@ -106,9 +109,8 @@ namespace t
 					count = 0;
 				}
 			}
-			
 		}
-		T& pushBack( const T& val )
+		constexpr T& pushBack( const T& val )
 		{
 			++m_size;
 			if ( m_head == nullptr )
@@ -123,7 +125,7 @@ namespace t
 			m_tail->get()->m_prev = prev->get();
 			return m_tail->get()->m_data;
 		}
-		T& pushFront( const T& val )
+		constexpr T& pushFront( const T& val )
 		{
 			++m_size;
 			if ( m_head == nullptr )
@@ -141,7 +143,7 @@ namespace t
 				m_tail = &m_tail->get()->m_next;
 			return m_head.get()->m_data;
 		}
-		T& pushBack( T&& val )
+		constexpr T& pushBack( T&& val )
 		{
 			++m_size;
 			if ( m_head == nullptr )
@@ -156,7 +158,7 @@ namespace t
 			m_tail->get()->m_prev = prev->get();
 			return m_tail->get()->m_data;
 		}
-		T& pushFront( T&& val )
+		constexpr T& pushFront( T&& val )
 		{
 			++m_size;
 			if ( m_head == nullptr )
@@ -174,7 +176,7 @@ namespace t
 				m_tail = &m_tail->get()->m_next;
 			return m_head.get()->m_data;
 		}
-		T* find( const T& val )
+		constexpr T* find( const T& val )
 		{
 			if ( m_size == 0 )
 				return nullptr;
@@ -197,7 +199,7 @@ namespace t
 
 			return nullptr;
 		}
-		const T* const find( const T& val ) const
+		constexpr const T* const find( const T& val ) const
 		{
 			if ( m_size == 0 )
 				return nullptr;
@@ -234,7 +236,7 @@ namespace t
 
 			return nullptr;
 		}
-		void remove( const T& val )
+		constexpr void remove( const T& val )
 		{
 			PtrType* head = &m_head;
 			DataType* tail = m_tail->get();
@@ -284,9 +286,9 @@ namespace t
 				tail = tail->m_prev;
 			}
 		}
-		size_t size() const { return m_size; }
-		Iterator begin() { return Iterator( m_head.get() ); }
-		Iterator end() { return Iterator( m_tail->get()->m_next.get() ); }
+		constexpr uint64 size() const { return m_size; }
+		constexpr Iterator begin() { return Iterator( m_head.get() ); }
+		constexpr Iterator end() { return Iterator( m_tail->get()->m_next.get() ); }
 	private:
 		using DataType = Node< T >;
 		using PtrType = UniquePtr< DataType >;
@@ -294,7 +296,7 @@ namespace t
 		UniquePtr< Node< T > > m_head;
 		UniquePtr< Node< T > >* m_tail;
 	private:
-		void removeHead()
+		constexpr void removeHead()
 		{
 			--m_size;
 			if ( m_size == 0 )
@@ -305,7 +307,7 @@ namespace t
 			DataType* newhead = m_head.get()->m_next.release();
 			m_head = newhead;
 		}
-		void removeTail()
+		constexpr void removeTail()
 		{
 			--m_size;
 			*m_tail = m_tail->get()->m_prev;

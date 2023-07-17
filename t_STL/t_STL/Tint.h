@@ -1,14 +1,18 @@
 #pragma once
 
-using int8   = char;
-using int16  = short;
-using int32  = int;
-using int64  = long long;
+using int8   = signed char;
+using int16  = signed short;
+using int32  = signed int;
+using int64  = signed long long;
 using uint8  = unsigned char;
 using uint16 = unsigned short;
 using uint32 = unsigned int;
 using uint64 = unsigned long long;
 
+#if _WIN32
+#pragma warning( push )
+#pragma warning( disable: 4309 )
+#endif
 inline constexpr int8   int8_MAX   =                        127i8;
 inline constexpr int8   int8_MIN   =                       -128i8;
 inline constexpr int16  int16_MAX  =                     32'767i16;
@@ -24,12 +28,15 @@ inline constexpr uint16 uint16_MIN =                          0ui16;
 inline constexpr uint32 uint32_MAX =              4'294'967'295ui32;
 inline constexpr uint32 uint32_MIN =                          0ui32;
 inline constexpr uint64 uint64_MAX = 18'446'744'073'709'551'615ui64;
+#if WIN32
+#pragma warning( pop )
+#endif
 
 static_assert( sizeof( int8 )   == 1, "Invalid type size!" );
 static_assert( sizeof( int16 )  == 2, "Invalid type size!");
 static_assert( sizeof( int32 )  == 4, "Invalid type size!");
 static_assert( sizeof( int64 )  == 8, "Invalid type size!");
-static_assert (sizeof( uint8 )  == 1, "Invalid type size!");
-static_assert (sizeof( uint16 ) == 2, "Invalid type size!");
-static_assert (sizeof( uint32 ) == 4, "Invalid type size!");
-static_assert (sizeof( uint64 ) == 8, "Invalid type size!");
+static_assert( sizeof( uint8 )  == 1, "Invalid type size!");
+static_assert( sizeof( uint16 ) == 2, "Invalid type size!");
+static_assert( sizeof( uint32 ) == 4, "Invalid type size!");
+static_assert( sizeof( uint64 ) == 8, "Invalid type size!");

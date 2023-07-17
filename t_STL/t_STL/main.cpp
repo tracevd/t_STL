@@ -60,6 +60,7 @@ void printTree( t::variant::Map const& map, uint64 spaces )
         {
             std::cout << spacestr << key << "(" << t::variant::typeToString( value.getType() ) << ")\n";
             std::cout << spacestr << std::hex << "0x" << &value.As< t::String const& >() << '\n';
+            std::cout << std::dec;
         }
     }
 }
@@ -67,6 +68,7 @@ void printTree( t::variant::Map const& map, uint64 spaces )
 void printHexStr( uint64 val )
 {
     std::cout << "0x " << std::hex << val << '\n';
+    std::cout << std::dec;
 }
 
 void hashAndPrint( t::fast::String const& str )
@@ -136,6 +138,8 @@ void testTvm()
 
 int main()
 {
+    testTvm();
+
     Map m;
 
     m["blah"] = "hello";
@@ -157,18 +161,11 @@ int main()
 
     printTree( m, 0 );
 
-    /*if ( &m2.at("map").As< Map const& >() == &m.at("map").As< Map const& >() )
+    if ( &m2.at("map").As< Map const& >() == &m.at("map").As< Map const& >() )
         throw std::runtime_error("failed to move to new address");
 
     if ( &m2.at("blah").As< String const& >() != &m.at("blah").As< String const& >() )
         throw std::runtime_error("Should be the same address");
-
-    if ( &m2.at("map").As< Map const& >().at("yoyo")
-            .As< Map const& >().at("uhoh").As< Map const& >() !=
-        &m.at("map").As< Map const& >().at("yoyo")
-            .As< Map const& >().at("uhoh").As< Map const& >() )
-        throw std::runtime_error("Should be same address!!");*/
-
 
     auto str = fString( 12345678 );
 
@@ -213,14 +210,16 @@ int main()
 
     std::unordered_map< int, int > x;
 
-    t::Array< int, 7 > _g = { 0, 1, 2, 3, 4, 5, 6 };
-    t::Array< int, 7 > _h = { 7, 8, 9, 10, 11, 12, 13 };
+    constexpr t::Array< int, 7 > _g = { 0, 1, 2, 3, 4, 5, 6 };
+    constexpr t::Array< int, 7 > _h = { 7, 8, 9, 10, 11, 12, 13 };
 
     t::transform( _g.cbegin(), _g.cend(), _h.cbegin(), std::inserter( x, x.begin() ),
         []( int a, int b ){ return std::pair< int, int >{ a, b }; } );
 
+    std::cout.clear();
+
     t::forEach( x.cbegin(), x.cend(),
-        []( auto const& pair ){ std::cout << pair.first << ": " << pair.second << '\n'; } );
+        []( auto const& pair ){ std::cout << pair.first << ": " << (unsigned) pair.second << '\n'; } );
 
     return 0;
 }
