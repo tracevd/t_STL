@@ -290,11 +290,11 @@ namespace t
 			auto lhslength = strlen( lhs );
 			auto newstrBuffSize = lhslength + rhs.size() + 1;
 			auto newstr = new char[ lhslength + rhs.size() + 1 ];
+			
 			memcpy( newstr, lhs, lhslength );
 			memcpy( newstr + lhslength -1, rhs.c_str(), rhs.size() + 1 );
 
-			//sprintf_s( newstr, lhslength + rhs.size() + 1, "%s%s\0", lhs, rhs.c_str() );
-			return String( newstr, lhslength + rhs.size() );
+			return ::t::String( newstr, lhslength + rhs.size() );
 		}
 		/**
 		 * @brief Does not copy buffer, but instead takes buffer as 

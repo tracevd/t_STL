@@ -34,8 +34,10 @@ namespace t
         TMPL_T INL_CONSTX_B is_pointer< T const* >       = true;
         TMPL_T INL_CONSTX_B is_pointer< T const* const > = true;
 
-        TMPL_T INL_CONSTX_B is_const            = false;
-        TMPL_T INL_CONSTX_B is_const< T const > = true;
+        TMPL_T INL_CONSTX_B is_const              = false;
+        TMPL_T INL_CONSTX_B is_const< T const >   = true;
+        TMPL_T INL_CONSTX_B is_const< T const& >  = true;
+        TMPL_T INL_CONSTX_B is_const< T const&& > = true;
 
         TMPL_T INL_CONSTX_B is_array        = false;
         TMPL_T INL_CONSTX_B is_array< T[] > = true;
@@ -100,6 +102,12 @@ namespace t
         TMPL_T struct remove_const_< T const&& > { using type = T&&; };
     public:
         TMPL_T using remove_const = typename remove_const_< T >::type;
+    private:
+        TMPL_T struct add_const_        { using type = const T; };
+        TMPL_T struct add_const_< T& >  { using type = T const&; };
+        TMPL_T struct add_const_< T&& > { using type = T const&&; };
+    public:
+        TMPL_T using add_const = add_const_< T >::type;
     private:
         // Array
         TMPL_T struct remove_array_        { using type = T; };

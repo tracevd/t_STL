@@ -32,6 +32,15 @@ namespace t
             rhs.m_data = nullptr;
             return *this;
         }
+        constexpr UniquePtr& operator=( T* allocation ) noexcept
+        {
+            if ( allocation == m_data )
+                return *this;
+            DestroyData();
+
+            m_data = allocation;
+            return *this;
+        }
         constexpr ~UniquePtr()
         {
             DestroyData();

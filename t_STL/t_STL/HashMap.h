@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Type.h"
 #include "Vector.h"
 #include "LinkedList.h"
 #include "Memory.h"
@@ -13,8 +14,10 @@ namespace t
 		{
 			KeyTy key;
 			ValTy val;
-			inline bool operator==( const Pair& rhs ) const { return key == rhs.key; }
-			inline bool operator!=( const Pair& rhs ) const { return !( *this == rhs ); }
+			constexpr inline bool operator==( const Pair& rhs ) const { return key == rhs.key; }
+			constexpr inline bool operator!=( const Pair& rhs ) const { return !( *this == rhs ); }
+			using KeyType   = KeyTy;
+			using ValueType = ValTy;
 		};
 	}
 	template< typename KeyTy, typename ValTy >
@@ -26,7 +29,7 @@ namespace t
 
 		bool isEmpty() const { return size() == 0; }
 
-		size_t size() const { return m_keys.size(); }
+		uint64 size() const { return m_keys.size(); }
 
 		bool containsKey( const KeyTy& key ) const
 		{
@@ -54,7 +57,7 @@ namespace t
 
 		ValTy& at( const KeyTy& key )
 		{
-			size_t i = hash( key );
+			uint64 i = hash( key );
 			return atImpl( i, key ).val;
 		}
 
@@ -83,13 +86,13 @@ namespace t
 
 		void put( const KeyTy& key, const ValTy& val )
 		{
-			size_t i = hash( key );
+			uint64 i = hash( key );
 			putImpl( i, Pair{ key, val } );
 		}
 
 		void put( KeyTy&& key, ValTy&& val )
 		{
-			size_t i = hash( key );
+			uint64 i = hash( key );
 			auto pair = Pair{ KeyTy(), ValTy() };
 			pair.key = std::move( key );
 			pair.val = std::move( val );
@@ -98,7 +101,7 @@ namespace t
 
 		void remove( const KeyTy& key )
 		{
-			size_t i = hash( key );
+			uint64 i = hash( key );
 			removeImpl( i, key );
 		}
 
@@ -106,33 +109,25 @@ namespace t
 		{
 			return m_keys;
 		}
-
-		void printBucketSizes() const
-		{
-			for ( size_t i = 0; i < m_data.size(); i++ )
-			{
-				std::cout << std::to_string( i ) << ": " << std::to_string( m_data[i].size() ) << '\n';
-			}
-		}
 	private:
 		using Bucket = LinkedList< Pair >;
-		static inline size_t hash_s( const KeyTy& key )
+		static inline uint64 hash_s( const KeyTy& key )
 		{
 			return std::hash< KeyTy >{}( key );
 		}
-		inline size_t hash( const KeyTy& key ) const
+		inline uint64 hash( const KeyTy& key ) const
 		{
 			return hash_s( key ) % m_capacity;
 		}
-		inline size_t hash( const KeyTy& key, size_t capacity ) const
+		inline uint64 hash( const KeyTy& key, uint64 capacity ) const
 		{
 			return std::hash< KeyTy >{}( key ) % capacity;
 		}
-		bool containsKey( size_t hash, const KeyTy& key  ) const
+		bool containsKey( uint64 hash, const KeyTy& key  ) const
 		{
 			return m_data[ hash ].find( Pair{ key, ValTy() } ) != nullptr;
 		}
-		inline Pair* overwrite( size_t hash, Pair&& pair )
+		inline Pair* overwrite( uint64 hash, Pair&& pair )
 		{
 			Pair* p = m_data[ hash ].find( pair );
 			if ( p == nullptr )
@@ -140,7 +135,7 @@ namespace t
 			*p = std::move( pair );
 			return p;
 		}
-		inline Pair& putImpl( size_t& hash, Pair&& pair )
+		inline Pair& putImpl( uint64& hash, Pair&& pair )
 		{
 			if ( containsKey( hash, pair.key ) )
 			{
@@ -154,14 +149,14 @@ namespace t
 				return pair_;
 			}
 		}
-		inline Pair& atImpl( size_t hash, const KeyTy& key )
+		inline Pair& atImpl( uint64 hash, const KeyTy& key )
 		{
 			Pair* pair = m_data[ hash ].find( Pair{ key, ValTy() } );
 			if ( pair == nullptr )
 				throw std::runtime_error( "Cannot find key" );
 			return pair;
 		}
-		inline void removeImpl( size_t hash, const KeyTy& key )
+		inline void removeImpl( uint64 hash, const KeyTy& key )
 		{
 			if ( !containsKey( hash, key ) )
 				return;
@@ -170,15 +165,15 @@ namespace t
 			m_keys.removeFirst( keyptr );
 			m_data[ hash ].remove( Pair{ key, ValTy() } );	
 		}
-		static inline uint64_t keyPtr_toHandle( void* ptr )
+		static inline uint64 keyPtroHandle( void* ptr )
 		{
-			return reinterpret_cast< uint64_t >( ptr );
+			return reinterpret_cast< uint64 >( ptr );
 		}
-		static inline KeyTy& handle_toKey( uint64_t handle )
+		static inline KeyTy& handleoKey( uint64 handle )
 		{
 			return *( reinterpret_cast< KeyTy* >( handle ) );
 		}
-		size_t m_capacity;
+		uint64 m_capacity;
 		Vector< Bucket > m_data;
 		Vector< KeyTy* > m_keys;
 	};
@@ -260,55 +255,251 @@ namespace t
 
 	#include "Array.h"
 
+	template< class HashTable, bool isConst >
+	class HashTableIterator
+	{
+	private:
+		using BucketList = type::ternary< isConst, typename const HashTable::BucketList, typename HashTable::BucketList >;
+		using Node = type::ternary< isConst, typename const HashTable::MultiValueLinkedList, typename HashTable::MultiValueLinkedList >;
+		using ValueType = type::ternary< isConst, typename const HashTable::ValueType, typename HashTable::ValueType >;
+	public:
+		constexpr HashTableIterator( BucketList* buckets ):
+			buckets( buckets )
+		{
+			if ( buckets == nullptr || buckets->data() == nullptr )
+				return;
+			
+			currentNode = buckets->data();
+
+			next( 0 );
+		}
+
+		constexpr HashTableIterator( BucketList* buckets, uint64 bucketIndex, Node* node, uint8 nodeIndex ):
+			buckets( buckets ),
+			currentBucket( bucketIndex ),
+			currentNode( node ),
+			currentNodeIndex( nodeIndex ) {}
+
+		constexpr HashTableIterator( HashTableIterator const& other ):
+			buckets( other.buckets ),
+			currentBucket( other.currentBucket ),
+			currentNode( other.currentNode ),
+			currentNodeIndex( other.currentNodeIndex ) {}
+
+		constexpr HashTableIterator( HashTableIterator&& other ):
+			buckets( other.buckets ),
+			currentBucket( other.currentBucket ),
+			currentNode( other.currentNode ),
+			currentNodeIndex( other.currentNodeIndex )
+		{
+			other.buckets = nullptr;
+			other.currentBucket = 0;
+			other.currentNode = nullptr;
+			other.currentNodeIndex = 0;
+		}
+
+		constexpr HashTableIterator& operator=( HashTableIterator&& rhs )
+		{
+			buckets = rhs.buckets;
+			currentBucket = rhs.currentBucket;
+			currentNode = rhs.currentNode;
+			currentNodeIndex = rhs.currentNodeIndex;
+
+			rhs.buckets = nullptr;
+			rhs.currentBucket = 0;
+			rhs.currentNode = nullptr;
+			rhs.currentNodeIndex = 0;
+		}
+
+		constexpr HashTableIterator& operator=( HashTableIterator const& rhs )
+		{
+			*this = HashTableIterator( rhs );
+		}
+
+		constexpr HashTableIterator operator++( int )
+		{
+			auto cpy = *this;
+			next();
+			return cpy;
+		}
+		
+		constexpr HashTableIterator& operator++()
+		{
+			if ( buckets == nullptr || currentBucket == buckets->size() || currentNode == nullptr )
+				throw std::runtime_error("Invalid iterator!");
+			if ( currentBucket == buckets->size() )
+				throw std::runtime_error("Reached the end of the bucket list!");
+			
+			next();
+			
+			return *this;
+		}
+
+		constexpr ValueType& operator*()
+		{
+			return  reinterpret_cast< ValueType& >( currentNode->pairs[ currentNodeIndex ] );
+		}
+
+		constexpr ValueType* operator->()
+		{
+			return  reinterpret_cast< ValueType* >( &currentNode->pairs[ currentNodeIndex ] );
+		}
+
+		constexpr bool operator==( HashTableIterator const& rhs ) const
+		{
+			return buckets == rhs.buckets
+			    && currentBucket == rhs.currentBucket
+				&& currentNode == rhs.currentNode
+				&& currentNodeIndex == rhs.currentNodeIndex;
+		}
+		constexpr bool operator!=( HashTableIterator const& rhs ) const { return !( *this == rhs ); }
+	private:
+		/**
+		 * Advance to the next valid pair
+		 * Set isInMiddleOfList to 1 (true) by default, meaning it will not include
+		 * the current Node index when searching for the next valid index in a node
+		 */
+		void next( uint8 isInMiddleOfList = 1 )
+		{
+			uint8 nextIndex = INVALID_INDEX;
+
+			while ( currentBucket < buckets->size() )
+			{
+				nextIndex = currentNode->getNextValidIndex( currentNodeIndex + isInMiddleOfList );
+
+				if ( nextIndex != currentNode->pairs.size() )
+				{
+					currentNodeIndex = nextIndex;
+					return;
+				}
+				
+				isInMiddleOfList = 0;
+				currentNodeIndex = 0;
+				if ( currentNode->next == nullptr )
+				{
+					++currentBucket;
+					currentNode = buckets->data() + currentBucket;
+				}
+				else
+				{
+					currentNode = currentNode->next;
+				}
+			}
+			if ( currentBucket == buckets->size() && nextIndex == INVALID_INDEX )
+				currentNodeIndex = nextIndex;
+		}
+	private:
+		constexpr static inline uint8 INVALID_INDEX = 8;
+		BucketList* buckets = nullptr;
+		uint64 currentBucket = 0;
+		Node* currentNode = nullptr;
+		uint8 currentNodeIndex;
+	};
+
 	template< typename KeyTy, typename ValTy >
 	struct HashTable
 	{
-		using Pair = hashmap::Pair< KeyTy, ValTy >;
 	public:
-		HashTable() { m_data.resize( 20 ); }
+		using ValueType		= hashmap::Pair< type::add_const< KeyTy >, ValTy >;
+		using Pair			= ValueType;
+		using Iterator		= HashTableIterator< HashTable< KeyTy, ValTy >, false >;
+		using ConstIterator = HashTableIterator< HashTable< KeyTy, ValTy >, true >;
+	private:
+		/**
+		 * pair keys need to be mutable internally
+		 * as they are preallocated in batches of 8
+		 */
+		using InnerPair = hashmap::Pair< KeyTy, ValTy >;
+	public:
+		constexpr HashTable():
+			m_size(0)
+		{
+			m_data.resize( 20 );
+		}
 
-		explicit HashTable( size_t size ) { m_data.resize( size ); }
+		constexpr explicit HashTable( uint64 size ): m_size(0)
+		{
+			m_data.resize(size);
+		}
 
-		bool isEmpty() const { return size() == 0; }
+		constexpr HashTable( HashTable&& other ):
+			m_data( std::move( other.m_data ) ),
+			m_size( other.m_size )
+		{
+			other.m_size = 0;
+		}
 
-		size_t size() const
+		constexpr HashTable& operator=( HashTable&& rhs )
+		{
+			m_data = std::move( rhs.m_data );
+			m_size = rhs.m_size;
+			rhs.m_size = 0;
+			return *this;
+		}
+
+		constexpr bool isEmpty() const { return size() == 0; }
+
+		constexpr uint64 size() const
 		{
 			return m_size;
 		}
 
-		bool containsKey( const KeyTy& key ) const
+		constexpr Iterator begin()
 		{
-			uint64_t i = hash( key );
+			return Iterator( &m_data );
+		}
+
+		constexpr Iterator end()
+		{
+			return Iterator( &m_data, m_data.size(), m_data.data() + m_data.size(), uint8(8) );
+		}
+
+		constexpr ConstIterator cbegin() const
+		{
+			return ConstIterator( &m_data );
+		}
+
+		constexpr ConstIterator cend() const
+		{
+			return ConstIterator( reinterpret_cast<const Vector< Bucket >*>(&m_data),
+								  m_data.size(),
+								  reinterpret_cast< const Bucket* >( m_data.data() + m_data.size() ),
+								  uint8(8) );
+		}
+
+		constexpr bool contains( const KeyTy& key ) const
+		{
+			uint64 i = hash( key );
 			return m_data[ i ].find( key ) != nullptr;
 		}
 
-		bool containsKey( KeyTy&& key ) const
+		constexpr bool contains( KeyTy&& key ) const
 		{
-			return containsKey( key );
+			return contains( key );
 		}
 
-		ValTy& at( const KeyTy& key )
+		constexpr ValTy& at( const KeyTy& key )
 		{
-			uint64_t i = hash( key );
+			uint64 i = hash( key );
 			return atImpl( i, key );
 		}
 
-		const ValTy& at( const KeyTy& key ) const
+		constexpr const ValTy& at( const KeyTy& key ) const
 		{
 			return at( key );
 		}
 
-		ValTy& operator[] ( const KeyTy& key )
+		constexpr ValTy& operator[] ( const KeyTy& key )
 		{
-			uint64_t hash_ = hash( key );
+			uint64 hash_ = hash( key );
 			if ( !containsKey( hash_, key ) )
 				putImpl( hash_, { key, ValTy() } );
 			return at( key );
 		}
 
-		ValTy& operator[] ( KeyTy&& key )
+		constexpr ValTy& operator[] ( KeyTy&& key )
 		{
-			uint64_t hash_ = hash( key );
+			uint64 hash_ = hash( key );
 			auto pair_ptr = m_data[ hash_ ].find( key );
 			if ( pair_ptr == nullptr )
 			{
@@ -317,28 +508,28 @@ namespace t
 			return pair_ptr->val;
 		}
 
-		void put( const KeyTy& key, const ValTy& val )
+		constexpr void put( const KeyTy& key, const ValTy& val )
 		{
-			uint64_t i = hash( key );
+			uint64 i = hash( key );
 			putImpl( i, Pair{ key, val } );
 		}
 
-		void put( Pair&& pair )
+		constexpr void put( Pair&& pair )
 		{
-			uint64_t i = hash( pair.key );
+			uint64 i = hash( pair.key );
 			putImpl( i, std::move( pair ) );
 		}
 
-		void remove( const KeyTy& key )
+		constexpr void remove( const KeyTy& key )
 		{
-			uint64_t hash_ = hash( key );
+			uint64 hash_ = hash( key );
 			if ( m_data[ hash_ ].remove( key ) )
 				m_size -= 1;
 		}
 
-		Pair* insert( Pair&& pair )
+		constexpr Pair* insert( Pair&& pair )
 		{
-			uint64_t hash = hash( pair.key );
+			uint64 hash = hash( pair.key );
 			if ( m_data[ hash ].find( pair.key ) )
 			{
 				m_size += 1;
@@ -347,53 +538,63 @@ namespace t
 			return nullptr;
 		}
 
-		void setNumberOfBuckets( size_t size )
+		constexpr void setNumberOfBuckets( uint64 size )
 		{
 			if ( m_size != 0 )
 				throw std::runtime_error("Cannot set NumberOfBuckets after inserting elements");
 			m_data.resize( size );
 		}
 
-		void printBucketSizes() const
+		constexpr Iterator find( KeyTy const& key ) const
 		{
-			for ( size_t i = 0; i < m_data.size(); ++i )
-			{
-				std::cout << std::to_string( i ) << ": " << std::to_string( m_data[ i ].size() ) << '\n';
-			}
+			auto hash_ = hash( key );
+			auto [ ptr, node, index ] = m_data[ hash_ ].find_node( key );
+			if ( ptr == nullptr )
+				return end();
+			return Iterator( &m_data, hash_, (MultiValueLinkedList*) node, (uint8) index );
 		}
 	private:
 		struct MultiValueLinkedList
 		{
-			MultiValueLinkedList() = default;
-			MultiValueLinkedList( HashTable::Pair pair ):
-				pairs( std::move( pair ) ),
+			constexpr MultiValueLinkedList() = default;
+
+			constexpr MultiValueLinkedList( HashTable::InnerPair pair ):
+				pairs( { std::move( pair ) } ),
 				valid_indexes( 1 ) {}
-			~MultiValueLinkedList()
+
+			constexpr ~MultiValueLinkedList()
 			{
 				while( next != nullptr )
 				{
-					*this = std::move( *next );
+					auto copy = next;
+
+					next = next->next;
+
+					copy->next = nullptr;
+
+					delete copy;
 				}
 			}
 
-			MultiValueLinkedList& operator=( MultiValueLinkedList const& ) = delete;
+			constexpr MultiValueLinkedList& operator=( MultiValueLinkedList const& ) = delete;
 
-			MultiValueLinkedList& operator=( MultiValueLinkedList&& rhs ) noexcept
+			constexpr MultiValueLinkedList& operator=( MultiValueLinkedList&& rhs ) noexcept
 			{
 				valid_indexes = rhs.valid_indexes;
 				rhs.valid_indexes = 0;
 				pairs = std::move( rhs.pairs );
-				next = std::move( rhs.next );
+				next = rhs.next;
+				rhs.next = nullptr;
 				return *this;
 			}
 
-			const HashTable::Pair* find( KeyTy const& key ) const
+			constexpr const HashTable::Pair* find( KeyTy const& key ) const
 			{
 				if ( valid_indexes != 0 )
 				{
-					for ( uint8_t i = 0; i < pairs.size(); ++i )
+					for ( uint8 i = 0; i < pairs.size(); ++i )
 					{
-						if ( valid_indexes >> i == 0 )
+						if ( ( ( valid_indexes >> i ) & 1 ) == 0 )
 							continue;
 						if ( pairs[ i ].key == key )
 							return &pairs[ i ];
@@ -406,13 +607,32 @@ namespace t
 				return next->find( key );
 			}
 
-			Pair* find( KeyTy const& key )
+			constexpr std::tuple< Pair*, MultiValueLinkedList*, uint8 > find_node( const KeyTy& key ) const
 			{
 				if ( valid_indexes != 0 )
 				{
-					for ( uint8_t i = 0; i < pairs.size(); ++i )
+					for ( uint8 i = 0; i < pairs.size(); ++i )
 					{
-						if ( valid_indexes >> i == 0 )
+						if ( ((valid_indexes >> i) & 1) == 0 )
+							continue;
+						if ( pairs[i].key == key )
+							return { &pairs[i], this, i, } ;
+					}
+				}
+
+				if ( next == nullptr )
+					return { nullptr, nullptr, 0 };
+
+				return next->find_w_index( key );
+			}
+
+			constexpr InnerPair* find( KeyTy const& key )
+			{
+				if ( valid_indexes != 0 )
+				{
+					for ( uint8 i = 0; i < pairs.size(); ++i )
+					{
+						if ( ( ( valid_indexes >> i ) & 1 ) == 0 )
 							continue;
 						if ( pairs[ i ].key == key )
 							return &pairs[ i ];
@@ -424,13 +644,13 @@ namespace t
 
 				return next->find( key );
 			}
-			bool remove( KeyTy const& key )
+			constexpr bool remove( KeyTy const& key )
 			{
 				if ( valid_indexes != 0 )
 				{
-					for ( uint8_t i = 0; i < pairs.size(); ++i )
+					for ( uint8 i = 0; i < pairs.size(); ++i )
 					{
-						if ( valid_indexes >> i == 0 )
+						if ( ( ( valid_indexes >> i ) & 1 ) == 0 )
 							continue;
 						if ( pairs[ i ].key == key )
 						{
@@ -447,38 +667,71 @@ namespace t
 
 				return next->remove( key );
 			}
-			Pair& add( Pair&& pair )
+			constexpr Pair& add( InnerPair&& pair )
 			{
-				for ( uint8_t i = 0; i < pairs.size(); ++i )
+				auto i = getNextEmptyIndex( 0 );
+
+				if ( i == pairs.size() )
 				{
-					if ( valid_indexes >> i == 0 )
+					if ( next == nullptr )
 					{
-						valid_indexes ^= 1 << i;
-						pairs[ i ] = std::move( pair );
-						return pairs[ i ];
+						next = new MultiValueLinkedList( std::move( pair ) );
+						return reinterpret_cast< Pair& >( (*next).pairs[ 0 ] );
 					}
+
+					return next->add( std::move( pair ) );
 				}
-				return next->add( std::move( pair ) );
+
+				valid_indexes ^= 1 << i;
+				pairs[ i ] = std::move( pair );
+				return  reinterpret_cast< Pair& >( pairs[ i ] );
+			}
+			constexpr uint8 getNextEmptyIndex( uint8 currentIndex ) const
+			{
+				if ( valid_indexes == uint8_MAX )
+					return INVALID_INDEX;
+				for ( ; currentIndex < pairs.size(); ++currentIndex )
+				{
+					if ( ( (valid_indexes >> currentIndex) & 1 ) == 0 )
+						return currentIndex;
+				}
+
+				return INVALID_INDEX;
+			}
+			constexpr uint8 getNextValidIndex( uint8 currentIndex ) const
+			{
+				if ( valid_indexes == 0 || currentIndex >= pairs.size() )
+					return INVALID_INDEX;
+				for ( uint8 i = currentIndex; i < pairs.size(); ++i )
+				{
+					if ( ( ( valid_indexes >> i ) & 1 ) == 1 )
+						return i;
+				}
+				return INVALID_INDEX;
 			}
 		private:
-			uint8_t valid_indexes = 0;
-			Array< HashTable::Pair, 8 > pairs;
-			UniquePtr< MultiValueLinkedList > next = nullptr;
+			static constexpr uint8 INVALID_INDEX = 8;
+			uint8 valid_indexes = 0;
+			t::Array< HashTable::InnerPair, 8 > pairs;
+			MultiValueLinkedList* next = nullptr;
+			friend HashTableIterator< HashTable< KeyTy, ValTy >, true >;
+			friend HashTableIterator< HashTable< KeyTy, ValTy >, false >;
 		};
 
 		using Bucket = MultiValueLinkedList;
+		using BucketList = Vector< Bucket >;
 
-		inline uint64_t hash( const KeyTy& key ) const
+		constexpr inline uint64 hash( const KeyTy& key ) const
 		{
 			return std::hash< KeyTy >{}( key ) % m_data.size();
 		}
 
-		bool containsKey( uint64_t hash, const KeyTy& key  ) const
+		constexpr bool containsKey( uint64 hash, const KeyTy& key  ) const
 		{
 			return m_data[ hash ].find( key ) != nullptr;
 		}
 
-		inline Pair& putImpl( uint64_t hash, Pair&& pair )
+		constexpr inline Pair& putImpl( uint64 hash, InnerPair&& pair )
 		{
 			auto pair_ptr = m_data[ hash ].find( pair.key );
 
@@ -489,10 +742,10 @@ namespace t
 			}
 
 			pair_ptr->val = std::move( pair.val );
-			return *pair_ptr;
+			return *reinterpret_cast< Pair* >( pair_ptr );
 		}
 
-		inline ValTy& atImpl( uint64_t hash, const KeyTy& key )
+		constexpr inline ValTy& atImpl( uint64 hash, const KeyTy& key )
 		{
 			Pair* pair = m_data[ hash ].find( key );
 			if ( pair == nullptr )
@@ -500,12 +753,10 @@ namespace t
 			return pair->val;
 		}
 
-		HashTable rehash()
-		{
-
-		}
 	private:
-		size_t m_size;
-		Vector< Bucket > m_data;
+		uint64 m_size;
+		BucketList m_data;
+		friend HashTableIterator< HashTable< KeyTy, ValTy >, true >;
+		friend HashTableIterator< HashTable< KeyTy, ValTy >, false >;
 	};
 }

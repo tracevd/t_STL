@@ -4,7 +4,7 @@
 #define ASSERT
 
 #include "t.h"
-#include "variant/serialize/Serialize.h"
+//#include "variant/serialize/Serialize.h"
 #include "Timer.h"
 
 #include <random>
@@ -84,63 +84,65 @@ using fString = t::fast::String;
 using t::Vector;
 using t::variant::Value;
 
-void testTvm()
-{
-    Map vm;
-
-    vm["string"] = "hello";
-    vm["uint8"] = uint8( 1 );
-    vm["uint16"] = uint16( 2 );
-    vm["uint32"] = uint32( 3 );
-    vm["uint64"] = uint64( 4 );
-    vm["int8"] = int8( 5 );
-    vm["int16"] = int16( 6 );
-    vm["int32"] = int32( 7 );
-    vm["int64"] = int64( 8 );
-    vm["float"] = float( 9 );
-    vm["double"] = double( 10 );
-    vm["u8 vector"] = Vector< uint8 >{ 1, 2, 3, 4, 5 };
-    vm["u16 vector"] = Vector< uint16 >{ 6, 7, 8, 9, 10 };
-    vm["u32 vector"] = Vector< uint32 >{ 11, 12, 13, 14 };
-    vm["u64 vector"] = Vector< uint64 >{ 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
-    vm["i8 vector"] = Vector< int8 >{ 1, 2, 3, 4, 5 };
-    vm["i16 vector"] = Vector< int16 >{ 6, 7, 8, 9, 10 };
-    vm["i32 vector"] = Vector< int32 >{ 11, 12, 13, 14 };
-    vm["i64 vector"] = Vector< int64 >{ 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
-    vm["str vector"] = Vector< String >{ "hey", "blahblah", "broke" };
-    vm["float vector"] = Vector< float >{ 1.f, 2.f, 3.f, 4.5f, 5.f, 7.69420f };
-    vm["double vector"] = Vector< double >{ 25, 26, 27, 28, 29, 30, 31 };
-    Map map;
-    map.insert( { String( "test" ), Value( "value" ) } );
-    map.insert( { String( "test2" ), Value( "value2" ) } );
-    vm["vm vector"] = Vector< Map >{ map, map, map };
-    vm["vm"] = std::move( map );
-
-    Timer< microseconds > t;
-
-    t.start();
-
-    auto buffer = t::variant::Serialize( vm );
-
-    auto ser = t.stop();
-
-    t.start();
-
-    Map vm_2 = t::variant::Deserialize( buffer );
-
-    auto deser = t.stop();
-
-    std::cout << "Serialize:   " << ser << "us\n";
-    std::cout << "Deserialize: " << deser << "us\n";
-
-    std::cout << "Maps are equal: " << std::boolalpha << (vm_2 == vm) << '\n';
-}
+//void testTvm()
+//{
+//    Map vm;
+//
+//    vm["string"] = "hello";
+//    vm["uint8"] = uint8( 1 );
+//    vm["uint16"] = uint16( 2 );
+//    vm["uint32"] = uint32( 3 );
+//    vm["uint64"] = uint64( 4 );
+//    vm["int8"] = int8( 5 );
+//    vm["int16"] = int16( 6 );
+//    vm["int32"] = int32( 7 );
+//    vm["int64"] = int64( 8 );
+//    vm["float"] = float( 9 );
+//    vm["double"] = double( 10 );
+//    vm["u8 vector"] = Vector< uint8 >{ 1, 2, 3, 4, 5 };
+//    vm["u16 vector"] = Vector< uint16 >{ 6, 7, 8, 9, 10 };
+//    vm["u32 vector"] = Vector< uint32 >{ 11, 12, 13, 14 };
+//    vm["u64 vector"] = Vector< uint64 >{ 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
+//    vm["i8 vector"] = Vector< int8 >{ 1, 2, 3, 4, 5 };
+//    vm["i16 vector"] = Vector< int16 >{ 6, 7, 8, 9, 10 };
+//    vm["i32 vector"] = Vector< int32 >{ 11, 12, 13, 14 };
+//    vm["i64 vector"] = Vector< int64 >{ 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
+//    vm["str vector"] = Vector< String >{ "hey", "blahblah", "broke" };
+//    vm["float vector"] = Vector< float >{ 1.f, 2.f, 3.f, 4.5f, 5.f, 7.69420f };
+//    vm["double vector"] = Vector< double >{ 25, 26, 27, 28, 29, 30, 31 };
+//    Map map;
+//    map.insert( { String( "test" ), Value( "value" ) } );
+//    map.insert( { String( "test2" ), Value( "value2" ) } );
+//    vm["vm vector"] = Vector< Map >{ map, map, map };
+//    vm["vm"] = std::move( map );
+//
+//    Timer< microseconds > t;
+//
+//    t.start();
+//
+//    auto buffer = t::variant::Serialize( vm );
+//
+//    auto ser = t.stop();
+//
+//    t.start();
+//
+//    Map vm_2 = t::variant::Deserialize( buffer );
+//
+//    auto deser = t.stop();
+//
+//    std::cout << "Serialize:   " << ser << "us\n";
+//    std::cout << "Deserialize: " << deser << "us\n";
+//
+//    std::cout << "Maps are equal: " << std::boolalpha << (vm_2 == vm) << '\n';
+//}
 
 int main()
 {
-    testTvm();
+    //testTvm();
 
     Map m;
+
+    auto val = Value( uint8(32) );
 
     m["blah"] = "hello";
     m["mememe"] = (uint8) 69;
@@ -208,18 +210,25 @@ int main()
     t::forEach( arr.data(), arr.data() + arr.size(),
         []( auto const& str ){ std::cout << str << '\n'; } );
 
-    std::unordered_map< int, int > x;
+    t::HashTable< fString, int > test_map;
 
-    constexpr t::Array< int, 7 > _g = { 0, 1, 2, 3, 4, 5, 6 };
-    constexpr t::Array< int, 7 > _h = { 7, 8, 9, 10, 11, 12, 13 };
+    test_map["one"]       = 1;
+    test_map["sixtynine"] = 69;
+    test_map["one"]       = 11;
+    test_map["two"]       = 2;
+    test_map["thr"]       = 3;
+    test_map["fou"]       = 4;
 
-    t::transform( _g.cbegin(), _g.cend(), _h.cbegin(), std::inserter( x, x.begin() ),
-        []( int a, int b ){ return std::pair< int, int >{ a, b }; } );
+    t.start();
+
+    t::forEach( test_map.begin(), test_map.end(),
+        []( auto& pair ){ pair.val += 69; } );
+
+    auto end = t.stop();
+
+    std::cout << "Took " << end << "us\n";
 
     std::cout.clear();
-
-    t::forEach( x.cbegin(), x.cend(),
-        []( auto const& pair ){ std::cout << pair.first << ": " << (unsigned) pair.second << '\n'; } );
 
     return 0;
 }
