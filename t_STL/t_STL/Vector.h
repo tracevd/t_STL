@@ -12,59 +12,59 @@ namespace t
 	private:
 		ValueType* m_ptr;
 	public:
-		VectorIterator( ValueType* ptr )
+		constexpr VectorIterator( ValueType* ptr )
 			: m_ptr(ptr) {}
-		VectorIterator& operator++()
+		constexpr VectorIterator& operator++()
 		{
 			m_ptr++;
 			return *this;
 		}
-		VectorIterator operator++(int)
+		constexpr VectorIterator operator++(int)
 		{
 			VectorIterator it = *this;
 			++(*this);
 			return it;
 		}
-		VectorIterator& operator--()
+		constexpr VectorIterator& operator--()
 		{
 			m_ptr--;
 			return *this;
 		}
-		VectorIterator operator--( int )
+		constexpr VectorIterator operator--( int )
 		{
 			VectorIterator it = *this;
 			--(*this);
 			return it;
 		}
-		VectorIterator operator+( uint64 offset )
+		constexpr VectorIterator operator+( uint64 offset )
 		{
 			return VectorIterator( m_ptr + offset );
 		}
-		ValueType& operator[]( int i )
+		constexpr ValueType& operator[]( int i )
 		{
 			return *( m_ptr[i] );
 		}
-		ValueType* operator->()
+		constexpr ValueType* operator->()
 		{
 			return m_ptr;
 		}
-		ValueType& operator*()
+		constexpr ValueType& operator*()
 		{
 			return *m_ptr;
 		}
-		bool operator==( const VectorIterator& other ) const
+		constexpr bool operator==( const VectorIterator& other ) const
 		{
 			return m_ptr == other.m_ptr;
 		}
-		bool operator!=( const VectorIterator& other ) const
+		constexpr bool operator!=( const VectorIterator& other ) const
 		{
 			return !( *this == other );
 		}
-		bool operator==( const void* other ) const
+		constexpr bool operator==( const void* other ) const
 		{
 			return m_ptr == other;
 		}
-		bool operator!=( const void* other ) const
+		constexpr bool operator!=( const void* other ) const
 		{
 			return !(*this == other);
 		}
@@ -79,55 +79,55 @@ namespace t
 	private:
 		PointerType m_ptr;
 	public:
-		VectorIteratorConst( PointerType ptr )
+		constexpr VectorIteratorConst( PointerType ptr )
 			: m_ptr( ptr ) {}
-		VectorIteratorConst& operator++()
+		constexpr VectorIteratorConst& operator++()
 		{
 			m_ptr++;
 			return *this;
 		}
-		VectorIteratorConst operator++( int )
+		constexpr VectorIteratorConst operator++( int )
 		{
 			VectorIterator it = *this;
 			++(*this);
 			return it;
 		}
-		VectorIteratorConst& operator--()
+		constexpr VectorIteratorConst& operator--()
 		{
 			m_ptr--;
 			return *this;
 		}
-		VectorIteratorConst operator--( int )
+		constexpr VectorIteratorConst operator--( int )
 		{
 			VectorIterator it = *this;
 			--(*this);
 			return it;
 		}
-		ReferenceType operator[]( int i )
+		constexpr ReferenceType operator[]( int i )
 		{
 			return *( m_ptr[ i ] );
 		}
-		PointerType operator->()
+		constexpr PointerType operator->()
 		{
 			return m_ptr;
 		}
-		ReferenceType operator*()
+		constexpr ReferenceType operator*()
 		{
 			return *m_ptr;
 		}
-		bool operator==( const VectorIteratorConst& other ) const
+		constexpr bool operator==( const VectorIteratorConst& other ) const
 		{
 			return m_ptr == other.m_ptr;
 		}
-		bool operator!=( const VectorIteratorConst& other ) const
+		constexpr bool operator!=( const VectorIteratorConst& other ) const
 		{
 			return !(*this == other);
 		}
-		bool operator==( const void* other ) const
+		constexpr bool operator==( const void* other ) const
 		{
 			return m_ptr == other;
 		}
-		bool operator!=( const void* other ) const
+		constexpr bool operator!=( const void* other ) const
 		{
 			return !(*this == other);
 		}
@@ -314,13 +314,13 @@ public:
 	}
 	constexpr T& operator[]( uint64 i )
 	{
-		if ( i > m_size )
-			throw std::runtime_error("Exceeded Max Array Bounds");
+		/*if ( i >= m_size )
+			throw std::runtime_error("Exceeded Max Array Bounds");*/
 		return m_data[ i ];
 	}
 	constexpr const T& operator[]( uint64 i ) const
 	{
-		if ( i > m_size )
+		if ( i >= m_size )
 			throw std::runtime_error("Exceeded Max Array Bounds");
 		return m_data[ i ];
 	}

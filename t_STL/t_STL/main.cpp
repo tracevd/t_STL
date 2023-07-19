@@ -136,6 +136,30 @@ using t::variant::Value;
 //    std::cout << "Maps are equal: " << std::boolalpha << (vm_2 == vm) << '\n';
 //}
 
+constexpr int getThing()
+{
+    t::Vector< fString > vec;
+
+    vec.pushBack( fString( 32 ) );
+    vec.pushBack( fString( 47 ) );
+
+    auto str = std::move( vec[ 1 ] );
+
+    str += "6969696";
+
+    auto ch = str.data();
+
+    int val = 0;
+
+    for ( ; *ch; ++ch )
+    {
+        val *= 10;
+        val += *ch - '0';
+    }
+
+    return val;    
+}
+
 int main()
 {
     //testTvm();
@@ -230,5 +254,7 @@ int main()
 
     std::cout.clear();
 
-    return 0;
+    constexpr int blah = getThing();
+
+    return blah;
 }

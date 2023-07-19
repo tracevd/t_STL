@@ -329,7 +329,7 @@ namespace t
 			{
 				if constexpr ( std::is_same_v< T, int64 > )
 				{
-					if ( number == int64_MIN )
+					if ( number == limit< int64 >::min )
 					{
 						*this = String( "-9223372036854775808", 20 );
 						return;
@@ -376,7 +376,7 @@ namespace t
 				m_size = length;
 				m_capacity = m_size + DEFAULT_EXTRA_PADDING;
 				m_data = new char[ m_capacity + 1 ];
-				memcpy( m_data, str, m_size );
+				strcpy< char >( m_data, str, m_size );
 				m_data[ m_size ] = '\0';
 			}
 
@@ -391,13 +391,21 @@ namespace t
 				m_size = str.m_size;
 				m_capacity = m_size + DEFAULT_EXTRA_PADDING;
 				m_data = new char[ m_capacity + 1 ];
-				memcpy( m_data, str.m_data, m_size );
+				strcpy< char >( m_data, str.m_data, m_size );
 				m_data[ m_size ] = '\0';
 			}
 
 			constexpr String( String&& str ) noexcept
 			{
 				*this = std::move( str );
+			}
+
+			constexpr ~String()
+			{
+				delete[] m_data;
+				m_data	   = nullptr;
+				m_capacity = 0;
+				m_size	   = 0;
 			}
 
 			constexpr String& operator=( String&& rhs ) noexcept
@@ -425,7 +433,7 @@ namespace t
 			{
 				if ( m_capacity >= rhs.m_size && m_data != nullptr )
 				{
-					memcpy( m_data, rhs.m_data, rhs.m_size );
+					strcpy< char >( m_data, rhs.m_data, rhs.m_size );
 					m_size = rhs.m_size;
 					m_data[ m_size ] = '\0';
 					return *this;
@@ -439,7 +447,7 @@ namespace t
 				uint32 length = (uint32) strlen( rhs );
 				if ( m_capacity >= length && m_data != nullptr )
 				{
-					memcpy( m_data, rhs, length );
+					::t::strcpy< char >( m_data, rhs, length );
 					m_size = length;
 					m_data[ m_size ] = '\0';
 					return *this;
@@ -458,7 +466,7 @@ namespace t
 						reallocate( m_size + rhs.m_size );
 				}
 
-				memcpy( &m_data[ m_size ], rhs.m_data, rhs.m_size + 1 );
+				strcpy< char >( &m_data[ m_size ], rhs.m_data, rhs.m_size + 1 );
 				m_size += rhs.m_size;
 				return *this;
 			}
@@ -475,7 +483,7 @@ namespace t
 						reallocate( m_size + length );
 				}
 
-				memcpy( &m_data[ m_size ], rhs, length );
+				strcpy< char >( &m_data[ m_size ], rhs, length );
 				m_size += length;
 				m_data[ m_size ] = '\0';
 
@@ -522,7 +530,7 @@ namespace t
 
 				if ( m_data != nullptr )
 				{
-					memcpy( newdata, m_data, m_size );
+					strcpy< char >( newdata, m_data, m_size );
 				}
 
 				delete[] m_data;
@@ -570,7 +578,7 @@ namespace t
 			constexpr void reallocate( uint32 newcap )
 			{
 				auto newdata = new char[ newcap + 1 ];
-				memcpy( newdata, m_data, m_size+1 );
+				strcpy< char >( newdata, m_data, m_size+1 );
 				delete[] m_data;
 				m_data = newdata;
 				m_capacity = newcap;
@@ -694,7 +702,7 @@ struct std::hash< t::fast::String >
 			hash += data[ i ];
 		}
 
-		hash ^= static_cast< uint64_t >( *reinterpret_cast< const uint8_t* >( data ) ) << 56u;
+		hash ^= static_cast< uint64_t >( *data ) << 56u;
 
 		return hash;
 	}

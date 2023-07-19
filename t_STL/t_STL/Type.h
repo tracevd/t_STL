@@ -10,6 +10,9 @@ namespace t
 {
     struct type
     {
+    private:
+        // template< bool
+        // is_any_
     public:
         template< class, class >
         INL_CONSTX_B is_same                = false;
@@ -57,6 +60,10 @@ namespace t
         TMPL INL_CONSTX_B is_integer< uint16 > = true;
         TMPL INL_CONSTX_B is_integer< uint32 > = true;
         TMPL INL_CONSTX_B is_integer< uint64 > = true;
+
+        TMPL_T INL_CONSTX_B is_floating_point         = false;
+        TMPL INL_CONSTX_B is_floating_point< float >  = true;
+        TMPL INL_CONSTX_B is_floating_point< double > = true;
 
         // only function types and reference types can't be const qualified 
         TMPL_T INL_CONSTX_B is_function = !is_const< const T > && !is_reference< T >;

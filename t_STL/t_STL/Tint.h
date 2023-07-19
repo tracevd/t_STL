@@ -9,28 +9,95 @@ using uint16 = unsigned short;
 using uint32 = unsigned int;
 using uint64 = unsigned long long;
 
-#if _WIN32
-#pragma warning( push )
-#pragma warning( disable: 4309 )
-#endif
-inline constexpr int8   int8_MAX   =                        127i8;
-inline constexpr int8   int8_MIN   =                       -128i8;
-inline constexpr int16  int16_MAX  =                     32'767i16;
-inline constexpr int16  int16_MIN  =                    -32'768i16;
-inline constexpr int32  int32_MAX  =              2'147'483'647i32;
-inline constexpr int32  int32_MIN  =             -2'147'483'648i32;
-inline constexpr int64  int64_MAX  =  9'223'372'036'854'775'807i64;
-inline constexpr int64  int64_MIN  = -9'223'372'036'854'775'808i64;
-inline constexpr uint8  uint8_MAX  =                        255ui8;
-inline constexpr uint8  uint8_MIN  =                          0ui8;
-inline constexpr uint16 uint16_MAX =                     65'535ui16;
-inline constexpr uint16 uint16_MIN =                          0ui16;
-inline constexpr uint32 uint32_MAX =              4'294'967'295ui32;
-inline constexpr uint32 uint32_MIN =                          0ui32;
-inline constexpr uint64 uint64_MAX = 18'446'744'073'709'551'615ui64;
-#if WIN32
-#pragma warning( pop )
-#endif
+#include <numeric>
+
+auto constexpr x = std::numeric_limits< char >::min();
+
+// #if _WIN32
+// #pragma warning( push )
+// #pragma warning( disable: 4309 )
+// #endif
+
+template< class T >
+struct limit {};
+
+template<>
+struct limit< int8 >
+{
+	using type = int8;
+	static constexpr inline type max =   127;
+	static constexpr inline type min = (-128);
+	static constexpr bool isSigned = true;
+};
+
+std::is_floating_point_v< double >;
+
+template<>
+struct limit< int16 >
+{
+	using type = int16;
+	static constexpr type max =   32'767;
+	static constexpr type min = (-32'768);
+	static constexpr bool isSigned = true;
+};
+
+template<>
+struct limit< int32 >
+{
+	using type = int32;
+	static constexpr type max =  2'147'483'647;
+	static constexpr type min = -2'147'483'648;
+	static constexpr bool isSigned = true;
+};
+
+template<>
+struct limit< int64 >
+{
+	using type = int64;
+	static constexpr type max =   9'223'372'036'854'775'807;
+	static constexpr type min = (-9'223'372'036'854'775'807 - 1);
+	static constexpr bool isSigned = true;
+};
+
+template<>
+struct limit< uint8 >
+{
+	using type = uint8;
+	static constexpr type max = 255;
+	static constexpr type min =   0;
+	static constexpr bool isSigned = false;
+};
+
+template<>
+struct limit< uint16 >
+{
+	using type = uint16;
+	static constexpr type max = 65'535;
+	static constexpr type min =      0;
+	static constexpr bool isSigned = false;
+};
+
+template<>
+struct limit< uint32 >
+{
+	using type = uint32;
+	static constexpr type max = 4'294'967'295;
+	static constexpr type min =             0;
+	static constexpr bool isSigned = false;
+};
+
+template<>
+struct limit< uint64 >
+{
+	using type = uint64;
+	static constexpr type max = 18'446'744'073'709'551'615;
+	static constexpr type min =                          0;
+	static constexpr bool isSigned = false;
+};
+
+// #if WIN32
+// #pragma warning( pop )
+// #endif
 
 static_assert( sizeof( int8 )   == 1, "Invalid type size!" );
 static_assert( sizeof( int16 )  == 2, "Invalid type size!");

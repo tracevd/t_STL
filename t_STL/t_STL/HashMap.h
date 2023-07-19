@@ -359,7 +359,7 @@ namespace t
 		 * Set isInMiddleOfList to 1 (true) by default, meaning it will not include
 		 * the current Node index when searching for the next valid index in a node
 		 */
-		void next( uint8 isInMiddleOfList = 1 )
+		constexpr void next( uint8 isInMiddleOfList = 1 )
 		{
 			uint8 nextIndex = INVALID_INDEX;
 
@@ -393,7 +393,7 @@ namespace t
 		BucketList* buckets = nullptr;
 		uint64 currentBucket = 0;
 		Node* currentNode = nullptr;
-		uint8 currentNodeIndex;
+		uint8 currentNodeIndex = 0;
 	};
 
 	template< typename KeyTy, typename ValTy >
@@ -412,15 +412,12 @@ namespace t
 		using InnerPair = hashmap::Pair< KeyTy, ValTy >;
 	public:
 		constexpr HashTable():
-			m_size(0)
-		{
-			m_data.resize( 20 );
-		}
+			m_size( 0 ),
+			m_data( 10 ) {}
 
-		constexpr explicit HashTable( uint64 size ): m_size(0)
-		{
-			m_data.resize(size);
-		}
+		constexpr explicit HashTable( uint64 numberOfBuckets ):
+			m_size( 0 ),
+			m_data( numberOfBuckets ) {}
 
 		constexpr HashTable( HashTable&& other ):
 			m_data( std::move( other.m_data ) ),
@@ -431,6 +428,8 @@ namespace t
 
 		constexpr HashTable& operator=( HashTable&& rhs )
 		{
+			if ( this == &rhs )
+				return *this;
 			m_data = std::move( rhs.m_data );
 			m_size = rhs.m_size;
 			rhs.m_size = 0;
@@ -461,16 +460,16 @@ namespace t
 
 		constexpr ConstIterator cend() const
 		{
-			return ConstIterator( reinterpret_cast<const Vector< Bucket >*>(&m_data),
+			return ConstIterator( &m_data,
 								  m_data.size(),
-								  reinterpret_cast< const Bucket* >( m_data.data() + m_data.size() ),
+								  m_data.data() + m_data.size(),
 								  uint8(8) );
 		}
 
 		constexpr bool contains( const KeyTy& key ) const
 		{
-			uint64 i = hash( key );
-			return m_data[ i ].find( key ) != nullptr;
+			uint64 hash_ = hash( key );
+			return m_data[ hash_ ].find( key ) != nullptr;
 		}
 
 		constexpr bool contains( KeyTy&& key ) const
@@ -529,11 +528,11 @@ namespace t
 
 		constexpr Pair* insert( Pair&& pair )
 		{
-			uint64 hash = hash( pair.key );
-			if ( m_data[ hash ].find( pair.key ) )
+			uint64 hash_ = hash( pair.key );
+			if ( m_data[ hash_ ].find( pair.key ) )
 			{
 				m_size += 1;
-				return &m_data[ hash ].add( std::move( pair ) );
+				return &m_data[ hash_ ].add( reinterpret_cast< InnerPair&& >( pair ) );
 			}
 			return nullptr;
 		}
@@ -688,7 +687,7 @@ namespace t
 			}
 			constexpr uint8 getNextEmptyIndex( uint8 currentIndex ) const
 			{
-				if ( valid_indexes == uint8_MAX )
+				if ( valid_indexes == limit< uint8 >::max )
 					return INVALID_INDEX;
 				for ( ; currentIndex < pairs.size(); ++currentIndex )
 				{
@@ -729,6 +728,12 @@ namespace t
 		constexpr bool containsKey( uint64 hash, const KeyTy& key  ) const
 		{
 			return m_data[ hash ].find( key ) != nullptr;
+		}
+
+		constexpr Pair& insert_unchecked( uint64 hash, InnerPair&& pair )
+		{
+			m_size += 1;
+			return m_data[ hash ].add( std::move( pair ) );
 		}
 
 		constexpr inline Pair& putImpl( uint64 hash, InnerPair&& pair )

@@ -5,7 +5,8 @@
 
 namespace t
 {
-	inline constexpr uint64 strlen( const char* str )
+	template< class CharTy >
+	inline constexpr uint64 strlen( const CharTy* str )
 	{
 		uint64 length = 0;
 
@@ -24,6 +25,17 @@ namespace t
 		for ( ; dest < end; ++dest, ++src )
 		{
 			*dest = *src;
+		}
+	}
+
+	template< class CharTy >
+	inline constexpr void strcpy( CharTy* destination, const CharTy* source, uint64 length )
+	{
+		const char* const end = destination + length;
+
+		for ( ; destination != end; ++destination, ++source )
+		{
+			*destination = *source;
 		}
 	}
 }
