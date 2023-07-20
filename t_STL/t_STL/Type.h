@@ -16,7 +16,6 @@ namespace t
     public:
         template< class, class >
         INL_CONSTX_B is_same                = false;
-        TMPL_T INL_CONSTX_B is_same< T, T > = true;
 
         TMPL_T INL_CONSTX_B is_reference              = false;
         TMPL_T INL_CONSTX_B is_reference< T& >        = true;
@@ -173,6 +172,8 @@ namespace t
         template< bool case_, class T = void >
         using enable_if = enable_if_< case_, T >::type;
     };
+
+    TMPL_T INL_CONSTX_B type::is_same< T, T > = true;
     
     template< typename T >
     inline constexpr T&& move( T& val )
