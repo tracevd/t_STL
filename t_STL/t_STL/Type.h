@@ -101,14 +101,13 @@ namespace t
     public:
         TMPL_T using remove_volatile = remove_volatile_< T >::type;
     private:
-        // Select
-        template< bool, class T, class >
+        template< bool, class T, class U >
         struct ternary_                { using type = T; };
         template< class T, class U >
         struct ternary_< false, T, U > { using type = U; };
     public:
-        template< bool b, class T, class U >
-        using ternary = ternary_< b, T, U >::type;
+        template< bool Cond, class T, class U >
+        using ternary = ternary_< Cond, T, U >::type;
     private:
         template< class T >
         struct plain_
