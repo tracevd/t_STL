@@ -4,7 +4,8 @@
 
 #define TMPL_T template< class T >
 #define TMPL template<>
-#define INL_CONSTX_B inline constexpr static bool
+#define INL_CONSTX_B inline constexpr bool
+#define INL_CONSTX_S_B inline constexpr static bool
 
 namespace t
 {
@@ -15,55 +16,31 @@ namespace t
         // is_any_
     public:
         template< class, class >
-        INL_CONSTX_B is_same                = false;
+        INL_CONSTX_S_B is_same = false;
 
-        TMPL_T INL_CONSTX_B is_reference              = false;
-        TMPL_T INL_CONSTX_B is_reference< T& >        = true;
-        TMPL_T INL_CONSTX_B is_reference< T&& >       = true;
-        TMPL_T INL_CONSTX_B is_reference< T const& >  = true;
-        TMPL_T INL_CONSTX_B is_reference< T const&& > = true;
+        template< class T >
+        static constexpr bool is_same< T, T > = true;
 
-        TMPL_T INL_CONSTX_B is_lvalue_reference             = false;
-        TMPL_T INL_CONSTX_B is_lvalue_reference< T& >       = true;
-        TMPL_T INL_CONSTX_B is_lvalue_reference< T const& > = true;
+        TMPL_T INL_CONSTX_S_B is_reference = false;
 
-        TMPL_T INL_CONSTX_B is_rvalue_reference              = false;
-        TMPL_T INL_CONSTX_B is_rvalue_reference< T&& >       = true;
-        TMPL_T INL_CONSTX_B is_rvalue_reference< T const&& > = true;
+        TMPL_T INL_CONSTX_S_B is_lvalue_reference = false;
 
-        TMPL_T INL_CONSTX_B is_pointer                   = false;
-        TMPL_T INL_CONSTX_B is_pointer< T* >             = true;
-        TMPL_T INL_CONSTX_B is_pointer< T const* >       = true;
-        TMPL_T INL_CONSTX_B is_pointer< T const* const > = true;
+        TMPL_T INL_CONSTX_S_B is_rvalue_reference = false;
 
-        TMPL_T INL_CONSTX_B is_const              = false;
-        TMPL_T INL_CONSTX_B is_const< T const >   = true;
-        TMPL_T INL_CONSTX_B is_const< T const& >  = true;
-        TMPL_T INL_CONSTX_B is_const< T const&& > = true;
+        TMPL_T INL_CONSTX_S_B is_pointer = false;
 
-        TMPL_T INL_CONSTX_B is_array        = false;
-        TMPL_T INL_CONSTX_B is_array< T[] > = true;
+        TMPL_T INL_CONSTX_S_B is_const = false;
 
-        template< class T, size_t N >
-        INL_CONSTX_B is_array< T[ N ] > = true;
+        TMPL_T INL_CONSTX_S_B is_array = false;
 
-        TMPL_T INL_CONSTX_B is_volatile               = false;
-        TMPL_T INL_CONSTX_B is_volatile< volatile T > = true;
+        TMPL_T INL_CONSTX_S_B is_volatile = false;
 
-        TMPL_T INL_CONSTX_B is_integer         = false;
-        TMPL INL_CONSTX_B is_integer< int8  >  = true;
-        TMPL INL_CONSTX_B is_integer< int16 >  = true;
-        TMPL INL_CONSTX_B is_integer< int32 >  = true;
-        TMPL INL_CONSTX_B is_integer< int64 >  = true;
-        TMPL INL_CONSTX_B is_integer< uint8 >  = true;
-        TMPL INL_CONSTX_B is_integer< uint16 > = true;
-        TMPL INL_CONSTX_B is_integer< uint32 > = true;
-        TMPL INL_CONSTX_B is_integer< uint64 > = true;
+        TMPL_T INL_CONSTX_S_B is_integer = false;
 
-        TMPL_T INL_CONSTX_B is_floating_point = is_same< T, float > || is_same< T, double > || is_same< T, long double >;
+        TMPL_T INL_CONSTX_S_B is_floating_point = is_same< T, float > || is_same< T, double > || is_same< T, long double >;
 
         // only function types and reference types can't be const qualified 
-        TMPL_T INL_CONSTX_B is_function = !is_const< const T > && !is_reference< T >;
+        TMPL_T INL_CONSTX_S_B is_function = !is_const< const T > && !is_reference< T >;
     private:
         // References
         TMPL_T struct remove_reference_             { using type = T; };
@@ -174,6 +151,40 @@ namespace t
     };
 
     TMPL_T INL_CONSTX_B type::is_same< T, T > = true;
+
+    TMPL_T INL_CONSTX_B type::is_reference< T& >        = true;
+    TMPL_T INL_CONSTX_B type::is_reference< T&& >       = true;
+    TMPL_T INL_CONSTX_B type::is_reference< T const& >  = true;
+    TMPL_T INL_CONSTX_B type::is_reference< T const&& > = true;
+
+    TMPL_T INL_CONSTX_B type::is_lvalue_reference< T& >       = true;
+    TMPL_T INL_CONSTX_B type::is_lvalue_reference< T const& > = true;
+
+    TMPL_T INL_CONSTX_B type::is_rvalue_reference< T&& >       = true;
+    TMPL_T INL_CONSTX_B type::is_rvalue_reference< T const&& > = true;
+
+    TMPL_T INL_CONSTX_B type::is_pointer< T* >             = true;
+    TMPL_T INL_CONSTX_B type::is_pointer< T const* >       = true;
+    TMPL_T INL_CONSTX_B type::is_pointer< T const* const > = true;
+
+    TMPL_T INL_CONSTX_B type::is_const< T const >   = true;
+    TMPL_T INL_CONSTX_B type::is_const< T const& >  = true;
+    TMPL_T INL_CONSTX_B type::is_const< T const&& > = true;
+
+    TMPL_T INL_CONSTX_S_B type::is_array< T[] > = true;
+    template< class T, size_t N >
+    INL_CONSTX_B type::is_array< T[ N ] > = true;
+
+    TMPL_T INL_CONSTX_S_B type::is_volatile< volatile T > = true;
+
+    TMPL INL_CONSTX_B type::is_integer< int8  >  = true;
+    TMPL INL_CONSTX_B type::is_integer< int16 >  = true;
+    TMPL INL_CONSTX_B type::is_integer< int32 >  = true;
+    TMPL INL_CONSTX_B type::is_integer< int64 >  = true;
+    TMPL INL_CONSTX_B type::is_integer< uint8 >  = true;
+    TMPL INL_CONSTX_B type::is_integer< uint16 > = true;
+    TMPL INL_CONSTX_B type::is_integer< uint32 > = true;
+    TMPL INL_CONSTX_B type::is_integer< uint64 > = true;
     
     template< typename T >
     inline constexpr T&& move( T& val )
@@ -199,4 +210,4 @@ namespace t
 };
 
 #undef TMPL_T
-#undef INL_CONSTX_B
+#undef INL_CONSTX_S_B
