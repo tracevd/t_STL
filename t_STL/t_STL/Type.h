@@ -2,6 +2,8 @@
 
 #include "Tint.h"
 
+#include <type_traits>
+
 #define TMPL_T template< class T >
 #define TMPL template<>
 #define INL_CONSTX_B inline constexpr bool
@@ -11,104 +13,53 @@ namespace t
 {
     struct type
     {
-    private:
-        // template< bool
-        // is_any_
     public:
-        template< class, class >
-        INL_CONSTX_S_B is_same = false;
-
-        TMPL_T INL_CONSTX_S_B is_reference = false;
-
-        TMPL_T INL_CONSTX_S_B is_lvalue_reference = false;
-
-        TMPL_T INL_CONSTX_S_B is_rvalue_reference = false;
-
-        TMPL_T INL_CONSTX_S_B is_pointer = false;
-
-        TMPL_T INL_CONSTX_S_B is_const = false;
-
-        TMPL_T INL_CONSTX_S_B is_array = false;
-
-        TMPL_T INL_CONSTX_S_B is_volatile = false;
-
-        TMPL_T INL_CONSTX_S_B is_integer = false;
-
-        TMPL_T INL_CONSTX_S_B is_floating_point = is_same< T, float > || is_same< T, double > || is_same< T, long double >;
-
-        // only function types and reference types can't be const qualified 
-        TMPL_T INL_CONSTX_S_B is_function = !is_const< const T > && !is_reference< T >;
-    private:
-        // References
-        TMPL_T struct remove_reference_             { using type = T; };
-        TMPL_T struct remove_reference_< T& >       { using type = T; };
-        TMPL_T struct remove_reference_< T&& >      { using type = T; };
-        TMPL_T struct remove_reference_< T const& > { using type = T const; };
-    public:
-        TMPL_T using remove_reference = remove_reference_< T >::type;
-    private:
-        TMPL_T struct make_reference_ { using type = T&; };
-    public:
-        TMPL_T using make_reference = make_reference_< T >::type;
-    private:
-        TMPL_T struct make_rvalue_reference_       { using type = T&&; };
-        TMPL_T struct make_rvalue_reference_< T& > { using type = T&&; };
-    public:
-        TMPL_T using make_rvalue_reference = make_rvalue_reference_< T >::type;
-    private:
-        TMPL_T struct make_const_reference_        { using type = T const&; };
-        TMPL_T struct make_const_reference_< T& >  { using type = T const&; };
-        TMPL_T struct make_const_reference_< T&& > { using type = T const&; };
-    public:
-        TMPL_T using make_const_reference = make_const_reference_< T >::type;
-    private:
-        // Pointer
-        TMPL_T struct remove_pointer_             { using type = T; };
-        TMPL_T struct remove_pointer_< T* >       { using type = T; };
-        TMPL_T struct remove_pointer_< T* const > { using type = T; };
-    public:
-        TMPL_T using remove_pointer = remove_pointer_< T >::type;
-    private:
-        TMPL_T struct add_pointer_ { using type = T*; };
-    public:
-        TMPL_T using add_pointer = add_pointer_< T >::type;
-    private:
-         // Const
-        TMPL_T struct remove_const_              { using type = T; };
-        TMPL_T struct remove_const_< T const >   { using type = T; };
-        TMPL_T struct remove_const_< T const& >  { using type = T&; };
-        TMPL_T struct remove_const_< T const&& > { using type = T&&; };
-    public:
-        TMPL_T using remove_const = remove_const_< T >::type;
-    private:
-        TMPL_T struct add_const_        { using type = const T; };
-        TMPL_T struct add_const_< T& >  { using type = T const&; };
-        TMPL_T struct add_const_< T&& > { using type = T const&&; };
-    public:
-        TMPL_T using add_const = add_const_< T >::type;
-    private:
-        // Array
-        TMPL_T struct remove_array_        { using type = T; };
-        TMPL_T struct remove_array_< T[] > { using type = T; };
-        template< class T, size_t N >
-        struct remove_array_< T[N] >       { using type = T; };
-    public:
-        TMPL_T using remove_array = remove_array_< T >::type;
-    private:
-        // Volatile
-        TMPL_T struct remove_volatile_               { using type = T; };
-        TMPL_T struct remove_volatile_< volatile T > { using type = T; };
-    public:
-        TMPL_T using remove_volatile = remove_volatile_< T >::type;
-    private:
-        template< bool, class T, class U >
-        struct ternary_                { using type = T; };
         template< class T, class U >
-        struct ternary_< false, T, U > { using type = U; };
-    public:
+        INL_CONSTX_S_B is_same = std::is_same_v< T, U >;
+
+        TMPL_T INL_CONSTX_S_B is_reference = std::is_reference_v< T >;
+
+        TMPL_T INL_CONSTX_S_B is_lvalue_reference = std::is_lvalue_reference_v< T >;
+
+        TMPL_T INL_CONSTX_S_B is_rvalue_reference = std::is_rvalue_reference_v< T >;
+
+        TMPL_T INL_CONSTX_S_B is_pointer = std::is_pointer_v< T >;
+
+        TMPL_T INL_CONSTX_S_B is_const = std::is_const_v< T >;
+
+        TMPL_T INL_CONSTX_S_B is_array = std::is_array_v< T >;
+
+        TMPL_T INL_CONSTX_S_B is_volatile = std::is_volatile_v< T >;
+
+        TMPL_T INL_CONSTX_S_B is_integer = std::_Is_standard_integer< T >;
+
+        TMPL_T INL_CONSTX_S_B is_floating_point = std::is_floating_point_v< T >;
+
+        TMPL_T INL_CONSTX_S_B is_function = std::is_function_v< T >;
+
+        TMPL_T using remove_reference = std::remove_reference_t< T >;
+
+        TMPL_T using make_rvalue_reference = std::add_rvalue_reference_t< T >;
+
+        TMPL_T using make_const_reference = std::add_const_t< std::add_lvalue_reference_t< T > >;
+
+        TMPL_T using make_lvalue_reference = std::add_lvalue_reference_t< T >;
+
+        TMPL_T using remove_pointer = std::remove_pointer_t< T >;
+
+        TMPL_T using add_pointer = std::add_pointer_t< T >;
+
+        TMPL_T using remove_const = std::remove_const_t< T >;
+
+        TMPL_T using add_const = std::add_const_t< T >;
+
+        TMPL_T using remove_array = std::remove_all_extents_t< T >;
+
+        TMPL_T using remove_volatile = std::remove_volatile_t< T >;
+
         template< bool Cond, class T, class U >
-        using ternary = ternary_< Cond, T, U >::type;
-    private:
+        using ternary = std::conditional_t< Cond, T, U >;
+    /*private:
         template< class T >
         struct plain_
         {
@@ -122,66 +73,13 @@ namespace t
                                 temp >;
         };
     public:
-        TMPL_T using plain = plain_< T >::type;
-    private:
-        template< class T >
-        struct decay_
-        {
-            using t0 = remove_reference< T >;
-            using t1 = ternary< is_function< t0 >,
-                            add_pointer< remove_array< t0 > >,
-                            remove_const< remove_volatile< t0 > > >;
-            using type = ternary< is_array< t1 >,
-                            add_pointer< remove_array< t1 > >,
-                            t1 >;
-        };
-    public:
-        TMPL_T using decay = decay_< T >::type;
-    private:
-        template< bool, class >
-        struct enable_if_ {};
-        template< class T >
-        struct enable_if_< true, T > { using type = T; };
-    public:
+        TMPL_T using plain = plain_< T >::type;*/
+
+        TMPL_T using decay = std::decay_t< T >;
+
         template< bool case_, class T = void >
-        using enable_if = enable_if_< case_, T >::type;
+        using enable_if = std::enable_if_t< case_, T >;
     };
-
-    TMPL_T INL_CONSTX_B type::is_same< T, T > = true;
-
-    TMPL_T INL_CONSTX_B type::is_reference< T& >        = true;
-    TMPL_T INL_CONSTX_B type::is_reference< T&& >       = true;
-    TMPL_T INL_CONSTX_B type::is_reference< T const& >  = true;
-    TMPL_T INL_CONSTX_B type::is_reference< T const&& > = true;
-
-    TMPL_T INL_CONSTX_B type::is_lvalue_reference< T& >       = true;
-    TMPL_T INL_CONSTX_B type::is_lvalue_reference< T const& > = true;
-
-    TMPL_T INL_CONSTX_B type::is_rvalue_reference< T&& >       = true;
-    TMPL_T INL_CONSTX_B type::is_rvalue_reference< T const&& > = true;
-
-    TMPL_T INL_CONSTX_B type::is_pointer< T* >             = true;
-    TMPL_T INL_CONSTX_B type::is_pointer< T const* >       = true;
-    TMPL_T INL_CONSTX_B type::is_pointer< T const* const > = true;
-
-    TMPL_T INL_CONSTX_B type::is_const< T const >   = true;
-    TMPL_T INL_CONSTX_B type::is_const< T const& >  = true;
-    TMPL_T INL_CONSTX_B type::is_const< T const&& > = true;
-
-    TMPL_T INL_CONSTX_B type::is_array< T[] > = true;
-    template< class T, size_t N >
-    INL_CONSTX_B type::is_array< T[ N ] > = true;
-
-    TMPL_T INL_CONSTX_B type::is_volatile< volatile T > = true;
-
-    TMPL INL_CONSTX_B type::is_integer< int8  >  = true;
-    TMPL INL_CONSTX_B type::is_integer< int16 >  = true;
-    TMPL INL_CONSTX_B type::is_integer< int32 >  = true;
-    TMPL INL_CONSTX_B type::is_integer< int64 >  = true;
-    TMPL INL_CONSTX_B type::is_integer< uint8 >  = true;
-    TMPL INL_CONSTX_B type::is_integer< uint16 > = true;
-    TMPL INL_CONSTX_B type::is_integer< uint32 > = true;
-    TMPL INL_CONSTX_B type::is_integer< uint64 > = true;
     
     template< typename T >
     inline constexpr T&& move( T& val )
