@@ -161,7 +161,7 @@ namespace t
             template< typename T, typename = type::enable_if< type::is_reference< T > && !type::is_const< type::remove_reference< T > > > >
             T As()
             {
-                auto constexpr type = templateToVariantType< decay< T > >();
+                auto constexpr type = templateToVariantType< type::decay< T > >();
 
                 static_assert( type != VOID, "Value cannot be this type!" );
 
@@ -173,13 +173,13 @@ namespace t
                     throw std::runtime_error( "Invalid type" );
                 }
 
-                auto data = static_cast< Data< decay< T > >* >( m_data );
+                auto data = static_cast< Data< type::decay< T > >* >( m_data );
 
                 if constexpr ( std::is_reference_v< T > )
                 {
                     if ( data->references > 1 )
                     {
-                        if constexpr ( std::is_same_v< rm_ref< T >, Map > || std::is_same_v< rm_ref< T >, Vector< Map > > )
+                        if constexpr ( type::is_same< type::remove_reference< T >, Map > || type::is_same< type::remove_reference< T >, Vector< Map > > )
                             *this = QuickClone( 0 );
                         else
                             *this = Clone();
