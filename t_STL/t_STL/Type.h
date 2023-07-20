@@ -113,7 +113,7 @@ namespace t
         template< class T >
         struct plain_
         {
-            using temp = remove_pointer< remove_reference< remove_const< remove_array< T > > > >;
+            using temp = typename remove_pointer< remove_reference< remove_const< remove_array< T > > > >;
             using type = ternary< is_pointer< temp > ||
                                   is_reference< temp > ||
                                   is_const< temp > ||
@@ -186,7 +186,7 @@ namespace t
     template< typename T >
     inline constexpr T&& move( T& val )
     {
-        return static_cast<T&&>(val);
+        return static_cast< T&& >(val);
     }
     
     template< typename T >
@@ -206,5 +206,7 @@ namespace t
     }
 };
 
+#undef TMPL
 #undef TMPL_T
 #undef INL_CONSTX_S_B
+#undef INL_CONSTX_B
