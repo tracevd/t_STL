@@ -31,7 +31,14 @@ namespace t
 
         TMPL_T INL_CONSTX_S_B is_volatile = std::is_volatile_v< T >;
 
+#ifdef _WIN32
         TMPL_T INL_CONSTX_S_B is_integer = std::_Is_standard_integer< T >;
+#else
+        TMPL_T INL_CONSTX_S_B is_integer = std::__is_standard_integer< T >;
+#endif
+        TMPL_T INL_CONSTX_S_B is_signed = std::is_signed_v< T >;
+
+        TMPL_T INL_CONSTX_S_B is_unsigned = std::is_unsigned_v< T >;
 
         TMPL_T INL_CONSTX_S_B is_floating_point = std::is_floating_point_v< T >;
 

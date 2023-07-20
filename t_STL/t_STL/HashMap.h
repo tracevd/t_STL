@@ -259,7 +259,15 @@ namespace t
 	class HashTableIterator
 	{
 	private:
-		using BucketList = type::ternary< isConst, typename const HashTable::BucketList, typename HashTable::BucketList >;
+		using BucketList = type::ternary< isConst,
+#ifdef _WIN32
+		typename
+#endif
+		const HashTable::BucketList,
+#ifdef _WIN32
+		typename
+#endif
+		HashTable::BucketList >;
 		using Node = type::ternary< isConst, typename const HashTable::MultiValueLinkedList, typename HashTable::MultiValueLinkedList >;
 		using ValueType = type::ternary< isConst, typename const HashTable::ValueType, typename HashTable::ValueType >;
 	public:
