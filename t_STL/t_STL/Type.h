@@ -113,13 +113,14 @@ namespace t
         template< class T >
         struct plain_
         {
-            using temp = typename remove_pointer< remove_reference< remove_const< remove_array< T > > > >;
-            using type = ternary< is_pointer< temp > ||
-                                  is_reference< temp > ||
-                                  is_const< temp > ||
-                                  is_array< temp >,
-                                    plain_< temp >::type,
-                                    temp >;
+            using no_array = remove_array< T >;
+            using no_const = remove_const< no_array >;
+            using no_reference = remove_reference< no_const >;
+            using temp = remove_pointer< no_reference >;
+            using type = ternary<
+                            is_pointer< temp > || is_reference< temp > || is_const< temp > || is_array< temp >,
+                                plain_< temp >::type,
+                                temp >;
         };
     public:
         TMPL_T using plain = plain_< T >::type;
