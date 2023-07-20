@@ -7,4 +7,4 @@ set( CMAKE_CXX_STANDARD_REQUIRED True )
 
 file( GLOB_RECURSE "*.h" "*.cpp" )
 
-add_executable( t_STL main.cpp )
+add_executable( t_STL "t_STL/t_STL/main.cpp" )
