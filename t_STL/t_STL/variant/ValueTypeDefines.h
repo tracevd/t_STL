@@ -36,12 +36,12 @@ struct TtoType< T > \
 template<> \
 struct TypeToT< type_ > \
 { \
-    using type = typename T; \
+    using type = T; \
 };
 
 #define TtoTypeDef \
 \
-template< typename T > \
+template< typename U > \
 struct TtoType \
 { \
     static constexpr t::variant::Type type = VOID; \
@@ -61,7 +61,7 @@ DefineType( uint64, UINT64, "u64" ) \
 DefineType( float, FLOAT, "float" ) \
 DefineType( double, DOUBLE, "double" ) \
 DefineType( String, STRING, "String" ) \
-DefineType( t::variant::Map, MAP, "Map" ) \
+DefineType( ::t::variant::Map, MAP, "Map" ) \
 DefineType( Vector< int8 >, INT8_VECTOR, "i8[]" ) \
 DefineType( Vector< int16 >, INT16_VECTOR, "i16[]" ) \
 DefineType( Vector< int32 >, INT32_VECTOR, "i32[]" ) \
@@ -73,4 +73,4 @@ DefineType( Vector< uint64 >, UINT64_VECTOR, "u64[]" ) \
 DefineType( Vector< float >, FLOAT_VECTOR, "float[]" ) \
 DefineType( Vector< double >, DOUBLE_VECTOR, "double[]" ) \
 DefineType( Vector< String >, STRING_VECTOR, "String[]" ) \
-DefineType( Vector< t::variant::Map >, MAP_VECTOR, "Map[]" )
+DefineType( Vector< ::t::variant::Map >, MAP_VECTOR, "Map[]" )

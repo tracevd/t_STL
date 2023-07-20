@@ -18,9 +18,6 @@ namespace t
         template< class, class >
         INL_CONSTX_S_B is_same = false;
 
-        template< class T >
-        static constexpr bool is_same< T, T > = true;
-
         TMPL_T INL_CONSTX_S_B is_reference = false;
 
         TMPL_T INL_CONSTX_S_B is_lvalue_reference = false;
@@ -171,11 +168,11 @@ namespace t
     TMPL_T INL_CONSTX_B type::is_const< T const& >  = true;
     TMPL_T INL_CONSTX_B type::is_const< T const&& > = true;
 
-    TMPL_T INL_CONSTX_S_B type::is_array< T[] > = true;
+    TMPL_T INL_CONSTX_B type::is_array< T[] > = true;
     template< class T, size_t N >
     INL_CONSTX_B type::is_array< T[ N ] > = true;
 
-    TMPL_T INL_CONSTX_S_B type::is_volatile< volatile T > = true;
+    TMPL_T INL_CONSTX_B type::is_volatile< volatile T > = true;
 
     TMPL INL_CONSTX_B type::is_integer< int8  >  = true;
     TMPL INL_CONSTX_B type::is_integer< int16 >  = true;
