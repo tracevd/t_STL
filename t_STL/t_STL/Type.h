@@ -45,22 +45,22 @@ namespace t
         TMPL_T struct remove_reference_< T&& >      { using type = T; };
         TMPL_T struct remove_reference_< T const& > { using type = T const; };
     public:
-        TMPL_T using remove_reference = typename remove_reference_< T >::type;
+        TMPL_T using remove_reference = remove_reference_< T >::type;
     private:
         TMPL_T struct make_reference_ { using type = T&; };
     public:
-        TMPL_T using make_reference = typename make_reference_< T >::type;
+        TMPL_T using make_reference = make_reference_< T >::type;
     private:
         TMPL_T struct make_rvalue_reference_       { using type = T&&; };
         TMPL_T struct make_rvalue_reference_< T& > { using type = T&&; };
     public:
-        TMPL_T using make_rvalue_reference = typename make_rvalue_reference_< T >::type;
+        TMPL_T using make_rvalue_reference = make_rvalue_reference_< T >::type;
     private:
         TMPL_T struct make_const_reference_        { using type = T const&; };
         TMPL_T struct make_const_reference_< T& >  { using type = T const&; };
         TMPL_T struct make_const_reference_< T&& > { using type = T const&; };
     public:
-        TMPL_T using make_const_reference = typename make_const_reference_< T >::type;
+        TMPL_T using make_const_reference = make_const_reference_< T >::type;
     private:
         // Pointer
         TMPL_T struct remove_pointer_             { using type = T; };
@@ -71,7 +71,7 @@ namespace t
     private:
         TMPL_T struct add_pointer_ { using type = T*; };
     public:
-        TMPL_T using add_pointer = typename add_pointer_< T >::type;
+        TMPL_T using add_pointer = add_pointer_< T >::type;
     private:
          // Const
         TMPL_T struct remove_const_              { using type = T; };
@@ -79,7 +79,7 @@ namespace t
         TMPL_T struct remove_const_< T const& >  { using type = T&; };
         TMPL_T struct remove_const_< T const&& > { using type = T&&; };
     public:
-        TMPL_T using remove_const = typename remove_const_< T >::type;
+        TMPL_T using remove_const = remove_const_< T >::type;
     private:
         TMPL_T struct add_const_        { using type = const T; };
         TMPL_T struct add_const_< T& >  { using type = T const&; };
@@ -93,13 +93,13 @@ namespace t
         template< class T, size_t N >
         struct remove_array_< T[N] >       { using type = T; };
     public:
-        TMPL_T using remove_array = typename remove_array_< T >::type;
+        TMPL_T using remove_array = remove_array_< T >::type;
     private:
         // Volatile
         TMPL_T struct remove_volatile_               { using type = T; };
         TMPL_T struct remove_volatile_< volatile T > { using type = T; };
     public:
-        TMPL_T using remove_volatile = typename remove_volatile_< T >::type;
+        TMPL_T using remove_volatile = remove_volatile_< T >::type;
     private:
         // Select
         template< bool, class T, class >
@@ -108,7 +108,7 @@ namespace t
         struct ternary_< false, T, U > { using type = U; };
     public:
         template< bool b, class T, class U >
-        using ternary = typename ternary_< b, T, U >::type;
+        using ternary = ternary_< b, T, U >::type;
     private:
         template< class T >
         struct plain_
@@ -118,11 +118,11 @@ namespace t
                                   is_reference< temp > ||
                                   is_const< temp > ||
                                   is_array< temp >,
-                                    typename plain_< temp >::type,
+                                    plain_< temp >::type,
                                     temp >;
         };
     public:
-        TMPL_T using plain = typename plain_< T >::type;
+        TMPL_T using plain = plain_< T >::type;
     private:
         template< class T >
         struct decay_
@@ -131,7 +131,7 @@ namespace t
             using t1 = ternary< is_function< t0 >,
                             add_pointer< remove_array< t0 > >,
                             remove_const< remove_volatile< t0 > > >;
-            using type = typename ternary< is_array< t1 >,
+            using type = ternary< is_array< t1 >,
                             add_pointer< remove_array< t1 > >,
                             t1 >;
         };
