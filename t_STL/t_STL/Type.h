@@ -61,9 +61,7 @@ namespace t
         TMPL INL_CONSTX_B is_integer< uint32 > = true;
         TMPL INL_CONSTX_B is_integer< uint64 > = true;
 
-        TMPL_T INL_CONSTX_B is_floating_point         = false;
-        TMPL INL_CONSTX_B is_floating_point< float >  = true;
-        TMPL INL_CONSTX_B is_floating_point< double > = true;
+        TMPL_T INL_CONSTX_B is_floating_point = is_same< T, float > || is_same< T, double > || is_same< T, long double >;
 
         // only function types and reference types can't be const qualified 
         TMPL_T INL_CONSTX_B is_function = !is_const< const T > && !is_reference< T >;

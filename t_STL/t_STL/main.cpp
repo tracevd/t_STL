@@ -136,28 +136,25 @@ using t::variant::Value;
 //    std::cout << "Maps are equal: " << std::boolalpha << (vm_2 == vm) << '\n';
 //}
 
+#include <assert.h>
+
 constexpr int getThing()
 {
-    t::Vector< fString > vec;
+    t::HashTable< fString, int > map;
 
-    vec.pushBack( fString( 32 ) );
-    vec.pushBack( fString( 47 ) );
+    t::UniquePtr< fString > strptr = fString("blah");
 
-    auto str = std::move( vec[ 1 ] );
+    *strptr = "blah";
 
-    str += "6969696";
+    map.insert( { "hey", 0 } );
+    map.insert( { "bye", 2 } );
+    map.insert( { "blah", 4 } );
+    map.insert( { "bahbah", 1 } );
+    map.insert( { "haha", 5 } );
 
-    auto ch = str.data();
+    //return map.at( "bahbah" );
 
-    int val = 0;
-
-    for ( ; *ch; ++ch )
-    {
-        val *= 10;
-        val += *ch - '0';
-    }
-
-    return val;    
+    return 5;
 }
 
 int main()

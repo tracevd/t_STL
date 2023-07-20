@@ -30,8 +30,6 @@ struct limit< int8 >
 	static constexpr bool isSigned = true;
 };
 
-std::is_floating_point_v< double >;
-
 template<>
 struct limit< int16 >
 {

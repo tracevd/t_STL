@@ -337,12 +337,12 @@ namespace t
 
 		constexpr ValueType& operator*()
 		{
-			return  reinterpret_cast< ValueType& >( currentNode->pairs[ currentNodeIndex ] );
+			return  *currentNode->pairs[ currentNodeIndex ];
 		}
 
 		constexpr ValueType* operator->()
 		{
-			return  reinterpret_cast< ValueType* >( &currentNode->pairs[ currentNodeIndex ] );
+			return  currentNode->pairs[ currentNodeIndex ].get();
 		}
 
 		constexpr bool operator==( HashTableIterator const& rhs ) const
@@ -404,12 +404,6 @@ namespace t
 		using Pair			= ValueType;
 		using Iterator		= HashTableIterator< HashTable< KeyTy, ValTy >, false >;
 		using ConstIterator = HashTableIterator< HashTable< KeyTy, ValTy >, true >;
-	private:
-		/**
-		 * pair keys need to be mutable internally
-		 * as they are preallocated in batches of 8
-		 */
-		using InnerPair = hashmap::Pair< KeyTy, ValTy >;
 	public:
 		constexpr HashTable():
 			m_size( 0 ),
@@ -434,6 +428,24 @@ namespace t
 			m_size = rhs.m_size;
 			rhs.m_size = 0;
 			return *this;
+		}
+
+		constexpr ~HashTable()
+		{
+			for ( auto& bucket : m_data )
+			{
+				auto next = bucket.next;
+				while ( next != nullptr )
+				{
+					auto copy = next;
+
+					next = next->next;
+
+					copy->next = nullptr;
+
+					delete copy;
+				}
+			}
 		}
 
 		constexpr bool isEmpty() const { return size() == 0; }
@@ -479,8 +491,8 @@ namespace t
 
 		constexpr ValTy& at( const KeyTy& key )
 		{
-			uint64 i = hash( key );
-			return atImpl( i, key );
+			uint64 hash_ = hash( key );
+			return at( hash_, key );
 		}
 
 		constexpr const ValTy& at( const KeyTy& key ) const
@@ -492,8 +504,8 @@ namespace t
 		{
 			uint64 hash_ = hash( key );
 			if ( !containsKey( hash_, key ) )
-				putImpl( hash_, { key, ValTy() } );
-			return at( key );
+				return put( hash_, { key, ValTy() } )->val;
+			return at( hash_, key );
 		}
 
 		constexpr ValTy& operator[] ( KeyTy&& key )
@@ -502,7 +514,7 @@ namespace t
 			auto pair_ptr = m_data[ hash_ ].find( key );
 			if ( pair_ptr == nullptr )
 			{
-				return putImpl( hash_, { std::move( key ), ValTy() } ).val;
+				return put( hash_, { std::move( key ), ValTy() } ).val;
 			}
 			return pair_ptr->val;
 		}
@@ -510,13 +522,13 @@ namespace t
 		constexpr void put( const KeyTy& key, const ValTy& val )
 		{
 			uint64 i = hash( key );
-			putImpl( i, Pair{ key, val } );
+			put( i, Pair{ key, val } );
 		}
 
 		constexpr void put( Pair&& pair )
 		{
 			uint64 i = hash( pair.key );
-			putImpl( i, std::move( pair ) );
+			put( i, std::move( pair ) );
 		}
 
 		constexpr void remove( const KeyTy& key )
@@ -529,10 +541,10 @@ namespace t
 		constexpr Pair* insert( Pair&& pair )
 		{
 			uint64 hash_ = hash( pair.key );
-			if ( m_data[ hash_ ].find( pair.key ) )
+			if ( !m_data[ hash_ ].find( pair.key ) )
 			{
 				m_size += 1;
-				return &m_data[ hash_ ].add( reinterpret_cast< InnerPair&& >( pair ) );
+				return &m_data[ hash_ ].add( std::move( pair ) );
 			}
 			return nullptr;
 		}
@@ -557,23 +569,13 @@ namespace t
 		{
 			constexpr MultiValueLinkedList() = default;
 
-			constexpr MultiValueLinkedList( HashTable::InnerPair pair ):
-				pairs( { std::move( pair ) } ),
-				valid_indexes( 1 ) {}
-
-			constexpr ~MultiValueLinkedList()
+			constexpr MultiValueLinkedList( HashTable::ValueType&& pair ):
+				valid_indexes( 1 )
 			{
-				while( next != nullptr )
-				{
-					auto copy = next;
-
-					next = next->next;
-
-					copy->next = nullptr;
-
-					delete copy;
-				}
+				pairs[ 0 ] = UniquePtr< ValueType >( std::move( pair ) );
 			}
+
+			constexpr ~MultiValueLinkedList() = default;
 
 			constexpr MultiValueLinkedList& operator=( MultiValueLinkedList const& ) = delete;
 
@@ -614,8 +616,8 @@ namespace t
 					{
 						if ( ((valid_indexes >> i) & 1) == 0 )
 							continue;
-						if ( pairs[i].key == key )
-							return { &pairs[i], this, i, } ;
+						if ( pairs[ i ].key == key )
+							return { &pairs[ i ], this, i, } ;
 					}
 				}
 
@@ -625,7 +627,7 @@ namespace t
 				return next->find_w_index( key );
 			}
 
-			constexpr InnerPair* find( KeyTy const& key )
+			constexpr Pair* find( KeyTy const& key )
 			{
 				if ( valid_indexes != 0 )
 				{
@@ -633,8 +635,8 @@ namespace t
 					{
 						if ( ( ( valid_indexes >> i ) & 1 ) == 0 )
 							continue;
-						if ( pairs[ i ].key == key )
-							return &pairs[ i ];
+						if ( pairs[ i ]->key == key )
+							return pairs[ i ].get();
 					}
 				}
 
@@ -655,8 +657,6 @@ namespace t
 						{
 							pairs[ i ] = Pair();
 							valid_indexes ^= 1 << i;
-							if ( valid_indexes == 0 && next != nullptr )
-								*this = std::move( *next );
 							return true;
 						}
 					}
@@ -666,7 +666,7 @@ namespace t
 
 				return next->remove( key );
 			}
-			constexpr Pair& add( InnerPair&& pair )
+			constexpr Pair& add( Pair&& pair )
 			{
 				auto i = getNextEmptyIndex( 0 );
 
@@ -675,16 +675,38 @@ namespace t
 					if ( next == nullptr )
 					{
 						next = new MultiValueLinkedList( std::move( pair ) );
-						return reinterpret_cast< Pair& >( (*next).pairs[ 0 ] );
+						return *(*next).pairs[ 0 ];
 					}
 
 					return next->add( std::move( pair ) );
 				}
 
 				valid_indexes ^= 1 << i;
-				pairs[ i ] = std::move( pair );
-				return  reinterpret_cast< Pair& >( pairs[ i ] );
+				pairs[ i ] = UniquePtr< ValueType >( std::move( pair ) );
+				return *pairs[ i ];
 			}
+			/*constexpr Pair* tryInsert( Pair&& pair )
+			{
+				if ( valid_indexes != 0 )
+				{
+					for ( uint8 i = 0; i < pairs.size(); ++i )
+					{
+						if ( ((valid_indexes >> i) & 1) == 0 )
+							continue;
+						if ( pairs[ i ]->key == key )
+						{
+							return nullptr;
+							pairs[ i ] = Pair();
+							valid_indexes ^= 1 << i;
+							return true;
+						}
+					}
+				}
+				if ( next == nullptr )
+					return false;
+
+				return next->tryInsert( key );
+			}*/
 			constexpr uint8 getNextEmptyIndex( uint8 currentIndex ) const
 			{
 				if ( valid_indexes == limit< uint8 >::max )
@@ -711,8 +733,9 @@ namespace t
 		private:
 			static constexpr uint8 INVALID_INDEX = 8;
 			uint8 valid_indexes = 0;
-			t::Array< HashTable::InnerPair, 8 > pairs;
+			t::Array< UniquePtr< HashTable::ValueType >, 8 > pairs;
 			MultiValueLinkedList* next = nullptr;
+			friend HashTable< KeyTy, ValTy >;
 			friend HashTableIterator< HashTable< KeyTy, ValTy >, true >;
 			friend HashTableIterator< HashTable< KeyTy, ValTy >, false >;
 		};
@@ -730,13 +753,13 @@ namespace t
 			return m_data[ hash ].find( key ) != nullptr;
 		}
 
-		constexpr Pair& insert_unchecked( uint64 hash, InnerPair&& pair )
+		constexpr Pair& insert_unchecked( uint64 hash, Pair&& pair )
 		{
 			m_size += 1;
 			return m_data[ hash ].add( std::move( pair ) );
 		}
 
-		constexpr inline Pair& putImpl( uint64 hash, InnerPair&& pair )
+		constexpr inline Pair& put( uint64 hash, Pair&& pair )
 		{
 			auto pair_ptr = m_data[ hash ].find( pair.key );
 
@@ -747,10 +770,10 @@ namespace t
 			}
 
 			pair_ptr->val = std::move( pair.val );
-			return *reinterpret_cast< Pair* >( pair_ptr );
+			return *pair_ptr;
 		}
 
-		constexpr inline ValTy& atImpl( uint64 hash, const KeyTy& key )
+		constexpr inline ValTy& at( uint64 hash, const KeyTy& key )
 		{
 			Pair* pair = m_data[ hash ].find( key );
 			if ( pair == nullptr )

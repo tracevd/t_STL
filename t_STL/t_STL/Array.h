@@ -13,10 +13,9 @@ namespace t
 
 		constexpr Array( std::initializer_list< T > list )
 		{
-
 			auto it = list.begin();
 
-			for ( size_t i = 0; i < Size && it != list.end(); ++i, ++it )
+			for ( uint64 i = 0; i < Size && it != list.end(); ++i, ++it )
 			{
 				m_data[ i ] = std::move( *it );
 			}
@@ -24,7 +23,7 @@ namespace t
 
 		Array& operator=( Array&& rhs )
 		{
-			for ( size_t i = 0; i < Size; ++i )
+			for ( uint64 i = 0; i < Size; ++i )
 			{
 				m_data[ i ] = std::move( rhs[ i ] );
 			}
@@ -33,7 +32,7 @@ namespace t
 
 		Array& operator=( Array const& rhs )
 		{
-			for ( size_t i = 0; i < Size; ++i )
+			for ( uint64 i = 0; i < Size; ++i )
 			{
 				m_data[ i ] = rhs[ i ];
 			}
