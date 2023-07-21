@@ -7,4 +7,4 @@ set( CMAKE_CXX_STANDARD_REQUIRED True )
 
 file( GLOB_RECURSE SRC "*.h" "*.cpp" )
 
-add_executable( t_STL $(SRC) )
+add_executable( t_STL ${SRC} )
