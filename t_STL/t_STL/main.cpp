@@ -155,101 +155,101 @@ constexpr int getThing()
     return 5;
 }
 
-int main()
-{
-    //testTvm();
+// int main()
+// {
+//     //testTvm();
 
-    Map m;
+//     Map m;
 
-    auto val = Value( uint8(32) );
+//     auto val = Value( uint8(32) );
 
-    m["blah"] = "hello";
-    m["mememe"] = (uint8) 69;
-    m["woah"] = Vector< uint16 >{ 1, 2, 69, 420 };
-    Map meh;
-    meh["bob"] = "blah";
-    Map double_nested;
-    double_nested["hehe"] = int64(69);
-    double_nested["uhoh"] = m;
-    meh["yoyo"] = std::move( double_nested );
-    m["map"] = std::move( meh );
+//     m["blah"] = "hello";
+//     m["mememe"] = (uint8) 69;
+//     m["woah"] = Vector< uint16 >{ 1, 2, 69, 420 };
+//     Map meh;
+//     meh["bob"] = "blah";
+//     Map double_nested;
+//     double_nested["hehe"] = int64(69);
+//     double_nested["uhoh"] = m;
+//     meh["yoyo"] = std::move( double_nested );
+//     m["map"] = std::move( meh );
 
-    auto m2 = m;
+//     auto m2 = m;
 
-    m["haha"] = m2;
+//     m["haha"] = m2;
 
-    testDepth( m, 0 );
+//     testDepth( m, 0 );
 
-    printTree( m, 0 );
+//     printTree( m, 0 );
 
-    if ( &m2.at("map").As< Map const& >() == &m.at("map").As< Map const& >() )
-        throw std::runtime_error("failed to move to new address");
+//     if ( &m2.at("map").As< Map const& >() == &m.at("map").As< Map const& >() )
+//         throw std::runtime_error("failed to move to new address");
 
-    if ( &m2.at("blah").As< String const& >() != &m.at("blah").As< String const& >() )
-        throw std::runtime_error("Should be the same address");
+//     if ( &m2.at("blah").As< String const& >() != &m.at("blah").As< String const& >() )
+//         throw std::runtime_error("Should be the same address");
 
-    auto str = fString( 12345678 );
+//     auto str = fString( 12345678 );
 
-    auto str2 = fString( "blah" );
+//     auto str2 = fString( "blah" );
 
-    std::cout << "Before: " << str << '\n';
+//     std::cout << "Before: " << str << '\n';
 
-    Timer< microseconds > t;
+//     Timer< microseconds > t;
 
-    t.start();
+//     t.start();
 
-    t::transform( str.data(), str.data() + str.size(), str.data(),
-        []( char c ){ return c + 1; } );
+//     t::transform( str.data(), str.data() + str.size(), str.data(),
+//         []( char c ){ return c + 1; } );
 
-    auto stop = t.stop();
+//     auto stop = t.stop();
 
-    auto constexpr it = t::find( "1234567", "1234567"+7, '4' );
+//     auto constexpr it = t::find( "1234567", "1234567"+7, '4' );
 
-    std::cout << "Found: " << *it << '\n';
+//     std::cout << "Found: " << *it << '\n';
 
-    std::cout << "Took: " << stop << "us" << '\n';
+//     std::cout << "Took: " << stop << "us" << '\n';
 
-    std::cout << "After: " << str << '\n';
+//     std::cout << "After: " << str << '\n';
 
-    t::Array< fString, 4 > arr { "hey", "blah", "wahwah", "whoa" };
+//     t::Array< fString, 4 > arr { "hey", "blah", "wahwah", "whoa" };
 
-    fString cmp = "whoa";
+//     fString cmp = "whoa";
 
-    t.start();
+//     t.start();
     
-    auto strit = t::findIf( arr.data(), arr.data() + arr.size(),
-        [ &cmp ]( fString const& str ){ return str == cmp; } );
+//     auto strit = t::findIf( arr.data(), arr.data() + arr.size(),
+//         [ &cmp ]( fString const& str ){ return str == cmp; } );
 
-    auto findif_stop = t.stop();
+//     auto findif_stop = t.stop();
 
-    std::cout << "Found: " << *strit << '\n';
+//     std::cout << "Found: " << *strit << '\n';
 
-    std::cout << "Took: " << findif_stop << "us \n";
+//     std::cout << "Took: " << findif_stop << "us \n";
 
-    t::forEach( arr.data(), arr.data() + arr.size(),
-        []( auto const& str ){ std::cout << str << '\n'; } );
+//     t::forEach( arr.data(), arr.data() + arr.size(),
+//         []( auto const& str ){ std::cout << str << '\n'; } );
 
-    t::HashTable< fString, int > test_map;
+//     t::HashTable< fString, int > test_map;
 
-    test_map["one"]       = 1;
-    test_map["sixtynine"] = 69;
-    test_map["one"]       = 11;
-    test_map["two"]       = 2;
-    test_map["thr"]       = 3;
-    test_map["fou"]       = 4;
+//     test_map["one"]       = 1;
+//     test_map["sixtynine"] = 69;
+//     test_map["one"]       = 11;
+//     test_map["two"]       = 2;
+//     test_map["thr"]       = 3;
+//     test_map["fou"]       = 4;
 
-    t.start();
+//     t.start();
 
-    t::forEach( test_map.begin(), test_map.end(),
-        []( auto& pair ){ pair.val += 69; } );
+//     t::forEach( test_map.begin(), test_map.end(),
+//         []( auto& pair ){ pair.val += 69; } );
 
-    auto end = t.stop();
+//     auto end = t.stop();
 
-    std::cout << "Took " << end << "us\n";
+//     std::cout << "Took " << end << "us\n";
 
-    std::cout.clear();
+//     std::cout.clear();
 
-    constexpr int blah = getThing();
+//     constexpr int blah = getThing();
 
-    return blah;
-}
+//     return blah;
+// }
