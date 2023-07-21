@@ -11,13 +11,6 @@ using uint64 = unsigned long long;
 
 #include <numeric>
 
-auto constexpr x = std::numeric_limits< char >::min();
-
-// #if _WIN32
-// #pragma warning( push )
-// #pragma warning( disable: 4309 )
-// #endif
-
 template< class T >
 struct limit {};
 
@@ -88,14 +81,10 @@ template<>
 struct limit< uint64 >
 {
 	using type = uint64;
-	static constexpr type max = 18'446'744'073'709'551'615;
+	static constexpr type max = 18'446'744'073'709'551'615ui64;
 	static constexpr type min =                          0;
 	static constexpr bool isSigned = false;
 };
-
-// #if WIN32
-// #pragma warning( pop )
-// #endif
 
 static_assert( sizeof( int8 )   == 1, "Invalid type size!" );
 static_assert( sizeof( int16 )  == 2, "Invalid type size!");
