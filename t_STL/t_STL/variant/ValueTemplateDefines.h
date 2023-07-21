@@ -1,6 +1,7 @@
 #pragma once
 
 #define DefineTemplate( template, T ) \
+template Value::Value< T, void >( T ); \
 template Value& Value::operator=< T >( T ); \
 template T& Value::As< T&, void >() const; \
 template T const& Value::As< T const&, void >(); \
