@@ -7,12 +7,12 @@ set( CMAKE_CXX_STANDARD_REQUIRED True )
 
 file( GLOB_RECURSE SRC "*.h" "*.cpp" )
 
-list( REMOVE_ITEM SRC "*.main.cpp" )
+list( REMOVE_ITEM SRC "t_STL/t_STL/main.cpp" )
 
 add_library( t_STL ${SRC} )
 
 # testing binary
-add_executable( cpp_test "*main.cpp" )
+add_executable( cpp_test "t_STL/t_STL/main.cpp" )
 target_link_libraries( cpp_test PRIVATE t_STL )
 
 # enable testing functionality
