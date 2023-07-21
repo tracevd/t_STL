@@ -1,8 +1,11 @@
 #pragma once
+
+#include "variant.h"
+
 #include "../Tint.h"
 #include <unordered_map>
-#include "variant.h"
 #include "../String.h"
+#include "Value.h"
 
 namespace t
 {
@@ -11,20 +14,11 @@ namespace t
 		class Map : public std::unordered_map< String, Value >
 		{
 		public:
-			Map() 					         = default;
-			Map( Map&& ) 				     = default;
-			Map& operator=( Map&& ) 		 = default;
-
-			Map( Map const& other )
-			{
-				*this = other.QuickClone( 0 );
-			}
-
-			Map& operator=( Map const& rhs )
-			{
-				*this = rhs.QuickClone( 0 );
-				return *this;
-			}
+			Map();
+			Map( Map&& );
+			Map( Map const& other );
+			Map& operator=( Map&& );
+			Map& operator=( Map const& rhs );
 
 			/**
 			 * Returns a completely unique copy of this map. Every value will have a unique address.
@@ -36,10 +30,21 @@ namespace t
 			Map QuickClone() const;
 
 			bool operator==( Map const& rhs ) const;
-
-		private:
-			Map QuickClone( uint64 depth ) const;
-			friend Value;
 		};
+	}
+}
+
+#include "ValueTemplateDefines.h"
+
+namespace t
+{
+	namespace variant
+	{
+		//extern template Value::Value< Map, void >( Map );
+		extern template Value& Value::operator=< Map >( Map );
+		extern template Map& Value::As< Map&, void >();
+		extern template Map const& Value::As< Map const&, void >();
+		extern template Map Value::As< Map, void >();
+		//extern template bool Value::Is< Map >();
 	}
 }

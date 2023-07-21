@@ -39,17 +39,13 @@ namespace t
             /**
              * @brief Create a Value containing a t::String
              */
-            explicit Value( const char* str ):
-                m_data( new Data< String >( str ) ),
-                m_type( templateToVariantType< String >() ) {}
+            explicit Value( const char* str );
 
             /**
              * @brief Create a Value containing a stdint or float/double
              */
             template< typename T, typename = type::enable_if< ALLOWED_TYPES( T ) > >
-            explicit Value( T data ):
-                m_data( new Data< T >( std::is_arithmetic_v< T > ? data : std::move( data ) ) ),
-                m_type( templateToVariantType< T >() ) {}
+            explicit Value( T data );
 
             /**
              * @brief Copy a value
@@ -67,7 +63,7 @@ namespace t
                 if ( m_data == nullptr )
                     return *this;
 
-                *static_cast<uint64_t*>(m_data) += 1;
+                *static_cast< uint64_t* >( m_data ) += 1;
 
                 return *this;
             }
@@ -94,21 +90,10 @@ namespace t
             /**
              * @brief Assign the value to be a t::String
              */
-            Value& operator=( const char* str )
-            {
-                *this = Value( str );
-                return *this;
-            }
+            Value& operator=( const char* str );
 
-            /**
-             * @brief Assign the value to be a stdint or float/double
-             */
             template< typename T >
-            Value& operator=( T data )
-            {
-                *this = Value( std::move( data ) );
-                return *this;
-            }
+            Value& operator=( T data );
 
             bool operator==( Value const& rhs ) const;
 
@@ -130,12 +115,7 @@ namespace t
             /**
              * @brief Returns whether or not this value's data is unique. If empty, returns true
              */
-            bool isUnique() const
-            {
-                if ( m_data == nullptr )
-                    return true;
-                return *static_cast< uint64_t* >( m_data ) == 1;
-            }
+            bool isUnique() const;
 
             /**
              * @brief Returns whether or not this value's data is shared. If empty, returns false
@@ -159,56 +139,13 @@ namespace t
              * Cast to mutable reference. If underlying data is shared, create unique copy to be changed
              */
             template< typename T, typename = type::enable_if< type::is_reference< T > && !type::is_const< type::remove_reference< T > > > >
-            T As()
-            {
-                auto constexpr type = templateToVariantType< type::decay< T > >();
-
-                static_assert( type != VOID, "Value cannot be this type!" );
-
-                if ( m_data == nullptr )
-                    throw std::runtime_error("Data is null!");
-
-                if ( type != m_type )
-                {
-                    throw std::runtime_error( "Invalid type" );
-                }
-
-                auto data = static_cast< Data< type::decay< T > >* >( m_data );
-
-                if constexpr ( std::is_reference_v< T > )
-                {
-                    if ( data->references > 1 )
-                    {
-                        if constexpr ( type::is_same< type::remove_reference< T >, Map > || type::is_same< type::remove_reference< T >, Vector< Map > > )
-                            *this = QuickClone( 0 );
-                        else
-                            *this = Clone();
-                    }
-                }
-
-                return data->val;
-            }
+            T As();
 
             /**
              * Cast to const reference or plain type
              */
             template< typename T, typename = type::enable_if< type::is_const< type::remove_reference< T > > || !type::is_reference< T > > >
-            inline T As() const
-            {
-                auto constexpr type = templateToVariantType< type::decay< T > >();
-
-                static_assert( type != VOID, "Value cannot be this type!" );
-
-                if ( m_data == nullptr )
-                    throw std::runtime_error("Data is null!");
-
-                if ( type != m_type )
-                {
-                    throw std::runtime_error( "Invalid type" );
-                }
-
-                return static_cast< Data< type::decay< T > >* >( m_data )->val;
-            }
+            T As() const;
 
             Value Clone() const;
 
@@ -222,52 +159,38 @@ namespace t
         private:
             void DestroyData();
 
-            Value QuickClone( size_t depth ) const;
-
             /**
-             * Used to store the data for t::v::Value in one allocation
+             * Used to store the data for t::variant::Value in one allocation
              */
             template< typename T >
             struct Data
             {
             public:
                 Data() = delete;
-                template< typename = type::enable_if< !std::is_arithmetic_v< T > > >
-                Data( T const& data ):
-                    val( data ),
-                    references( 1 ) {}
-                template< typename = type::enable_if< !std::is_arithmetic_v< T > > >
-                Data( T&& data ) noexcept:
-                    val( std::move( data ) ),
-                    references( 1 ) {}
-                template< typename = type::enable_if< std::is_arithmetic_v< T > > >
+
                 Data( T data ):
                     val( data ),
                     references( 1 ) {}
+
                 ~Data() = default;
             public:
                 uint64_t references;
                 T val;
             };
 
-            template<>
-            struct Data< String >
-            {
-                Data() = delete;
-                Data( const char* str ):
-                    val( str ),
-                    references( 1 ) {}
-                Data( String&& str ):
-                    val( std::move( str ) ),
-                    references( 1 ) {}
-                uint64_t references;
-                String val;
-            };
-
         private:
             void*     m_data = nullptr;
             Type      m_type = VOID;
-            friend    Map;
         };
+    }
+}
+
+#include "ValueTemplateDefines.h"
+
+namespace t
+{
+    namespace variant
+    {
+        DefineAll( extern template );
     }
 }

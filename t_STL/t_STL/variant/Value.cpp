@@ -7,6 +7,28 @@ namespace t
 {
     namespace variant
     {
+        Value::Value( const char* str ):
+            m_data( new Data< String >( String( str ) ) ),
+            m_type( templateToVariantType< String >() ) {}
+
+        template< class T, class >
+        Value::Value( T data ):
+            m_data( new Data< T >( std::is_arithmetic_v< T > ? data : std::move( data ) ) ),
+            m_type( templateToVariantType< T >() ) {}
+        
+        Value& Value::operator=( const char* str )
+        {
+            *this = Value( str );
+            return *this;
+        }
+
+        template< typename T >
+        Value& Value::operator=( T data )
+        {
+            *this = Value( std::move( data ) );
+            return *this;
+        }
+
         static Vector< Map > CloneVectorOfMaps( Vector< Map > const& vec )
         {
             Vector< Map > copy{ vec.size() };
@@ -20,23 +42,75 @@ namespace t
         }
         Value Value::QuickClone() const
         {
-            return QuickClone( 0 );
-        }
-        Value Value::QuickClone( uint64 depth ) const
-        {
-            if ( depth > 0 )
-                return *this;
-            
             switch ( m_type )
             {
             case MAP:
-                return Value( static_cast< Data< Map >* >( m_data )->val.QuickClone( depth + 1 ) );
+                return Value( static_cast< Data< Map >* >( m_data )->val.QuickClone() );
             case MAP_VECTOR:
                 return Value( static_cast< Data< Vector< Map > >* >( m_data )->val );
             default:
-                return Value( *this );
+                return *this;
             }
         }
+
+        bool Value::isUnique() const
+        {
+            if ( m_data == nullptr )
+                return true;
+            return *static_cast< uint64_t* >( m_data ) == 1;
+        }
+
+        template< class T, class >
+        T Value::As() const
+        {
+            auto constexpr type = templateToVariantType< type::decay< T > >();
+
+            static_assert( type != VOID, "Value cannot be this type!" );
+
+            if ( m_data == nullptr )
+                throw std::runtime_error("Data is null!");
+
+            if ( type != m_type )
+            {
+                throw std::runtime_error( "Invalid type" );
+            }
+
+            return static_cast< Data< type::decay< T > >* >( m_data )->val;
+        }
+
+        template< class T, class >
+        T Value::As()
+        {
+            auto constexpr type = templateToVariantType< type::decay< T > >();
+
+            static_assert( type != VOID, "Value cannot be this type!" );
+
+            if ( m_data == nullptr )
+                throw std::runtime_error("Data is null!");
+
+            if ( type != m_type )
+            {
+                throw std::runtime_error( "Invalid type" );
+            }
+
+            auto data = static_cast< Data< type::decay< T > >* >( m_data );
+
+            if constexpr ( std::is_reference_v< T > )
+            {
+                if ( data->references > 1 )
+                {
+                    if constexpr ( type::is_same< type::remove_reference< T >, Map > || type::is_same< type::remove_reference< T >, Vector< Map > > )
+                        *this = QuickClone( 0 );
+                    else
+                        *this = Clone();
+                }
+            }
+
+            return data->val;
+        }
+
+        DefineAll( template );
+        DefineNormalAndVector( template, Map );
 
         Value Value::Clone() const
         {

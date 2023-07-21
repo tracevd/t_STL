@@ -6,12 +6,9 @@ namespace t
 {
 	namespace variant
 	{
-		class Map;
 		class Value;
+		class Map;
 	}
 }
 
 #include "Types.h"
-
-#include "Map.h"
-#include "Value.h"

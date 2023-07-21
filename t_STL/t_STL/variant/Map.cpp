@@ -1,11 +1,24 @@
 #include "Map.h"
 
-#include "Value.h"
-
 namespace t
 {
     namespace variant
     {
+		Map::Map()					 = default;
+		Map::Map( Map&& )			 = default;
+		Map& Map::operator=( Map&& ) = default;
+
+		Map::Map( Map const& other )
+		{
+			*this = other.QuickClone();
+		}
+
+		Map& Map::operator=( Map const& rhs )
+		{
+			*this = rhs.QuickClone();
+			return *this;
+		}
+
 		bool Map::operator==( Map const& rhs ) const
 		{
 			if ( this == &rhs )
@@ -29,26 +42,12 @@ namespace t
 
             for ( const auto& [ key, value ] : *this )
             {
-				copy.insert( { key, value.QuickClone( 1 ) } );
+				copy.insert( { key, value.QuickClone() } );
             }
                 
             return copy;
 		}
-		Map Map::QuickClone( uint64 depth ) const
-		{
-			if ( depth > 0 )
-				return *this;
-			
-			Map copy;
-			copy.reserve( size() );
 
-            for ( const auto& [ key, value ] : *this )
-            {
-				copy.insert( { key, value.QuickClone( depth == 0 ? 0 : depth + 1 ) } );
-            }
-                
-            return copy;
-		}
 		Map Map::Clone() const
 		{
 			Map copy;

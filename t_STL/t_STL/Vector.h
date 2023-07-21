@@ -249,7 +249,7 @@ public:
 	constexpr const T* data() const { return m_data; }
 	constexpr T* data() { return m_data; }
 
-	constexpr [[nodiscard]] uint64 size() const
+	constexpr uint64 size() const
 	{
 		return m_size;
 	}

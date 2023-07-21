@@ -40,7 +40,6 @@ struct TypeToT< type_ > \
 };
 
 #define TtoTypeDef \
-\
 template< typename U > \
 struct TtoType \
 { \
