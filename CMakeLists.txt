@@ -18,4 +18,4 @@ target_link_libraries( cpp_test PRIVATE t_STL )
 # enable testing functionality
 enable_testing()
 
-add_test( NAME cpp_test COMMAND $<TARGET_FILE:cpp_test> )
+add_test( NAME cpp_test COMMAND "$<TARGET_FILE:cpp_test> --output-on-failure" )
