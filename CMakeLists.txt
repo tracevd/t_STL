@@ -9,7 +9,7 @@ file( GLOB_RECURSE SRC "*.h" "*.cpp" )
 
 list( REMOVE_ITEM SRC "*.main.cpp" )
 
-add_executable( t_STL ${SRC} )
+add_library( t_STL ${SRC} )
 
 # testing binary
 add_executable( cpp_test "*main.cpp" )
