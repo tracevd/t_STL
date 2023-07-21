@@ -81,7 +81,7 @@ template<>
 struct limit< uint64 >
 {
 	using type = uint64;
-	static constexpr type max = 18'446'744'073'709'551'615ui64;
+	static constexpr type max = 18'446'744'073'709'551'615u;
 	static constexpr type min =                          0;
 	static constexpr bool isSigned = false;
 };
