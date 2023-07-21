@@ -142,7 +142,7 @@ constexpr int getThing()
 
     *strptr = "blah";
 
-    map.insert( { "hey", 0 } );
+    map.insert( { "hey", 69 } );
     map.insert( { "bye", 2 } );
     map.insert( { "blah", 4 } );
     map.insert( { "bahbah", 1 } );
