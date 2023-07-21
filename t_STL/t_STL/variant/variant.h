@@ -1,7 +1,5 @@
 #pragma once
 
-#include "../Tint.h"
-
 namespace t
 {
 	namespace variant
