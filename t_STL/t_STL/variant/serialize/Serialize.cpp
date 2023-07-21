@@ -318,7 +318,7 @@ namespace t
 				++reinterp_buffer;
 			}
 
-			bufferOffset += sizeof( T::ValueType ) * numel;
+			bufferOffset += sizeof( typename T::ValueType ) * numel;
 
 			return Value( std::move( vec ) );
 		}
