@@ -100,7 +100,7 @@ namespace t
                 if ( data->references > 1 )
                 {
                     if constexpr ( type::is_same< type::remove_reference< T >, Map > || type::is_same< type::remove_reference< T >, Vector< Map > > )
-                        *this = QuickClone( 0 );
+                        *this = QuickClone();
                     else
                         *this = Clone();
                 }
