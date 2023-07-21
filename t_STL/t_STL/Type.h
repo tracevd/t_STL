@@ -34,7 +34,7 @@ namespace t
 #ifdef _WIN32
         TMPL_T INL_CONSTX_S_B is_integer = std::_Is_standard_integer< T >;
 #else
-        TMPL_T INL_CONSTX_S_B is_integer = std::__is_standard_integer< T >;
+        TMPL_T INL_CONSTX_S_B is_integer = std::__is_standard_integer< T >::value;
 #endif
         TMPL_T INL_CONSTX_S_B is_signed = std::is_signed_v< T >;
 

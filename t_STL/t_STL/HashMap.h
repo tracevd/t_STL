@@ -255,19 +255,13 @@ namespace t
 
 	#include "Array.h"
 
-	template< class HashTable, bool isConst >
+	template< class HashTable >
 	class HashTableIterator
 	{
 	private:
-#ifdef _WIN32
-		using BucketList = type::ternary< isConst, typename const HashTable::BucketList, typename HashTable::BucketList >;
-		using Node = type::ternary< isConst, typename const HashTable::MultiValueLinkedList, typename HashTable::MultiValueLinkedList >;
-		using ValueType = type::ternary< isConst, typename const HashTable::ValueType, typename HashTable::ValueType >;
-#else
-		using BucketList = type::ternary< isConst, const HashTable::BucketList, HashTable::BucketList >;
-		using Node = type::ternary< isConst, const HashTable::MultiValueLinkedList, HashTable::MultiValueLinkedList >;
-		using ValueType = type::ternary< isConst, const HashTable::ValueType, HashTable::ValueType >;
-#endif
+		using BucketList = HashTable::BucketList;
+		using Node = HashTable::MultiValueLinkedList;
+		using ValueType = HashTable::ValueType;
 	public:
 		constexpr HashTableIterator( BucketList* buckets ):
 			buckets( buckets )
@@ -402,14 +396,155 @@ namespace t
 		uint8 currentNodeIndex = 0;
 	};
 
+	template< class HashTable >
+	class HashTableConstIterator
+	{
+	private:
+		using BucketList = HashTable::BucketList;
+		using Node = HashTable::MultiValueLinkedList;
+		using ValueType = HashTable::ValueType;
+	public:
+		constexpr HashTableConstIterator( BucketList* buckets ):
+			buckets( buckets )
+		{
+			if ( buckets == nullptr || buckets->data() == nullptr )
+				return;
+
+			currentNode = buckets->data();
+
+			next( 0 );
+		}
+
+		constexpr HashTableConstIterator( BucketList* buckets, uint64 bucketIndex, Node* node, uint8 nodeIndex ):
+			buckets( buckets ),
+			currentBucket( bucketIndex ),
+			currentNode( node ),
+			currentNodeIndex( nodeIndex ) {}
+
+		constexpr HashTableConstIterator( HashTableConstIterator const& other ):
+			buckets( other.buckets ),
+			currentBucket( other.currentBucket ),
+			currentNode( other.currentNode ),
+			currentNodeIndex( other.currentNodeIndex ) {}
+
+		constexpr HashTableConstIterator( HashTableConstIterator&& other ):
+			buckets( other.buckets ),
+			currentBucket( other.currentBucket ),
+			currentNode( other.currentNode ),
+			currentNodeIndex( other.currentNodeIndex )
+		{
+			other.buckets = nullptr;
+			other.currentBucket = 0;
+			other.currentNode = nullptr;
+			other.currentNodeIndex = 0;
+		}
+
+		constexpr HashTableConstIterator& operator=( HashTableConstIterator&& rhs )
+		{
+			buckets = rhs.buckets;
+			currentBucket = rhs.currentBucket;
+			currentNode = rhs.currentNode;
+			currentNodeIndex = rhs.currentNodeIndex;
+
+			rhs.buckets = nullptr;
+			rhs.currentBucket = 0;
+			rhs.currentNode = nullptr;
+			rhs.currentNodeIndex = 0;
+		}
+
+		constexpr HashTableConstIterator& operator=( HashTableConstIterator const& rhs )
+		{
+			*this = HashTableIterator( rhs );
+		}
+
+		constexpr HashTableConstIterator operator++( int )
+		{
+			auto cpy = *this;
+			next();
+			return cpy;
+		}
+
+		constexpr HashTableConstIterator& operator++()
+		{
+			if ( buckets == nullptr || currentBucket == buckets->size() || currentNode == nullptr )
+				throw std::runtime_error( "Invalid iterator!" );
+			if ( currentBucket == buckets->size() )
+				throw std::runtime_error( "Reached the end of the bucket list!" );
+
+			next();
+
+			return *this;
+		}
+
+		constexpr ValueType& operator*()
+		{
+			return  *currentNode->pairs[currentNodeIndex];
+		}
+
+		constexpr ValueType* operator->()
+		{
+			return  currentNode->pairs[currentNodeIndex].get();
+		}
+
+		constexpr bool operator==( HashTableConstIterator const& rhs ) const
+		{
+			return buckets == rhs.buckets
+				&& currentBucket == rhs.currentBucket
+				&& currentNode == rhs.currentNode
+				&& currentNodeIndex == rhs.currentNodeIndex;
+		}
+		constexpr bool operator!=( HashTableConstIterator const& rhs ) const { return !(*this == rhs); }
+	private:
+		/**
+		 * Advance to the next valid pair
+		 * Set isInMiddleOfList to 1 (true) by default, meaning it will not include
+		 * the current Node index when searching for the next valid index in a node
+		 */
+		constexpr void next( uint8 isInMiddleOfList = 1 )
+		{
+			uint8 nextIndex = INVALID_INDEX;
+
+			while ( currentBucket < buckets->size() )
+			{
+				nextIndex = currentNode->getNextValidIndex( currentNodeIndex + isInMiddleOfList );
+
+				if ( nextIndex != currentNode->pairs.size() )
+				{
+					currentNodeIndex = nextIndex;
+					return;
+				}
+
+				isInMiddleOfList = 0;
+				currentNodeIndex = 0;
+				if ( currentNode->next == nullptr )
+				{
+					++currentBucket;
+					currentNode = buckets->data() + currentBucket;
+				}
+				else
+				{
+					currentNode = currentNode->next;
+				}
+			}
+			if ( currentBucket == buckets->size() && nextIndex == INVALID_INDEX )
+				currentNodeIndex = nextIndex;
+		}
+	private:
+		constexpr static inline uint8 INVALID_INDEX = 8;
+		BucketList* buckets = nullptr;
+		uint64 currentBucket = 0;
+		Node* currentNode = nullptr;
+		uint8 currentNodeIndex = 0;
+	};
+
 	template< typename KeyTy, typename ValTy >
 	struct HashTable
 	{
 	public:
 		using ValueType		= hashmap::Pair< type::add_const< KeyTy >, ValTy >;
 		using Pair			= ValueType;
-		using Iterator		= HashTableIterator< HashTable< KeyTy, ValTy >, false >;
-		using ConstIterator = HashTableIterator< HashTable< KeyTy, ValTy >, true >;
+		using Iterator		= HashTableIterator< HashTable< KeyTy, ValTy > >;
+		using ConstIterator = HashTableConstIterator< HashTable< KeyTy, ValTy > >;
 	public:
 		constexpr HashTable():
 			m_size( 0 ),
@@ -742,8 +877,8 @@ namespace t
 			t::Array< UniquePtr< HashTable::ValueType >, 8 > pairs;
 			MultiValueLinkedList* next = nullptr;
 			friend HashTable< KeyTy, ValTy >;
-			friend HashTableIterator< HashTable< KeyTy, ValTy >, true >;
-			friend HashTableIterator< HashTable< KeyTy, ValTy >, false >;
+			friend Iterator;
+			friend ConstIterator;
 		};
 
 		using Bucket = MultiValueLinkedList;
@@ -790,7 +925,7 @@ namespace t
 	private:
 		uint64 m_size;
 		BucketList m_data;
-		friend HashTableIterator< HashTable< KeyTy, ValTy >, true >;
-		friend HashTableIterator< HashTable< KeyTy, ValTy >, false >;
+		friend Iterator;
+		friend ConstIterator;
 	};
 }

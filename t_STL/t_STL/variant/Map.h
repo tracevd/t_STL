@@ -40,11 +40,6 @@ namespace t
 {
 	namespace variant
 	{
-		//extern template Value::Value< Map, void >( Map );
-		extern template Value& Value::operator=< Map >( Map );
-		extern template Map& Value::As< Map&, void >();
-		extern template Map const& Value::As< Map const&, void >();
-		extern template Map Value::As< Map, void >();
-		//extern template bool Value::Is< Map >();
+		DefineNormalAndVector( extern template, Map );
 	}
 }
