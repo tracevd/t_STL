@@ -30,6 +30,8 @@ namespace t
 			Map QuickClone() const;
 
 			bool operator==( Map const& rhs ) const;
+
+			bool operator!=( Map const& rhs ) const { return !( *this == rhs ); }
 		};
 	}
 }

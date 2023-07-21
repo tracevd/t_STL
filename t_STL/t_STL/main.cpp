@@ -82,57 +82,55 @@ using fString = t::fast::String;
 using t::Vector;
 using t::variant::Value;
 
-//void testTvm()
-//{
-//    Map vm;
-//
-//    vm["string"] = "hello";
-//    vm["uint8"] = uint8( 1 );
-//    vm["uint16"] = uint16( 2 );
-//    vm["uint32"] = uint32( 3 );
-//    vm["uint64"] = uint64( 4 );
-//    vm["int8"] = int8( 5 );
-//    vm["int16"] = int16( 6 );
-//    vm["int32"] = int32( 7 );
-//    vm["int64"] = int64( 8 );
-//    vm["float"] = float( 9 );
-//    vm["double"] = double( 10 );
-//    vm["u8 vector"] = Vector< uint8 >{ 1, 2, 3, 4, 5 };
-//    vm["u16 vector"] = Vector< uint16 >{ 6, 7, 8, 9, 10 };
-//    vm["u32 vector"] = Vector< uint32 >{ 11, 12, 13, 14 };
-//    vm["u64 vector"] = Vector< uint64 >{ 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
-//    vm["i8 vector"] = Vector< int8 >{ 1, 2, 3, 4, 5 };
-//    vm["i16 vector"] = Vector< int16 >{ 6, 7, 8, 9, 10 };
-//    vm["i32 vector"] = Vector< int32 >{ 11, 12, 13, 14 };
-//    vm["i64 vector"] = Vector< int64 >{ 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
-//    vm["str vector"] = Vector< String >{ "hey", "blahblah", "broke" };
-//    vm["float vector"] = Vector< float >{ 1.f, 2.f, 3.f, 4.5f, 5.f, 7.69420f };
-//    vm["double vector"] = Vector< double >{ 25, 26, 27, 28, 29, 30, 31 };
-//    Map map;
-//    map.insert( { String( "test" ), Value( "value" ) } );
-//    map.insert( { String( "test2" ), Value( "value2" ) } );
-//    vm["vm vector"] = Vector< Map >{ map, map, map };
-//    vm["vm"] = std::move( map );
-//
-//    Timer< microseconds > t;
-//
-//    t.start();
-//
-//    auto buffer = t::variant::Serialize( vm );
-//
-//    auto ser = t.stop();
-//
-//    t.start();
-//
-//    Map vm_2 = t::variant::Deserialize( buffer );
-//
-//    auto deser = t.stop();
-//
-//    std::cout << "Serialize:   " << ser << "us\n";
-//    std::cout << "Deserialize: " << deser << "us\n";
-//
-//    std::cout << "Maps are equal: " << std::boolalpha << (vm_2 == vm) << '\n';
-//}
+void testTvm()
+{
+    Map vm;
+
+    vm["string"] = "hello";
+    vm["uint8"] = uint8( 1 );
+    vm["uint16"] = uint16( 2 );
+    vm["uint32"] = uint32( 3 );
+    vm["uint64"] = uint64( 4 );
+    vm["int8"] = int8( 5 );
+    vm["int16"] = int16( 6 );
+    vm["int32"] = int32( 7 );
+    vm["int64"] = int64( 8 );
+    vm["float"] = float( 9 );
+    vm["double"] = double( 10 );
+    vm["u8 vector"] = Vector< uint8 >{ 1, 2, 3, 4, 5 };
+    vm["u16 vector"] = Vector< uint16 >{ 6, 7, 8, 9, 10 };
+    vm["u32 vector"] = Vector< uint32 >{ 11, 12, 13, 14 };
+    vm["u64 vector"] = Vector< uint64 >{ 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
+    vm["i8 vector"] = Vector< int8 >{ 1, 2, 3, 4, 5 };
+    vm["i16 vector"] = Vector< int16 >{ 6, 7, 8, 9, 10 };
+    vm["i32 vector"] = Vector< int32 >{ 11, 12, 13, 14 };
+    vm["i64 vector"] = Vector< int64 >{ 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
+    vm["str vector"] = Vector< String >{ "hey", "blahblah", "broke" };
+    vm["float vector"] = Vector< float >{ 1.f, 2.f, 3.f, 4.5f, 5.f, 7.69420f };
+    vm["double vector"] = Vector< double >{ 25, 26, 27, 28, 29, 30, 31 };
+    Map map;
+    map.insert( { String( "test" ), Value( "value" ) } );
+    map.insert( { String( "test2" ), Value( "value2" ) } );
+    vm["vm vector"] = Vector< Map >{ map, map, map };
+    vm["vm"] = std::move( map );
+
+    Timer< microseconds > t;
+
+    t.start();
+
+    auto buffer = t::variant::Serialize( vm );
+
+    auto ser = t.stop();
+
+    t.start();
+
+    Map vm_2 = t::variant::Deserialize( buffer );
+
+    auto deser = t.stop();
+
+    if ( vm_2 != vm )
+        exit( -69 );
+}
 
 #include <assert.h>
 
@@ -155,20 +153,36 @@ constexpr int getThing()
 
 int main()
 {
-    //testTvm();
+    testTvm();
 
     Map m;
 
     auto val = Value( uint8(32) );
 
     m["blah"] = "hello";
+
+    if ( !m.at("blah").Is< String >() )
+        return -1;
+
     m["mememe"] = (uint8) 69;
+
+    if ( !m.at("mememe").Is< uint8 >() )
+        return -2;
+
     m["woah"] = Vector< uint16 >{ 1, 2, 69, 420 };
+
+    if ( !m.at("woah").Is< Vector< uint16 > >() )
+        return -3;
+
     Map meh;
     meh["bob"] = "blah";
     Map double_nested;
     double_nested["hehe"] = int64(69);
     double_nested["uhoh"] = m;
+
+    if ( !double_nested.at("uhoh").Is< Map >() )
+        return -4;
+
     meh["yoyo"] = std::move( double_nested );
     m["map"] = std::move( meh );
 
@@ -178,13 +192,11 @@ int main()
 
     testDepth( m, 0 );
 
-    printTree( m, 0 );
-
     if ( &m2.at("map").As< Map const& >() == &m.at("map").As< Map const& >() )
-        throw std::runtime_error("failed to move to new address");
+        return -5;
 
     if ( &m2.at("blah").As< String const& >() != &m.at("blah").As< String const& >() )
-        throw std::runtime_error("Should be the same address");
+        return -6;
 
     auto str = fString( 12345678 );
 
