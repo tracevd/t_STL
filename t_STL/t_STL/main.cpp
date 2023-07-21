@@ -150,9 +150,7 @@ constexpr int getThing()
     map.insert( { "bahbah", 1 } );
     map.insert( { "haha", 5 } );
 
-    //return map.at( "bahbah" );
-
-    return 5;
+    return map.at( "hey" );
 }
 
 int main()
