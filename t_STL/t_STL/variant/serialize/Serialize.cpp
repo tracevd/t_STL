@@ -1,5 +1,3 @@
-#pragma once
-
 #include "Serialize.h"
 
 #include <iostream>
