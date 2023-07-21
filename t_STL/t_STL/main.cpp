@@ -1,10 +1,8 @@
 #include <iostream>
 #include <chrono>
 
-#define ASSERT
-
 #include "t.h"
-//#include "variant/serialize/Serialize.h"
+#include "variant/serialize/Serialize.h"
 #include "Timer.h"
 
 #include <random>
