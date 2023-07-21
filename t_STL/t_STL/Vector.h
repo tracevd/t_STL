@@ -171,9 +171,14 @@ public:
 	}
 	constexpr Vector( std::initializer_list< T > list )
 	{
-		resize( list.size() );
+		m_data = new T[ list.size() ];
+
+		m_size = list.size();
+		m_capacity = m_size;
+
 		uint64 i = 0;
-		for ( auto it = list.begin(); it != list.end(); ++it, ++i )
+
+		for ( auto it = list.begin(); i < m_size; ++it, ++i )
 		{
 			m_data[ i ] = std::move( *it );
 		}
