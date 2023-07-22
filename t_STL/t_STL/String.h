@@ -707,3 +707,12 @@ struct std::hash< t::fast::String >
 		return hash;
 	}
 };
+
+template<>
+struct t::hasher< t::fast::String >
+{
+	constexpr static inline uint64 hash( t::fast::String const& str )
+	{
+		return std::hash< t::fast::String >{}( str );
+	}
+};

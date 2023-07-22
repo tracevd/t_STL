@@ -133,14 +133,17 @@ void testTvm()
 }
 
 #include <assert.h>
+//#include "HashTable.h"
 
 constexpr int getThing()
 {
-    t::HashTable< fString, int > map;
+    /*t::HashTable< fString, int > map;
 
     t::UniquePtr< fString > strptr = fString("blah");
 
     *strptr = "blah";
+
+    *strptr += "heyy brother";
 
     map.insert( { "hey", 0 } );
     map.insert( { "bye", 2 } );
@@ -148,7 +151,15 @@ constexpr int getThing()
     map.insert( { "bahbah", 1 } );
     map.insert( { "haha", 5 } );
 
-    return map.at( "hey" );
+    uint64 i = 0;
+
+    Vector< int > vec;
+    vec.resize( map.size() );
+
+    t::transform( map.cbegin(), map.cend(), vec.begin(),
+        []( auto const& pair ){ return pair.val; } );*/
+
+    return 0;
 }
 
 int main()
@@ -239,25 +250,66 @@ int main()
     t::forEach( arr.data(), arr.data() + arr.size(),
         []( auto const& str ){ std::cout << str << '\n'; } );
 
-    t::HashTable< fString, int > test_map;
+    /*t::HashMap< fString, int > test_map;
 
     test_map["one"]       = 1;
     test_map["sixtynine"] = 69;
     test_map["one"]       = 11;
     test_map["two"]       = 2;
     test_map["thr"]       = 3;
-    test_map["fou"]       = 4;
-
-    t.start();
-
-    t::forEach( test_map.begin(), test_map.end(),
-        []( auto& pair ){ pair.val += 69; } );
-
-    auto end = t.stop();
-
-    std::cout << "Took " << end << "us\n";
+    test_map["fou"]       = 4;*/
 
     std::cout.clear();
+
+    Timer< microseconds > timer;
+
+    timer.start();
+
+    std::unordered_map< fString, fString > umap;
+
+    umap["hello"] = "goodbye";
+    umap["goodbye"] = "hello";
+    umap["whatup"] = "bob";
+    umap["billy"] = "bob";
+    umap["como estas"] = "how are you doing";
+    umap["how are you doing"] = "bibarel";
+    umap["barber shop quartet"] = "haha";
+
+    for ( auto it = umap.begin(); it != umap.end(); ++it )
+    {
+        it->second += " jimmy";
+    }
+
+    auto time = timer.stop();
+
+    std::cout << "unordered_map took " << time << "us\n";
+
+    timer.start();
+
+    t::HashMap< fString, fString > map;
+
+    map["hello"] = "goodbye";
+    map["goodbye"] = "hello";
+    map["whatup"] = "bob";
+    map["billy"] = "bob";
+    map["como estas"] = "how are you doing";
+    map["how are you doing"] = "bibarel";
+    map["barber shop quartet"] = "haha";
+
+    for ( auto kv = map.begin(); kv != map.end(); ++kv )
+    {
+        kv->second += " jimmy";
+    }
+
+    auto time_ = timer.stop();
+
+    std::cout << "HashMap took " << time_ << "us\n";
+
+    std::cout << "HashMap size: " << map.size() << '\n';
+
+    printSizeOf< t::hash_impl::MultiValueLinkedList< t::hashmap::pair< fString, fString > > >();
+
+    printSizeOf< decltype( map ) >();
 
     constexpr int blah = getThing();
 

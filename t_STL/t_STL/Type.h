@@ -31,10 +31,10 @@ namespace t
 
         TMPL_T INL_CONSTX_S_B is_volatile = std::is_volatile_v< T >;
 
-#ifdef _WIN32
-        TMPL_T INL_CONSTX_S_B is_integer = std::_Is_standard_integer< T >;
+#ifdef _MSC_VER
+        TMPL_T INL_CONSTX_S_B is_integer = std::template _Is_standard_integer< T >;
 #else
-        TMPL_T INL_CONSTX_S_B is_integer = std::__is_standard_integer< T >::value;
+        TMPL_T INL_CONSTX_S_B is_integer = std::template __is_standard_integer< T >::value;
 #endif
         TMPL_T INL_CONSTX_S_B is_signed = std::is_signed_v< T >;
 
@@ -109,6 +109,99 @@ namespace t
             return static_cast< T& >( val );
         return static_cast< T&& >( val );
     }
+
+    template< class T >
+    struct hasher;
+
+    template<>
+    struct hasher< uint64 >
+    {
+        constexpr static inline uint64 hash( uint64 val )
+        {
+            return val;
+        }
+    };
+
+    template<>
+    struct hasher< uint32 >
+    {
+        constexpr static inline uint64 hash( uint32 val )
+        {
+            return uint64( val );
+        }
+    };
+
+    template<>
+    struct hasher< uint16 >
+    {
+        constexpr static inline uint64 hash( uint16 val )
+        {
+            return uint64( val );
+        }
+    };
+
+    template<>
+    struct hasher< uint8 >
+    {
+        constexpr static inline uint64 hash( uint8 val )
+        {
+            return uint64( val );
+        }
+    };
+
+    template<>
+    struct hasher< int64 >
+    {
+        constexpr static inline uint64 hash( int64 val )
+        {
+            return uint64( val );
+        }
+    };
+
+    template<>
+    struct hasher< int32 >
+    {
+        constexpr static inline uint64 hash( int32 val )
+        {
+            return uint64( val );
+        }
+    };
+
+    template<>
+    struct hasher< int16 >
+    {
+        constexpr static inline uint64 hash( int16 val )
+        {
+            return uint64( val );
+        }
+    };
+
+    template<>
+    struct hasher< int8 >
+    {
+        constexpr static inline uint64 hash( int8 val )
+        {
+            return uint64( val );
+        }
+    };
+
+    template<>
+    struct hasher< float >
+    {
+        constexpr static inline uint64 hash( float val )
+        {
+            return uint64( int64( val * 27.7f ) );
+        }
+    };
+
+    template<>
+    struct hasher< double >
+    {
+        constexpr static inline uint64 hash( double val )
+        {
+            return uint64( int64( val * 27.7 ) );
+        }
+    };
 };
 
 #undef TMPL
