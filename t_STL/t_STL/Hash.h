@@ -13,26 +13,26 @@ namespace t
     template< class T >
     struct Hash;
 
-    namespace hash_impl
+    namespace details
     {
         template< class T >
         class MultiValueLinkedList;
 
         template< class T >
-        struct Node
+        struct HashNode
         {
         public:
-            CONSTX Node() = default;
+            CONSTX HashNode() = default;
 
-            CONSTX Node( T val ):
+            CONSTX HashNode( T val ):
                 m_validIndexes( 1 )
             {
                 m_data[ 0 ] = UniquePtr< T >( std::move( val ) );
             }
 
-            CONSTX ~Node() = default;
+            CONSTX ~HashNode() = default;
 
-            CONSTX Node* next() const { return m_next; }
+            CONSTX HashNode* next() const { return m_next; }
 
             CONSTX uint8 getNextValidIndex( uint8 start = 0 ) const
             {
@@ -67,7 +67,7 @@ namespace t
         public:
             CONSTX static uint8 INVALID_INDEX = 8;
             t::Array< t::UniquePtr< T >, 8 > m_data;
-            Node* m_next = nullptr;
+            HashNode* m_next = nullptr;
             uint8 m_validIndexes = 0;
             friend MultiValueLinkedList< T >;
         };
@@ -76,7 +76,7 @@ namespace t
         class MultiValueLinkedList
         {
         private:
-            using Node_t = Node< T >;
+            using Node_t = HashNode< T >;
         public:
             CONSTX MultiValueLinkedList() = default;
 
@@ -157,7 +157,7 @@ namespace t
              * Always returns a valid node/index
              *
              * @param val
-             * @return Node< T > - The node
+             * @return HashNode< T > - The node
              * @return uint8 - Index in the node's data
              * @return bool - True if the value was found, false if it was not
              */
@@ -281,11 +281,11 @@ namespace t
 
             CONSTX uint64 size() const { return m_size; }
 
-            CONSTX Node< T >* data() { return &m_data; }
-            CONSTX Node< T > const* data() const { return &m_data; }
+            CONSTX HashNode< T >* data() { return &m_data; }
+            CONSTX HashNode< T > const* data() const { return &m_data; }
         private:
-            static constexpr auto INVALID_INDEX = Node< T >::INVALID_INDEX;
-            Node< T > m_data;
+            static constexpr auto INVALID_INDEX = HashNode< T >::INVALID_INDEX;
+            HashNode< T > m_data;
             uint64 m_size = 0;
             friend Hash< T >;
         };
@@ -467,13 +467,16 @@ namespace t
         uint8 m_currentIndex = 0;
     };
 
+    /**
+     * @brief TODO: Store hashes along with data for faster re-hashes?
+     */
     template< class T >
     struct Hash
     {
     public:
         using ValueType = T;
-        using NodeType = hash_impl::Node< T >;
-        using BucketType = hash_impl::MultiValueLinkedList< T >;
+        using NodeType = details::HashNode< T >;
+        using BucketType = details::MultiValueLinkedList< T >;
         using BucketListType = Vector< BucketType >;
 
         using Iterator = HashIterator< Hash< T > >;
@@ -554,7 +557,7 @@ namespace t
         template< class U >
         CONSTX ValueType& at( U const& val, uint64 hash_ )
         {
-            auto found = m_buckets[hash_].find( val );
+            auto found = m_buckets[ hash_ ].find( val );
 
             if ( found == nullptr )
                 throw std::runtime_error( "Could not find value!" );
@@ -595,7 +598,7 @@ namespace t
         template< class U >
         CONSTX bool remove( U const& val, uint64 hash_ )
         {
-            return m_buckets[hash_].remove( val );
+            return m_buckets[ hash_ ].remove( val );
         }
 
         CONSTX uint64 size() const
@@ -608,10 +611,35 @@ namespace t
             return size_;
         }
 
-        uint64 hash( ValueType const& val ) const { return t::hasher< type::remove_const< ValueType > >::hash( val ) % m_buckets.size(); }
+        static uint64 fast_mod( uint64 val, uint64 mod )
+        {
+            return val < mod ? val : val % mod;
+        }
+
+        void rehash( uint64 cap )
+        {
+            BucketListType newdata( cap );
+
+            for ( auto it = begin(); it != end(); ++it )
+            {
+                auto hash_ = fast_mod( t::hasher< type::remove_const< ValueType > >::hash( *it ), newdata.size() );
+
+                newdata[ hash_ ].insertUnchecked( std::move( *it ) );
+            }
+
+            m_buckets = std::move( newdata );
+        }
+
+        uint64 hash( ValueType const& val ) const
+        {
+            return fast_mod( t::hasher< type::remove_const< ValueType > >::hash( val ), m_buckets.size() );
+        }
 
         template< class U >
-        uint64 hash( U const& val ) const { return t::hasher< U >::hash( val ) % m_buckets.size(); }
+        uint64 hash( U const& val ) const
+        {
+            return fast_mod( t::hasher< U >::hash( val ), m_buckets.size() );
+        }
 
         BucketListType m_buckets;
     };
