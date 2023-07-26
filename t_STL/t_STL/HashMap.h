@@ -42,11 +42,19 @@ namespace t
     template< class HashMap >
     class HashMapIterator
     {
+    #ifdef _MSC_VER
     public:
         using ValueType = typename HashMap::ValueType;
     private:
         using NodeType = typename HashMap::BaseType::NodeType;
         using BucketType = typename HashMap::BaseType::BucketType;
+    #else
+    public:
+        using ValueType = HashMap::ValueType;
+    private:
+        using NodeType = HashMap::BaseType::NodeType;
+        using BucketType = HashMap::BaseType::BucketType;
+    #endif
     public:
         constexpr HashMapIterator( BucketType* buckets, BucketType* bucketEnd, NodeType* node, uint8 index ):
             m_currentBucket( buckets ),
@@ -119,135 +127,37 @@ namespace t
         uint8 m_currentIndex = 0;
     };
 
-    template< class HashMap >
-    class HashMapConstIterator
-    {
-    public:
-        using ValueType = const HashMap::ValueType;
-    private:
-        using NodeType = const HashMap::BaseType::NodeType;
-        using BucketType = const HashMap::BaseType::BucketType;
-    public:
-        constexpr HashMapConstIterator( BucketType* buckets, BucketType* bucketEnd, NodeType* node, uint8 index ):
-            m_currentBucket( buckets ),
-            m_endBucket( bucketEnd ),
-            m_currentNode( node ),
-            m_currentIndex( index ) {}
-        
-        constexpr HashMapConstIterator( BucketType* buckets, BucketType* bucketEnd ):
-            m_currentBucket( buckets ),
-            m_endBucket( bucketEnd )
-        {
-            m_currentNode = buckets->data();
-            next( 0 );
-        }
-
-        constexpr bool operator==( HashMapConstIterator const& rhs ) const noexcept
-        {
-            return m_currentBucket == rhs.m_currentBucket &&
-                   m_currentNode   == rhs.m_currentNode &&
-                   m_currentIndex  == rhs.m_currentIndex;
-        }
-
-        constexpr bool operator!=( HashMapConstIterator const& rhs ) const noexcept
-        {
-            return !( *this == rhs );
-        }
-
-        constexpr HashMapConstIterator& operator++()
-        {
-            next();
-            return *this;
-        }
-
-        constexpr ValueType* operator->() { return m_currentNode->m_data[ m_currentIndex ].get(); }
-
-        constexpr ValueType& operator*() { return *m_currentNode->m_data[ m_currentIndex ]; }
-        
-    private:
-        constexpr void next( uint8 inMiddleOfNode = 1 )
-        {
-            assert( m_currentBucket != nullptr );
-            assert( m_currentNode != nullptr );
-
-            while ( m_currentBucket != m_endBucket )
-            {
-                m_currentIndex = m_currentNode->getNextValidIndex( m_currentIndex + inMiddleOfNode );
-
-                if ( m_currentIndex != NodeType::INVALID_INDEX )
-                {
-                    break;
-                }
-                inMiddleOfNode = 0;
-                m_currentIndex = 0;
-                if ( m_currentNode->m_next != nullptr )
-                {
-                    m_currentNode = m_currentNode->m_next;
-                    continue;
-                }
-                ++m_currentBucket;
-                m_currentNode = m_currentBucket->data();
-                continue;
-            }
-            if ( m_currentBucket == m_endBucket )
-                m_currentIndex = NodeType::INVALID_INDEX;
-        }
-    private:
-        BucketType* m_currentBucket = nullptr;
-        BucketType* m_endBucket = nullptr;
-        NodeType* m_currentNode = nullptr;
-        uint8 m_currentIndex = 0;
-    };
-
     template< class T, class U >
     struct HashMap
     {
     public:
         using ValueType = hashmap::pair< type::add_const< T >, U >;
-    public:
-        using ConstIterator = HashMapConstIterator< HashMap< T, U > >;
-        using Iterator = HashMapIterator< HashMap< T, U > >;
     private:
         using BaseType = Hash< ValueType >;
+    public:
+        using ConstIterator = BaseType::ConstIterator;
+        using Iterator = BaseType::Iterator;
     public:
         constexpr HashMap() = default;
 
         constexpr Iterator begin()
         {
-            if ( size() == 0 )
-                throw std::runtime_error( "Cannot create iterator to empty map!" );
-            return Iterator( m_data.m_buckets.data(), m_data.m_buckets.data() + m_data.m_buckets.size() );
+            return m_data.begin();
         }
 
         constexpr Iterator end()
         {
-            if ( size() == 0 )
-                throw std::runtime_error( "Cannot create iterator to empty map!" );
-            typename BaseType::BucketType* begin = m_data.m_buckets.data();
-            auto const size = m_data.m_buckets.size();
-            return Iterator( begin + size,
-                begin + size,
-                (begin + size)->data(),
-                uint8( 8 ) );
+            return m_data.end();
         }
 
         constexpr ConstIterator cbegin() const
         {
-            if ( size() == 0 )
-                throw std::runtime_error("Cannot create iterator to empty map!");
-            return ConstIterator( m_data.m_buckets.data(), m_data.m_buckets.data() + m_data.m_buckets.size());
+            return m_data.cbegin();
         }
 
         constexpr ConstIterator cend() const
         {
-            if ( size() == 0 )
-                throw std::runtime_error( "Cannot create iterator to empty map!" );
-            const typename BaseType::BucketType* begin = m_data.m_buckets.data();
-            auto const size = m_data.m_buckets.size();
-            return ConstIterator( begin + size,
-                                  begin + size,
-                                  ( begin + size )->data(),
-                                  uint8(8) );
+            return m_data.cend();
         }
 
         constexpr U& at( T const& key )

@@ -105,7 +105,7 @@ namespace t
                     uint8 index = n->getNextEmptyIndex( 0 );
                     if ( index < INVALID_INDEX )
                     {
-                        n->m_data[index] = UniquePtr< T >( T( std::move( val ) ) );
+                        n->m_data[ index ] = UniquePtr< T >( T( std::move( val ) ) );
                         n->m_validIndexes ^= 1 << index;
                         ++m_size;
                         return n->m_data[ index ].get();
@@ -266,9 +266,9 @@ namespace t
                         continue;
                     }
 
-                    if ( *n->m_data[index] == val )
+                    if ( *n->m_data[ index ] == val )
                     {
-                        n->m_data = nullptr;
+                        n->m_data[ index ] = nullptr;
                         n->m_validIndexes ^= 1 << index;
                         --m_size;
                         return true;
@@ -276,6 +276,7 @@ namespace t
 
                     ++index;
                 }
+                return false;
             }
 
             CONSTX uint64 size() const { return m_size; }
@@ -290,6 +291,182 @@ namespace t
         };
     }
 
+    template< class Hash >
+    class HashIterator
+    {
+    #ifdef _MSC_VER
+    public:
+        using ValueType = typename Hash::ValueType;
+    private:
+        using NodeType = typename Hash::NodeType;
+        using BucketType = typename Hash::BucketType;
+    #else
+    public:
+        using ValueType = Hash::ValueType;
+    private:
+        using NodeType = Hash::NodeType;
+        using BucketType = Hash::BucketType;
+    #endif
+    public:
+        constexpr HashIterator( BucketType* buckets, BucketType* bucketEnd, NodeType* node, uint8 index ):
+            m_currentBucket( buckets ),
+            m_endBucket( bucketEnd ),
+            m_currentNode( node ),
+            m_currentIndex( index ) {}
+
+        constexpr HashIterator( BucketType* buckets, BucketType* bucketEnd ):
+            m_currentBucket( buckets ),
+            m_endBucket( bucketEnd )
+        {
+            m_currentNode = buckets->data();
+            next( 0 );
+        }
+
+        constexpr bool operator==( HashIterator const& rhs ) const noexcept
+        {
+            return m_currentBucket == rhs.m_currentBucket &&
+                m_currentNode == rhs.m_currentNode &&
+                m_currentIndex == rhs.m_currentIndex;
+        }
+
+        constexpr bool operator!=( HashIterator const& rhs ) const noexcept
+        {
+            return !(*this == rhs);
+        }
+
+        constexpr HashIterator& operator++()
+        {
+            next();
+            return *this;
+        }
+
+        constexpr ValueType* operator->() { return m_currentNode->m_data[m_currentIndex].get(); }
+
+        constexpr ValueType& operator*() { return *m_currentNode->m_data[m_currentIndex]; }
+
+    private:
+        constexpr void next( uint8 inMiddleOfNode = 1 )
+        {
+            /*assert( m_currentBucket != nullptr );
+            assert( m_currentNode != nullptr );*/
+
+            while ( m_currentBucket != m_endBucket )
+            {
+                m_currentIndex = m_currentNode->getNextValidIndex( m_currentIndex + inMiddleOfNode );
+
+                if ( m_currentIndex != NodeType::INVALID_INDEX )
+                {
+                    break;
+                }
+                inMiddleOfNode = 0;
+                m_currentIndex = 0;
+                if ( m_currentNode->m_next != nullptr )
+                {
+                    m_currentNode = m_currentNode->m_next;
+                    continue;
+                }
+                ++m_currentBucket;
+                m_currentNode = m_currentBucket->data();
+                continue;
+            }
+            if ( m_currentBucket == m_endBucket )
+                m_currentIndex = NodeType::INVALID_INDEX;
+        }
+    private:
+        BucketType* m_currentBucket = nullptr;
+        BucketType* m_endBucket = nullptr;
+        NodeType* m_currentNode = nullptr;
+        uint8 m_currentIndex = 0;
+    };
+
+    template< class Hash >
+    class HashConstIterator
+    {
+    #ifdef _MSC_VER
+    public:
+        using ValueType = typename const Hash::ValueType;
+    private:
+        using NodeType = typename const Hash::NodeType;
+        using BucketType = typename const Hash::BucketType;
+    #else
+    public:
+        using ValueType = const Hash::ValueType;
+    private:
+        using NodeType = const Hash::NodeType;
+        using BucketType = const Hash::BucketType;
+    #endif
+    public:
+        constexpr HashConstIterator( BucketType* buckets, BucketType* bucketEnd, NodeType* node, uint8 index ):
+            m_currentBucket( buckets ),
+            m_endBucket( bucketEnd ),
+            m_currentNode( node ),
+            m_currentIndex( index ) {}
+        
+        constexpr HashConstIterator( BucketType* buckets, BucketType* bucketEnd ):
+            m_currentBucket( buckets ),
+            m_endBucket( bucketEnd )
+        {
+            m_currentNode = buckets->data();
+            next( 0 );
+        }
+
+        constexpr bool operator==( HashConstIterator const& rhs ) const noexcept
+        {
+            return m_currentBucket == rhs.m_currentBucket &&
+                   m_currentNode   == rhs.m_currentNode &&
+                   m_currentIndex  == rhs.m_currentIndex;
+        }
+
+        constexpr bool operator!=( HashConstIterator const& rhs ) const noexcept
+        {
+            return !( *this == rhs );
+        }
+
+        constexpr HashConstIterator& operator++()
+        {
+            next();
+            return *this;
+        }
+
+        constexpr ValueType* operator->() { return m_currentNode->m_data[ m_currentIndex ].get(); }
+
+        constexpr ValueType& operator*() { return *m_currentNode->m_data[ m_currentIndex ]; }
+        
+    private:
+        constexpr void next( uint8 inMiddleOfNode = 1 )
+        {
+            assert( m_currentBucket != nullptr );
+            assert( m_currentNode != nullptr );
+
+            while ( m_currentBucket != m_endBucket )
+            {
+                m_currentIndex = m_currentNode->getNextValidIndex( m_currentIndex + inMiddleOfNode );
+
+                if ( m_currentIndex != NodeType::INVALID_INDEX )
+                {
+                    break;
+                }
+                inMiddleOfNode = 0;
+                m_currentIndex = 0;
+                if ( m_currentNode->m_next != nullptr )
+                {
+                    m_currentNode = m_currentNode->m_next;
+                    continue;
+                }
+                ++m_currentBucket;
+                m_currentNode = m_currentBucket->data();
+                continue;
+            }
+            if ( m_currentBucket == m_endBucket )
+                m_currentIndex = NodeType::INVALID_INDEX;
+        }
+    private:
+        BucketType* m_currentBucket = nullptr;
+        BucketType* m_endBucket = nullptr;
+        NodeType* m_currentNode = nullptr;
+        uint8 m_currentIndex = 0;
+    };
+
     template< class T >
     struct Hash
     {
@@ -298,9 +475,55 @@ namespace t
         using NodeType = hash_impl::Node< T >;
         using BucketType = hash_impl::MultiValueLinkedList< T >;
         using BucketListType = Vector< BucketType >;
+
+        using Iterator = HashIterator< Hash< T > >;
+        using ConstIterator = HashConstIterator< Hash< T > >;
     public:
         CONSTX Hash():
             m_buckets( 8 ) {}
+
+        constexpr Iterator begin()
+        {
+            if ( size() == 0 )
+                throw std::runtime_error("Creating empty iterator!");
+            
+            return Iterator( m_buckets.data(), m_buckets.data() + m_buckets.size() );
+        }
+
+        constexpr Iterator end()
+        {
+            if ( size() == 0 )
+                throw std::runtime_error("Creating empty iterator!");
+            
+            BucketType* begin = m_buckets.data();
+            auto const size = m_buckets.size();
+
+            return Iterator( begin + size,
+                begin + size,
+                (begin + size)->data(),
+                uint8( 8 ) );
+        }
+
+        constexpr ConstIterator cbegin() const
+        {
+            if ( size() == 0 )
+                throw std::runtime_error("Creating empty iterator!");
+            
+            return ConstIterator( m_buckets.data(), m_buckets.data() + m_buckets.size() );
+        }
+
+        constexpr ConstIterator cend() const
+        {
+            if ( size() == 0 )
+                throw std::runtime_error("Creating empty iterator!");
+            
+            const BucketType* begin = m_buckets.data();
+            auto const size = m_buckets.size();
+            return ConstIterator( begin + size,
+                                  begin + size,
+                                  ( begin + size )->data(),
+                                  uint8(8) );
+        }
 
         template< class U >
         CONSTX ValueType& at( U const& val )
@@ -310,7 +533,7 @@ namespace t
         }
 
         template< class U >
-        CONSTX ValueType const& at( U const& val )
+        CONSTX ValueType const& at( U const& val ) const
         {
             auto hash_ = hash( val );
 
@@ -378,14 +601,15 @@ namespace t
         CONSTX uint64 size() const
         {
             uint64 size_ = 0;
+
             for ( uint64 i = 0; i < m_buckets.size(); ++i )
-            {
                 size_ += m_buckets[ i ].size();
-            }
+
             return size_;
         }
 
-        uint64 hash( ValueType const& val ) const { return t::hasher< T >::hash( val ) % m_buckets.size(); }
+        uint64 hash( ValueType const& val ) const { return t::hasher< type::remove_const< ValueType > >::hash( val ) % m_buckets.size(); }
+
         template< class U >
         uint64 hash( U const& val ) const { return t::hasher< U >::hash( val ) % m_buckets.size(); }
 

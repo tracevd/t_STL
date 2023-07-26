@@ -4,6 +4,7 @@
 #include "t.h"
 #include "variant/serialize/Serialize.h"
 #include "Timer.h"
+#include "HashSet.h"
 
 #include <random>
 
@@ -307,11 +308,54 @@ int main()
 
     std::cout << "HashMap size: " << map.size() << '\n';
 
-    printSizeOf< t::hash_impl::MultiValueLinkedList< t::hashmap::pair< fString, fString > > >();
-
-    printSizeOf< decltype( map ) >();
-
     constexpr int blah = getThing();
+
+    t.start();
+
+    t::HashSet< fString > set;
+
+    set.insert( "blah" );
+    set.insert( "hello" );
+    set.insert( "whatup" );
+    set.insert( "blah_" );
+    set.insert( "blah__" );
+    set.insert( "_blah" );
+    set.insert( "meme" );
+    set.insert( " " );
+    set.insert( "\\ ^-^ /" );
+    set.insert( "bobber" );
+    set.insert( "oppenheimer" );
+    set.insert( "as;fkgjqenrv" );
+    set.insert( "agn4tgt " );
+    set.insert( "leign" );
+    set.insert( "qeothn4etg" );
+    set.insert( "etgw4egeglwentg" );
+    set.insert( "q3giq3n" );
+    set.remove( "hello" );
+    set.remove( "leign" );
+    set.insert( "argw" );
+    set.insert( "ergsev" );
+
+    fString total;
+
+    t::forEach( set.cbegin(), set.cend(),
+        [ &total]( auto const& str ){ ( total += str ) += '\n'; });
+
+    auto end_of_set_insert = t.stop();
+
+    std::cout << total;
+
+    std::cout << "Took " << end_of_set_insert << "us to insert elements\n";
+
+    t.start();
+
+    auto size = set.size();
+
+    auto stop_ = t.stop();
+
+    std::cout << "Took " << stop_ << "us to get size of set\n";
+
+    std::cout << "HashSet size: " << set.size() << '\n';
 
     return blah;
 }

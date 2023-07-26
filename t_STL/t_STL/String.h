@@ -531,9 +531,9 @@ namespace t
 				if ( m_data != nullptr )
 				{
 					strcpy< char >( newdata, m_data, m_size );
+					delete[] m_data;
 				}
 
-				delete[] m_data;
 				m_data = newdata;
 				m_capacity = capacity;
 			}
@@ -571,6 +571,8 @@ namespace t
 
 			friend std::ostream& operator<<( std::ostream& os, const String& str )
 			{
+				if ( str.c_str() == nullptr )
+					return os << "";
 				return os << str.c_str();
 			}
 
@@ -578,14 +580,22 @@ namespace t
 			constexpr void reallocate( uint32 newcap )
 			{
 				auto newdata = new char[ newcap + 1 ];
-				strcpy< char >( newdata, m_data, m_size+1 );
-				delete[] m_data;
+				if ( m_data != nullptr )
+				{
+					strcpy< char >( newdata, m_data, m_size + 1 );
+					delete[] m_data;
+				}
+				
 				m_data = newdata;
 				m_capacity = newcap;
 			}
 
 			constexpr void reallocate()
 			{
+				if ( m_capacity == 0 )
+				{
+					reallocate( 10 );
+				}
 				reallocate( m_capacity * 2 );
 			}
 
