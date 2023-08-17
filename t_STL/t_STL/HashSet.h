@@ -10,7 +10,7 @@ namespace t
 	public:
 		using ValueType = type::add_const< T >;
 	private:
-		using BaseType = Hash< T >;
+		using BaseType = Hash< ValueType >;
 	public:
 		using ConstIterator = BaseType::ConstIterator;
 	public:
@@ -41,6 +41,19 @@ namespace t
 			return m_data.insert( val );
 		}
 
+		template< class... Args >
+        constexpr ValueType& insert( Args&&... args )
+        {
+            auto ptr = UniquePtr< ValueType >( std::forward< Args >( args )... );
+
+            auto hash_ = m_data.hash( *ptr );
+
+            if ( m_data.m_buckets[ hash_ ].find( *ptr ) )
+                throw std::runtime_error("Cannot overwrite value with insert!");
+            
+            return *m_data.m_buckets[ hash_ ].insert_ptr_unchecked( std::move( ptr ) );
+        }
+
 		constexpr bool remove( ValueType const& val )
 		{
 			return m_data.remove( val );
@@ -48,6 +61,6 @@ namespace t
 
 		constexpr uint64 size() const { return m_data.size(); }
 	private:
-		Hash< T > m_data;
+		Hash< ValueType > m_data;
 	};
 }

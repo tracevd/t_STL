@@ -123,6 +123,34 @@ namespace t
                 return nullptr;
             }
 
+            CONSTX T* insert_ptr_unchecked( UniquePtr< T >&& ptr )
+            {
+                Node_t* n = &m_data;
+                while ( n )
+                {
+                    uint8 index = n->getNextEmptyIndex( 0 );
+                    if ( index < INVALID_INDEX )
+                    {
+                        n->m_data[ index ] = std::move( ptr );
+                        n->m_validIndexes ^= 1 << index;
+                        ++m_size;
+                        return n->m_data[ index ].get();
+                    }
+                    if ( n->m_next == nullptr )
+                    {
+                        n->m_next = new Node_t();
+                        n->m_next->m_data[ 0 ] = std::move( ptr );
+                        n->m_next->m_validIndexes = 1;
+                        ++m_size;
+                        return n->m_next->m_data[ 0 ].get();
+                    }
+
+                    n = n->m_next;
+                }
+                assert( false );
+                return nullptr;
+            }
+
             /**
              * @brief Finds a value. Returns nullptr if not found.
              */

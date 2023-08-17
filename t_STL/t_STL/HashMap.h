@@ -207,6 +207,19 @@ namespace t
             return insert( std::move( pair_ ) );
         }
 
+        template< class... Args >
+        constexpr ValueType& insert( Args&&... args )
+        {
+            auto ptr = UniquePtr< ValueType >( std::forward< Args >( args )... );
+
+            auto hash_ = m_data.hash( ptr->first );
+
+            if ( m_data.m_buckets[ hash_ ].find( ptr->first ) )
+                throw std::runtime_error("Cannot overwrite value with insert!");
+            
+            return *m_data.m_buckets[ hash_ ].insert_ptr_unchecked( std::move( ptr ) );
+        }
+
         constexpr bool remove( T const& key )
         {
             auto hash_ = m_data.hash( key );
