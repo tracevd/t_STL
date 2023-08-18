@@ -257,7 +257,7 @@ namespace t
                     }
                     if ( tuple_.template get< 1 >() != INVALID_INDEX )
                     {
-                        auto ptr = tuple_.get< 0 >();
+                        auto ptr = get< 0 >( tuple_ );
                         ptr->m_data[ tuple_.template get< 1 >() ] = UniquePtr< T >( T( std::move( val ) ) );
                         ptr->m_validIndexes ^= 1 << tuple_.template get< 1 >();
                         ++m_size;

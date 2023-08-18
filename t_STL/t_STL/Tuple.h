@@ -111,6 +111,18 @@ namespace t
 			else
 				return 1 + ( *this )->template size();
 		}
+
+		template< uint64 N >
+		friend auto& get( tuple& tup )
+		{
+			return tup.template get< N >();
+		}
+
+		template< uint64 N >
+		friend auto& get( tuple const& tup )
+		{
+			return tup.template get< N >();
+		}
 	};
 
 	template< class... Types >
