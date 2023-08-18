@@ -15,7 +15,7 @@ namespace t
 	};
 
 	template< class T, class... Types >
-	struct tuple< T, Types... > : public tuple< Types... >
+	struct tuple< T, Types... > : private tuple< Types... >
 	{
 		T val {};
 
