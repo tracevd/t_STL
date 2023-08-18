@@ -6,6 +6,8 @@
 #include "Timer.h"
 #include "HashSet.h"
 
+#include "variant/ValueImpl.h"
+
 #include <random>
 
 template< typename T >
@@ -21,7 +23,7 @@ void testDepth( t::variant::Map const& map, uint8 depth );
 
 void testDepth( t::variant::Value const& val, uint8 depth )
 {
-    if ( depth == MAX_DEPTH )
+    /*if ( depth == MAX_DEPTH )
         throw std::runtime_error("Bad things happened!");
     if ( val.Is< t::variant::Map >() )
     {
@@ -30,38 +32,38 @@ void testDepth( t::variant::Value const& val, uint8 depth )
     else if ( val.Is< t::Vector< t::variant::Map > >() )
     {
 
-    }
+    }*/
 }
 
 void testDepth( t::variant::Map const& map, uint8 depth )
 {
-    if ( depth == MAX_DEPTH )
+    /*if ( depth == MAX_DEPTH )
         throw std::runtime_error("Bad things happened!");
     for ( const auto& [ key, value ] : map )
     {
         testDepth( value, depth + 1 );
-    }
+    }*/
 }
 
 void printTree( t::variant::Map const& map, uint64 spaces )
 {
-    std::string spacestr( spaces, ' ' );
-    for ( auto const& [ key, value ] : map )
-    {
-        if ( value.Is< t::variant::Map >() )
-        {
-            /*std::cout << spacestr << key << '\n';
-            std::cout << spacestr << std::hex << "0x" << &value.As< t::variant::Map const& >() << '\n';*/
-            printTree( value.As< t::variant::Map const& >(), spaces + 2 );
-            continue;
-        }
-        if ( value.Is< t::String >() )
-        {
-            std::cout << spacestr << key << "(" << t::variant::typeToString( value.getType() ) << ")\n";
-            std::cout << spacestr << std::hex << "0x" << &value.As< t::String const& >() << '\n';
-            std::cout << std::dec;
-        }
-    }
+    //std::string spacestr( spaces, ' ' );
+    //for ( auto const& [ key, value ] : map )
+    //{
+    //    if ( value.Is< t::variant::Map >() )
+    //    {
+    //        /*std::cout << spacestr << key << '\n';
+    //        std::cout << spacestr << std::hex << "0x" << &value.As< t::variant::Map const& >() << '\n';*/
+    //        printTree( value.As< t::variant::Map const& >(), spaces + 2 );
+    //        continue;
+    //    }
+    //    if ( value.Is< t::String >() )
+    //    {
+    //        std::cout << spacestr << key << "(" << t::variant::typeToString( value.getType() ) << ")\n";
+    //        std::cout << spacestr << std::hex << "0x" << &value.As< t::String const& >() << '\n';
+    //        std::cout << std::dec;
+    //    }
+    //}
 }
 
 void printHexStr( uint64 val )
@@ -112,7 +114,6 @@ void testTvm()
     Map map;
     map.insert( { String( "test" ), Value( "value" ) } );
     map.insert( { String( "test2" ), Value( "value2" ) } );
-    vm["vm vector"] = Vector< Map >{ map, map, map };
     vm["vm"] = std::move( map );
 
     Timer< microseconds > t;
@@ -163,154 +164,79 @@ constexpr int getThing()
     return 0;
 }
 
-int main()
+fString generateRandomString()
 {
-    testTvm();
+    fString x( "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" );
+    std::random_device rd;
+    std::mt19937 generator( rd() );
 
-    Map m;
+    std::shuffle( x.data(), x.data() + x.size(), generator );
 
-    auto val = Value( uint8(32) );
+    std::random_device dev;
+    std::mt19937 rng( dev() );
+    std::uniform_int_distribution< std::mt19937::result_type > dist( 1, 32 );
 
-    m["blah"] = "hello";
+    return x.substr( 0, dist(rng) );
+}
 
-    if ( !m.at("blah").Is< String >() )
-        return -1;
+void testAndPrintMatch( fString const& pattern, fString const& str )
+{
+    std::cout << pattern << " matches " << str << ":\n";
+    std::cout << std::boolalpha << t::string::match( pattern, str ) << '\n';
+}
 
-    m["mememe"] = (uint8) 69;
+constexpr uint64 NumKeys = 75;
 
-    if ( !m.at("mememe").Is< uint8 >() )
-        return -2;
-
-    m["woah"] = Vector< uint16 >{ 1, 2, 69, 420 };
-
-    if ( !m.at("woah").Is< Vector< uint16 > >() )
-        return -3;
-
-    Map meh;
-    meh["bob"] = "blah";
-    Map double_nested;
-    double_nested["hehe"] = int64(69);
-    double_nested["uhoh"] = m;
-
-    if ( !double_nested.at("uhoh").Is< Map >() )
-        return -4;
-
-    meh["yoyo"] = std::move( double_nested );
-    m["map"] = std::move( meh );
-
-    auto m2 = m;
-
-    m["haha"] = m2;
-
-    testDepth( m, 0 );
-
-    if ( &m2.at("map").As< Map const& >() == &m.at("map").As< Map const& >() )
-        return -5;
-
-    if ( &m2.at("blah").As< String const& >() != &m.at("blah").As< String const& >() )
-        return -6;
-
-    auto str = fString( 12345678 );
-
-    auto str2 = fString( "blah" );
-
-    std::cout << "Before: " << str << '\n';
-
-    Timer< microseconds > t;
-
-    t.start();
-
-    t::transform( str.data(), str.data() + str.size(), str.data(),
-        []( char c ){ return c + 1; } );
-
-    auto stop = t.stop();
-
-    auto constexpr it = t::find( "1234567", "1234567"+7, '4' );
-
-    std::cout << "Found: " << *it << '\n';
-
-    std::cout << "Took: " << stop << "us" << '\n';
-
-    std::cout << "After: " << str << '\n';
-
-    t::Array< fString, 4 > arr { "hey", "blah", "wahwah", "whoa" };
-
-    fString cmp = "whoa";
-
-    t.start();
-    
-    auto strit = t::findIf( arr.data(), arr.data() + arr.size(),
-        [ &cmp ]( fString const& str ){ return str == cmp; } );
-
-    auto findif_stop = t.stop();
-
-    std::cout << "Found: " << *strit << '\n';
-
-    std::cout << "Took: " << findif_stop << "us \n";
-
-    t::forEach( arr.data(), arr.data() + arr.size(),
-        []( auto const& str ){ std::cout << str << '\n'; } );
-
-    /*t::HashMap< fString, int > test_map;
-
-    test_map["one"]       = 1;
-    test_map["sixtynine"] = 69;
-    test_map["one"]       = 11;
-    test_map["two"]       = 2;
-    test_map["thr"]       = 3;
-    test_map["fou"]       = 4;*/
-
-    std::cout.clear();
-
+template< class hash >
+int64 InsertAndTimeStuff( Vector< fString > const& keys )
+{
     Timer< microseconds > timer;
 
     timer.start();
 
-    std::unordered_map< fString, fString > umap;
+    hash map;
 
-    umap["hello"] = "goodbye";
-    umap["goodbye"] = "hello";
-    umap["whatup"] = "bob";
-    umap["billy"] = "bob";
-    umap["como estas"] = "how are you doing";
-    umap["how are you doing"] = "bibarel";
-    umap["barber shop quartet"] = "haha";
-
-    for ( auto it = umap.begin(); it != umap.end(); ++it )
+    for ( uint64 i = 0; i < NumKeys; ++i )
     {
-        it->second += " jimmy";
+        map.insert( { fString( keys[ i ] ), uint64( i ) } );
     }
 
-    auto time = timer.stop();
-
-    std::cout << "unordered_map took " << time << "us\n";
-
-    timer.start();
-
-    t::HashMap< fString, fString > map;
-
-    map["hello"] = "goodbye";
-    map["goodbye"] = "hello";
-    map["whatup"] = "bob";
-    map["billy"] = "bob";
-    map["como estas"] = "how are you doing";
-    map["how are you doing"] = "bibarel";
-    map["barber shop quartet"] = "haha";
-
-    for ( auto kv = map.begin(); kv != map.end(); ++kv )
+    for ( auto it = map.begin(); it != map.end(); ++it )
     {
-        kv->second += " jimmy";
+        it->second += 69;
     }
 
-    auto time_ = timer.stop();
+    return timer.stop();
+}
 
-    std::cout << "HashMap took " << time_ << "us\n";
+int main()
+{
+    testTvm();
 
-    std::cout << "HashMap size: " << map.size() << '\n';
+    std::cout.clear();
+
+    Vector< fString > keys;
+
+    for ( uint64 i = 0; i < NumKeys; ++i )
+        keys.pushBack( generateRandomString() );
+
+    {
+        auto time = InsertAndTimeStuff< std::unordered_map< fString, uint64 > >( keys );
+
+        std::cout << "unordered_map took " << time << "us\n";
+    }
+
+    {
+        auto time = InsertAndTimeStuff< t::HashMap< fString, uint64 > >( keys );
+
+        std::cout << "HashMap took " << time << "us\n";
+    }
 
     constexpr int blah = getThing();
 
-    t.start();
+    Timer< microseconds > timer;
+
+    timer.start();
 
     t::HashSet< fString > set;
 
@@ -341,21 +267,51 @@ int main()
     t::forEach( set.cbegin(), set.cend(),
         [ &total]( auto const& str ){ ( total += str ) += '\n'; });
 
-    auto end_of_set_insert = t.stop();
+    auto end_of_set_insert = timer.stop();
 
     std::cout << total;
 
     std::cout << "Took " << end_of_set_insert << "us to insert elements\n";
 
-    t.start();
+    timer.start();
 
     auto size = set.size();
 
-    auto stop_ = t.stop();
+    auto stop_ = timer.stop();
 
     std::cout << "Took " << stop_ << "us to get size of set\n";
 
     std::cout << "HashSet size: " << set.size() << '\n';
+
+    auto coolMap = t::HashMap< fString, int >();
+
+    coolMap.place( "hey", 123 );
+    coolMap.place( "blah", 456 );
+    coolMap.place( "woah", 789 );
+
+    std::cout << "----------------\n";
+
+    t::forEach( coolMap.cbegin(), coolMap.cend(),
+        []( auto const& pair )
+        {
+            std::cout << pair.first << ": " << pair.second << '\n';
+        } );
+
+    testAndPrintMatch( "?ello", "hello" );
+    testAndPrintMatch( "????", "hello" );
+    testAndPrintMatch( "?????", "hello" );
+    testAndPrintMatch( "*o", "hello" );
+    testAndPrintMatch( "h*l?", "hello" );
+    testAndPrintMatch( "****", "blah" );
+    testAndPrintMatch( "h!xllo", "hello" );
+    testAndPrintMatch( "!jell!i", "hello" );
+    testAndPrintMatch( "\\!jell!i", "!jello" );
+
+    fString str = fString( 1234 );
+
+    auto x = fString( NAN );
+
+    std::cout << x << "\n";
 
     return blah;
 }

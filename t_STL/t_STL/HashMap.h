@@ -160,6 +160,12 @@ namespace t
             return m_data.cend();
         }
 
+        constexpr const U* find( T const& key ) const
+        {
+            auto hash_ = m_data.hash( key );
+            return m_data.m_buckets.find( key );
+        }
+
         constexpr U& at( T const& key )
         {
             auto hash_ = m_data.hash( key );
@@ -208,9 +214,9 @@ namespace t
         }
 
         template< class... Args >
-        constexpr ValueType& insert( Args&&... args )
+        constexpr ValueType& place( Args&&... args )
         {
-            auto ptr = UniquePtr< ValueType >( std::forward< Args >( args )... );
+            auto ptr = make_unique< ValueType >( std::forward< Args >( args )... );
 
             auto hash_ = m_data.hash( ptr->first );
 

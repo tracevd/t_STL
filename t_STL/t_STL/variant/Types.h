@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Type.h"
+#include "../Memory.h"
 
 namespace t
 {
@@ -43,8 +44,7 @@ namespace t
             UINT64_VECTOR = UINT64 | VECTOR,
             FLOAT_VECTOR = FLOAT | VECTOR,
             DOUBLE_VECTOR = DOUBLE | VECTOR,
-            STRING_VECTOR = STRING | VECTOR,
-            MAP_VECTOR = MAP | VECTOR,
+            STRING_VECTOR = STRING | VECTOR
         };
 
         #include "ValueTypeDefines.h"

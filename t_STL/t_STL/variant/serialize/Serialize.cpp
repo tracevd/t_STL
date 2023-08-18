@@ -166,18 +166,6 @@ namespace t
 			}
 
 			template<>
-			void SerializeComplexValue< Vector< Map > >( BufferType& buffer, Vector< Map > const& data )
-			{
-				AddToBuffer( buffer, (uint8) templateToVariantType< Vector< Map > >() );
-				AddToBuffer< uint64 >( buffer, data.size() );
-
-				for ( uint64 i = 0; i < data.size(); ++i )
-				{
-					Serialize( buffer, data[ i ] );
-				}
-			}
-
-			template<>
 			void SerializeComplexValue< Vector< String > >( BufferType& buffer, Vector< String > const& data )
 			{
 				AddToBuffer< uint8 >( buffer, (uint8) templateToVariantType< Vector< String > >() );
@@ -240,8 +228,6 @@ namespace t
 					return SerializeVectorValue( buffer, val.As< Vector< double > const& >() );
 				case Type::STRING_VECTOR:
 					return SerializeComplexValue( buffer, val.As< Vector< String > const& >() );
-				case Type::MAP_VECTOR:
-					return SerializeComplexValue( buffer, val.As< Vector< Map > const& >() );
 				default:
 					throw std::runtime_error( "Type not supported" );
 				}
@@ -341,42 +327,6 @@ namespace t
 		namespace bitstream_v1
 		{
 			Map Deserialize( const uint8* buffer, uint64 bufferSize, uint64& bufferOffset );
-		}
-
-		void DeserializeAndInsertMapVector( Map& map, String&& key, const uint8* buffer, uint64 bufferSize, uint64& bufferOffset )
-		{
-			auto numel = ReadValueFromBuffer< uint64 >( &buffer[ bufferOffset ] );
-			bufferOffset += sizeof( uint64 );
-
-			Vector< Map > vec;
-			vec.reserve( numel );
-
-			for ( auto numel_ = numel; numel_ > 0; --numel_ )
-			{
-				//                "tvm<n>"     endianness         numel
-				if ( bufferSize < 4 + sizeof( uint16 ) + sizeof( uint64 ) )
-				{
-					throw std::runtime_error( "Invalid buffer length! Must be long enough for Header!" );
-				}
-				const auto t = buffer[ bufferOffset ];
-				const auto v = buffer[ bufferOffset + 1 ];
-				const auto m = buffer[ bufferOffset + 2 ];
-
-				if ( t != 't' || v != 'v' || m != 'm' )
-				{
-					throw std::runtime_error( "Expected valid Header!" );
-				}
-
-				const auto version = buffer[ bufferOffset + 3 ];
-
-				if ( version != 1 )
-					throw std::runtime_error( "Invalid Map version!" );
-
-				bufferOffset += 4;
-				vec.pushBack( Deserialize( buffer, bufferSize, bufferOffset ) );
-			}
-
-			map.insert( { std::move( key ), Value( std::move( vec ) ) } );
 		}
 
 		void DeserializeAndInsertMap( Map& map, String&& key, const uint8* buffer, uint64 bufferSize, uint64& bufferOffset )
@@ -518,9 +468,6 @@ namespace t
 						continue;
 					case STRING_VECTOR:
 						DeserializeAndInsertVector< Vector< String > >( out_vm, std::move( key ), buffer, bufferOffset );
-						continue;
-					case MAP_VECTOR:
-						DeserializeAndInsertMapVector( out_vm, std::move( key ), buffer, bufferSize, bufferOffset );
 						continue;
 					default:
 						throw std::runtime_error( "De-Serialization for this type is unsupported" );

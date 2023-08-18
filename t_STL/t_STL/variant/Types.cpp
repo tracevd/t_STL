@@ -57,8 +57,6 @@ namespace t
                 return "double[]";
             case STRING_VECTOR:
                 return "String[]";
-            case MAP_VECTOR:
-                return "Map[]";
             default:
                 return "void";
             }

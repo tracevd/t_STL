@@ -317,12 +317,107 @@ namespace t
 		uint64 m_size = 0;
 	};
 
+	class StringView;
+
 	namespace fast
 	{
 		class String
 		{
 		public:
 			constexpr String() = default;
+
+			constexpr explicit String( float number )
+			{
+				constexpr double PRECISION = 0.00000000000001;
+				constexpr uint32 MAX_NUMBER_STRING_SIZE = 32;
+
+				// handle special cases
+				if ( number != number ) // NaN
+				{
+					m_data = new char[ 4 ];
+					m_size = m_capacity = 3;
+					strcpy( m_data, "NaN", 4 );
+					return;
+				}
+				else if ( number > FLT_MAX ) {
+					m_data = new char[ 4 ];
+					m_size = m_capacity = 3;
+					strcpy( m_data, "inf", 4 );
+					return;
+				}
+				else if ( number == 0.0 ) {
+					m_data = new char[ 2 ];
+					m_size = m_capacity = 1;
+					strcpy( m_data, "0", 2 );
+					return;
+				}
+
+				m_data = new char[ MAX_NUMBER_STRING_SIZE ];
+				m_size = MAX_NUMBER_STRING_SIZE;
+				m_capacity = MAX_NUMBER_STRING_SIZE;
+
+				int digit, m, m1;
+				char* c = m_data;
+				int neg = (number < 0);
+				if ( neg )
+					number = -number;
+				// calculate magnitude
+				m = static_cast< int >( log10( number ) );
+				int useExp = (m >= 14 || (neg && m >= 9) || m <= -9);
+				if ( neg )
+					*(c++) = '-';
+				// set up for scientific notation
+				if ( useExp ) {
+					if ( m < 0 )
+						m -= 1;
+					number = number / static_cast< float >( pow( 10.0f, m ) );
+					m1 = m;
+					m = 0;
+				}
+				if ( m < 1.0 ) {
+					m = 0;
+				}
+				// convert the number
+				while ( number > PRECISION || m >= 0 ) {
+					double weight = pow( 10.0, m );
+					if ( weight > 0 && !isinf( weight ) ) {
+						digit = static_cast< int >( floor( number / weight ) );
+						number -= static_cast< float >(digit * weight);
+						*(c++) = '0' + digit;
+					}
+					if ( m == 0 && number > 0 )
+						*(c++) = '.';
+					m--;
+				}
+				if ( useExp ) {
+					// convert the exponent
+					*(c++) = 'e';
+					if ( m1 > 0 ) {
+						*(c++) = '+';
+					}
+					else {
+						*(c++) = '-';
+						m1 = -m1;
+					}
+					m = 0;
+					while ( m1 > 0 ) {
+						*(c++) = '0' + m1 % 10;
+						m1 /= 10;
+						m++;
+					}
+					c -= m;
+					for ( uint32 i = 0, j = m - 1; i < j; ++i, --j ) {
+						// swap without temporary
+						c[ i ] ^= c[ j ];
+						c[ j ] ^= c[ i ];
+						c[ i ] ^= c[ j ];
+					}
+					c += m;
+				}
+				*(c) = '\0';
+
+				m_size = static_cast< uint32 >( c - m_data );
+			}
 
 			template< typename T, typename = std::enable_if_t< std::is_arithmetic_v< T > && !std::is_floating_point_v< T > > >
 			constexpr explicit String( T number )
@@ -426,6 +521,24 @@ namespace t
 				return *this;
 			}
 
+			constexpr String substr( uint32 start, uint32 end = 0 ) const
+			{
+				if ( end <= start )
+					throw std::runtime_error("End cannot be less than or equal to start!");
+
+				auto const size_ = size();
+
+				if ( size_ == 0 )
+					throw std::runtime_error("Empty string!");
+
+				if ( end == 0 || end > size_ )
+					end = size_;
+
+				return String( data() + start, end - start );
+			}
+
+			constexpr StringView substrv( uint32 start, uint32 end = 0 ) const;
+
 			constexpr const char* data() const { return m_data; }
 			constexpr char* data() { return m_data; }
 
@@ -454,6 +567,44 @@ namespace t
 				}
 				*this = String( rhs, length );
 				return *this;
+			}
+
+			constexpr char operator[]( uint32 index ) const
+			{
+				return m_data[ index ];
+			}
+
+			constexpr char& operator[]( uint32 index )
+			{
+				return m_data[ index ];
+			}
+
+			constexpr bool operator<( String const& rhs )
+			{
+				if ( m_size < rhs.m_size )
+					return true;
+				
+				for ( uint32 i = 0; i < rhs.m_size; ++i )
+				{
+					if ( m_data[ i ] >= rhs.m_data[ i ] )
+						return false;
+				}
+
+				return true;
+			}
+
+			constexpr bool operator>( String const& rhs )
+			{
+				if ( m_size > rhs.m_size )
+					return true;
+				
+				for ( uint32 i = 0; i < rhs.m_size; ++i )
+				{
+					if ( m_data[ i ] <= rhs.m_data[ i ] )
+						return false;
+				}
+
+				return true;
 			}
 
 			constexpr String& operator+=( String const& rhs )
@@ -638,6 +789,11 @@ namespace t
 		constexpr const char* data() const { return m_data; }
 		constexpr uint64 size() const { return m_size; }
 
+		constexpr char operator[]( uint64 index ) const
+		{
+			return m_data[ index ];
+		}
+
 		friend std::ostream& operator<<( std::ostream& os, StringView const& str )
 		{
 			return os << str.data();
@@ -648,6 +804,21 @@ namespace t
 		const uint64 m_size;
 	};
 
+	constexpr StringView fast::String::substrv( uint32 start, uint32 end ) const
+	{
+		if ( end <= start )
+			throw std::runtime_error( "End cannot be less than or equal to start!" );
+
+		auto const size_ = size();
+
+		if ( size_ == 0 )
+			throw std::runtime_error( "Empty string!" );
+
+		if ( end == 0 || end > size_ )
+			end = size_;
+
+		return StringView( data() + start, end - start );
+	}
 }
 
 template<>
@@ -726,3 +897,80 @@ struct t::hasher< t::fast::String >
 		return std::hash< t::fast::String >{}( str );
 	}
 };
+
+namespace t
+{
+	namespace string
+	{
+		/**
+		 * Special characters:
+		 *   '*'     -> Any character 0-inf times
+		 *   '?'     -> Any character 1 time
+		 *   '[...]' -> Group of characters
+		 *       Where:
+		 *         [a-z] is a range
+		 *         [abc] is a group
+		 *   '!'     -> Not the following character
+		 *   '\'     -> Escape next special character
+		 */
+		template< class StrTy1, class StrTy2, class = std::enable_if_t< !std::_Is_any_of_v< StrTy1, const char*, char* > && !std::_Is_any_of_v< StrTy2, const char*, char* > > >
+		constexpr inline bool match( StrTy1 const& pattern, StrTy2 const& string )
+		{
+			if ( pattern.size() == 0 )
+				return false;
+			if ( string.size() == 0 )
+				return false;
+
+			uint32 patternIndex = 0;
+			uint32 stringIndex  = 0;
+
+			while ( patternIndex < pattern.size() && stringIndex < string.size() )
+			{
+				switch ( pattern[ patternIndex ] )
+				{
+				case '?':
+					++stringIndex;
+					++patternIndex;
+					break;
+				case '*': {
+					while ( patternIndex != pattern.size() && stringIndex != string.size() )
+					{
+						if ( patternIndex == pattern.size() - 1 )
+							return true;
+						if ( match( StringView( pattern.data() + patternIndex + 1, pattern.size() - patternIndex - 1 ), StringView( string.data() + stringIndex, string.size() - stringIndex ) ) )
+							return true;
+						++stringIndex;
+					}
+					return false;
+				}
+				case '[': throw std::runtime_error("nope");
+				case '!': {
+					if ( patternIndex >= pattern.size() - 1 )
+						throw std::runtime_error("Invalid syntax!");
+					++patternIndex;
+					if ( pattern[ patternIndex ] == string[ stringIndex ] )
+						return false;
+					++patternIndex;
+					++stringIndex;
+				} break;
+				case '\\': {
+					if ( patternIndex >= pattern.size() - 1 )
+						throw std::runtime_error( "Invalid syntax!" );
+					++patternIndex;
+					if ( pattern[ patternIndex ] != string[ stringIndex ] )
+						return false;
+					++patternIndex;
+					++stringIndex;
+				}
+				default:
+					if ( pattern[ patternIndex ] != string[ stringIndex ] )
+						return false;
+					++patternIndex;
+					++stringIndex;
+				}
+			}
+
+			return stringIndex == string.size() && patternIndex == pattern.size();
+		}
+	}
+}

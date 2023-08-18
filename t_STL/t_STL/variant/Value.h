@@ -5,6 +5,8 @@
 #include "../String.h"
 #include "../Vector.h"
 
+#include "ValueImpl.h"
+
 #include "../Type.h"
 
 #include <iostream>
@@ -23,13 +25,10 @@ namespace t
                 m_data( data.m_data ),
                 m_type( data.m_type )
             {
-                if ( m_data == nullptr )
-                    return;
-                *static_cast< uint64_t* >( m_data ) += 1;
             }
 
             Value( Value&& data ) noexcept:
-                m_data( data.m_data ),
+                m_data( std::move( data.m_data ) ),
                 m_type( data.m_type )
             {
                 data.m_data = nullptr;
@@ -55,15 +54,8 @@ namespace t
                 if ( this == &rhs )
                     return *this;
 
-                DestroyData();
-
                 m_data = rhs.m_data;
                 m_type = rhs.m_type;
-
-                if ( m_data == nullptr )
-                    return *this;
-
-                *static_cast< uint64_t* >( m_data ) += 1;
 
                 return *this;
             }
@@ -76,12 +68,9 @@ namespace t
                 if ( this == &rhs )
                     return *this;
 
-                DestroyData();
-
-                m_data = rhs.m_data;
+                m_data = std::move( rhs.m_data );
                 m_type = rhs.m_type;
 
-                rhs.m_data = nullptr;
                 rhs.m_type = VOID;
 
                 return *this;
@@ -151,36 +140,11 @@ namespace t
 
             Value QuickClone() const;
 
-            ~Value()
-            {
-                DestroyData();
-            }
+            ~Value() = default;
 
         private:
-            void DestroyData();
-
-            /**
-             * Used to store the data for t::variant::Value in one allocation
-             */
-            template< typename T >
-            struct Data
-            {
-            public:
-                Data() = delete;
-
-                Data( T data ):
-                    val( data ),
-                    references( 1 ) {}
-
-                ~Data() = default;
-            public:
-                uint64_t references;
-                T val;
-            };
-
-        private:
-            void*     m_data = nullptr;
-            Type      m_type = VOID;
+            SharedPtr< value::Base > m_data;
+            Type m_type = VOID;
         };
     }
 }

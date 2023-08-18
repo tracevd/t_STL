@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include "../String.h"
 #include "Value.h"
+#include "../Memory.h"
 
 namespace t
 {
@@ -42,6 +43,6 @@ namespace t
 {
 	namespace variant
 	{
-		DefineNormalAndVector( extern template, Map );
+		DefineTemplate( extern template, Map );
 	}
 }

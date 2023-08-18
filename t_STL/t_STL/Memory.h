@@ -13,10 +13,6 @@ namespace t
         UniquePtr( const UniquePtr& al )             = delete;
         UniquePtr& operator=( const UniquePtr& rhs ) = delete;
 
-        template< class... Args >
-        constexpr UniquePtr( Args&&... args ):
-            m_data( new T( std::forward< Args >( args )... ) ) {}
-
         constexpr UniquePtr( T* allocation ):
             m_data( allocation ) {}
 
@@ -61,7 +57,9 @@ namespace t
 
         constexpr T* get() const noexcept { return m_data; }
 
-        constexpr T* operator->() const noexcept { return m_data; }
+        constexpr const T* operator->() const noexcept { return m_data; }
+
+        constexpr T* operator->() noexcept { return m_data; }
 
         constexpr T& operator*() { return *m_data; }
 
@@ -115,28 +113,33 @@ namespace t
         constexpr SharedPtr() = default;
 
         constexpr SharedPtr( const T& in ):
-            m_data( new Data( in ) ) {}
+            m_data( new T( in ) ),
+            m_refCount( new uint64( 1 ) ) {}
 
         constexpr SharedPtr( T&& in ):
-            m_data( new Data( move( in ) ) ) {}
+            m_data( new T( move( in ) ) ),
+            m_refCount( new uint64( 1 ) ) {}
 
-        template< class... Args >
-        constexpr SharedPtr( Args... args ):
-            m_data( new Data( std::forward< Args >( args )... ) ) {}
+        constexpr SharedPtr( T* allocation ):
+            m_data( allocation ),
+            m_refCount( new uint64( 1 ) ) {}
 
         constexpr SharedPtr( const SharedPtr& ptr ):
-            m_data( ptr.m_data )
+            m_data( ptr.m_data ),
+            m_refCount( ptr.m_refCount )
         {
-            if ( m_data != nullptr )
+            if ( m_data != nullptr && m_refCount != nullptr )
             {
-                m_data->references += 1;
+                *m_refCount += 1;
             }
         }
 
         constexpr SharedPtr( SharedPtr&& ptr ) noexcept:
-            m_data( ptr.m_data )
+            m_data( ptr.m_data ),
+            m_refCount( ptr.m_refCount )
         {
             ptr.m_data = nullptr;
+            ptr.m_refCount = nullptr;
         }
 
         constexpr ~SharedPtr()
@@ -149,84 +152,115 @@ namespace t
             if ( this == &rhs || m_data == rhs.m_data )
                 return *this;
             DestroyData();
-            m_data = rhs.m_data;
 
-            if ( rhs.m_data != nullptr )
-                m_data->references += 1;
+            m_data = rhs.m_data;
+            m_refCount = rhs.m_refCount;
+
+            if ( rhs.m_data != nullptr && m_refCount != nullptr )
+                *m_refCount += 1;
+
+            return *this;
         }
 
-        constexpr SharedPtr& operator=( SharedPtr&& rhs )
+        constexpr SharedPtr& operator=( SharedPtr&& rhs ) noexcept
         {
             if ( this == &rhs )
                 return *this;
             DestroyData();
 
             m_data = rhs.m_data;
+            m_refCount = rhs.m_refCount;
             rhs.m_data = nullptr;
+            rhs.m_refCount = nullptr;
+
+            return *this;
         }
 
-        constexpr T* get() const noexcept { return &m_data->data; }
+        constexpr bool isUnique() const noexcept
+        {
+            if ( m_data == nullptr || m_refCount == nullptr )
+                return true;
+            return *m_refCount == 1;
+        }
 
-        constexpr T* operator->() const noexcept { return get(); }
+        constexpr bool isShared() const noexcept
+        {
+            return !isUnique();
+        }
 
-        constexpr T& operator*() { return m_data->data; }
+        constexpr const T* get() const noexcept { return m_data; }
 
-        constexpr T const& operator*() const { return m_data->data; }
+        constexpr T* get() noexcept { return m_data; }
 
-        constexpr bool operator==( const SharedPtr& rhs ) const { return m_data == rhs.m_data; }
+        constexpr const T* operator->() const noexcept { return get(); }
 
-        constexpr bool operator!=( const SharedPtr& rhs ) const { return m_data != rhs.m_data; }
+        constexpr T* operator->() noexcept { return get(); }
 
-        constexpr bool operator< ( const SharedPtr& rhs ) const { return m_data < rhs.m_data; }
+        constexpr T& operator*() { return *m_data; }
 
-        constexpr bool operator>=( const SharedPtr& rhs ) const { return m_data >= rhs.m_data; }
+        constexpr T const& operator*() const { return *m_data; }
 
-        constexpr bool operator> ( const SharedPtr& rhs ) const { return m_data > rhs.m_data; }
+        constexpr bool operator==( const SharedPtr& rhs ) const noexcept { return m_data == rhs.m_data; }
 
-        constexpr bool operator<=( const SharedPtr& rhs ) const { return m_data <= rhs.m_data; }
+        constexpr bool operator!=( const SharedPtr& rhs ) const noexcept { return m_data != rhs.m_data; }
 
-        constexpr bool operator==( const T* const rhs )   const { return getPointer() == rhs; }
+        constexpr bool operator< ( const SharedPtr& rhs ) const noexcept { return m_data < rhs.m_data; }
 
-        constexpr bool operator!=( const T* const rhs )   const { return getPointer() != rhs; }
+        constexpr bool operator>=( const SharedPtr& rhs ) const noexcept { return m_data >= rhs.m_data; }
 
-        constexpr bool operator< ( const T* const rhs )   const { return getPointer() < rhs; }
+        constexpr bool operator> ( const SharedPtr& rhs ) const noexcept { return m_data > rhs.m_data; }
 
-        constexpr bool operator>=( const T* const rhs )   const { return getPointer() >= rhs; }
+        constexpr bool operator<=( const SharedPtr& rhs ) const noexcept { return m_data <= rhs.m_data; }
 
-        constexpr bool operator> ( const T* const rhs )   const { return getPointer() > rhs; }
+        constexpr bool operator==( const T* const rhs )   const noexcept { return getPointer() == rhs; }
 
-        constexpr bool operator<=( const T* const rhs )   const { return getPointer() <= rhs; }
+        constexpr bool operator!=( const T* const rhs )   const noexcept { return getPointer() != rhs; }
 
-        constexpr bool operator==( std::nullptr_t )       const { return m_data == nullptr; }
+        constexpr bool operator< ( const T* const rhs )   const noexcept { return getPointer() < rhs; }
 
-        constexpr bool operator!=( std::nullptr_t )       const { return m_data !=  nullptr; }
+        constexpr bool operator>=( const T* const rhs )   const noexcept { return getPointer() >= rhs; }
 
-        constexpr operator bool() const { return m_data != nullptr; }
+        constexpr bool operator> ( const T* const rhs )   const noexcept { return getPointer() > rhs; }
+
+        constexpr bool operator<=( const T* const rhs )   const noexcept { return getPointer() <= rhs; }
+
+        constexpr bool operator==( std::nullptr_t )       const noexcept { return m_data == nullptr; }
+
+        constexpr bool operator!=( std::nullptr_t )       const noexcept { return m_data !=  nullptr; }
+
+        constexpr operator bool() const noexcept { return m_data != nullptr; }
     private:
         constexpr void DestroyData()
         {
-            if ( m_data == nullptr )
+            if ( m_data == nullptr || m_refCount == nullptr )
                 return;
             
-            m_data->references -= 1;
+            *m_refCount -= 1;
 
-            if ( m_data->references == 0 )
+            if ( *m_refCount == 0 )
+            {
+                delete m_refCount;
                 delete m_data;
+            }
         }
-        constexpr inline const void* const getPointer() const { return m_data ? &m_data->data : m_data; }
-        struct Data
-        {
-            constexpr Data( T data ):
-                data( move( data ) ),
-                references( 1 ) {}
-            template< class... Args >
-            constexpr Data( Args... args ):
-                data( std::forward< Args >( args )... ),
-                references( 1 ) {}
-            uint64 references;
-            T data;
-        };
+        constexpr inline const void* const getPointer() const { return m_data; }
+
     private:
-        Data* m_data;
+        T* m_data          = nullptr;
+        uint64* m_refCount = nullptr;
     };
+
+    template< class T, class... Args >
+    SharedPtr< T > make_shared( Args&&... args )
+    {
+        auto allocation = new T( std::forward< Args >( args )... );
+        return SharedPtr< T >( allocation );
+    }
+
+    template< class T, class... Args >
+    UniquePtr< T > make_unique( Args&&... args )
+    {
+        auto allocation = new T( std::forward< Args >( args )... );
+        return UniquePtr< T >( allocation );
+    }
 }

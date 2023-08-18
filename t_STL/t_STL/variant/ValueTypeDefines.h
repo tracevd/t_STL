@@ -71,5 +71,4 @@ DefineType( Vector< uint32 >, UINT32_VECTOR, "u32[]" ) \
 DefineType( Vector< uint64 >, UINT64_VECTOR, "u64[]" ) \
 DefineType( Vector< float >, FLOAT_VECTOR, "float[]" ) \
 DefineType( Vector< double >, DOUBLE_VECTOR, "double[]" ) \
-DefineType( Vector< String >, STRING_VECTOR, "String[]" ) \
-DefineType( Vector< ::t::variant::Map >, MAP_VECTOR, "Map[]" )
+DefineType( Vector< String >, STRING_VECTOR, "String[]" )

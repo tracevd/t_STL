@@ -4,8 +4,8 @@ namespace t
 {
     namespace variant
     {
-		Map::Map()					 = default;
-		Map::Map( Map&& )			 = default;
+		Map::Map() = default;
+		Map::Map( Map&& ) = default;
 		Map& Map::operator=( Map&& ) = default;
 
 		Map::Map( Map const& other )
@@ -25,8 +25,8 @@ namespace t
 				return true;
 			if ( size() != rhs.size() )
 				return false;
-			
-			for ( const auto& [ key, value ] : *this )
+
+			for ( const auto& [key, value] : *this )
 			{
 				auto it = rhs.find( key );
 				if ( it == rhs.cend() )
@@ -40,12 +40,12 @@ namespace t
 		{
 			Map copy;
 
-            for ( const auto& [ key, value ] : *this )
-            {
+			for ( const auto& [key, value] : *this )
+			{
 				copy.insert( { key, value.QuickClone() } );
-            }
-                
-            return copy;
+			}
+
+			return copy;
 		}
 
 		Map Map::Clone() const
@@ -53,12 +53,12 @@ namespace t
 			Map copy;
 			copy.reserve( size() );
 
-            for ( const auto& [ key, value ] : *this )
-            {
-				copy.insert( { key, value.Clone() } );
-            }
-                
-            return copy;
+			for ( const auto& [key, value] : *this )
+			{
+				copy.insert( { key,  value.Clone() } );
+			}
+
+			return copy;
 		}
     }
 }

@@ -42,9 +42,9 @@ namespace t
 		}
 
 		template< class... Args >
-        constexpr ValueType& insert( Args&&... args )
+        constexpr ValueType& place( Args&&... args )
         {
-            auto ptr = UniquePtr< ValueType >( std::forward< Args >( args )... );
+            auto ptr = make_unique< ValueType >( std::forward< Args >( args )... );
 
             auto hash_ = m_data.hash( *ptr );
 
