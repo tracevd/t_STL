@@ -5,8 +5,8 @@
 #include "Vector.h"
 #include "Memory.h"
 #include "Array.h"
+#include "Tuple.h"
 
-#define CONSTX constexpr
 
 namespace t
 {
@@ -22,19 +22,19 @@ namespace t
         struct HashNode
         {
         public:
-            CONSTX HashNode() = default;
+            constexpr HashNode() = default;
 
-            CONSTX HashNode( T val ):
+            constexpr HashNode( T val ):
                 m_validIndexes( 1 )
             {
                 m_data[ 0 ] = UniquePtr< T >( std::move( val ) );
             }
 
-            CONSTX ~HashNode() = default;
+            constexpr ~HashNode() = default;
 
-            CONSTX HashNode* next() const { return m_next; }
+            constexpr HashNode* next() const { return m_next; }
 
-            CONSTX uint8 getNextValidIndex( uint8 start = 0 ) const
+            constexpr uint8 getNextValidIndex( uint8 start = 0 ) const
             {
                 if ( (m_validIndexes >> start) == 0 || start >= INVALID_INDEX )
                     return INVALID_INDEX;
@@ -51,7 +51,7 @@ namespace t
              * @brief Get the first empty index including the given parameter.
              * Returns INVALID_INDEX (8) if not found.
              */
-            CONSTX uint8 getNextEmptyIndex( uint8 start = 0 ) const
+            constexpr uint8 getNextEmptyIndex( uint8 start = 0 ) const
             {
                 if ( (m_validIndexes >> start) == (limit< uint8 >::max >> start) || start >= INVALID_INDEX )
                 {
@@ -65,7 +65,7 @@ namespace t
                 return INVALID_INDEX;
             }
         public:
-            CONSTX static uint8 INVALID_INDEX = 8;
+            constexpr static uint8 INVALID_INDEX = 8;
             t::Array< t::UniquePtr< T >, 8 > m_data;
             HashNode* m_next = nullptr;
             uint8 m_validIndexes = 0;
@@ -78,9 +78,9 @@ namespace t
         private:
             using Node_t = HashNode< T >;
         public:
-            CONSTX MultiValueLinkedList() = default;
+            constexpr MultiValueLinkedList() = default;
 
-            CONSTX ~MultiValueLinkedList()
+            constexpr ~MultiValueLinkedList()
             {
                 auto next = m_data.m_next;
 
@@ -97,7 +97,7 @@ namespace t
             }
 
             template< class U >
-            CONSTX T* insert_unchecked( U&& val )
+            constexpr T* insert_unchecked( U&& val )
             {
                 Node_t* n = &m_data;
                 while ( n )
@@ -123,7 +123,7 @@ namespace t
                 return nullptr;
             }
 
-            CONSTX T* insert_ptr_unchecked( UniquePtr< T >&& ptr )
+            constexpr T* insert_ptr_unchecked( UniquePtr< T >&& ptr )
             {
                 Node_t* n = &m_data;
                 while ( n )
@@ -155,7 +155,7 @@ namespace t
              * @brief Finds a value. Returns nullptr if not found.
              */
             template< class U >
-            CONSTX const T* find( U const& val ) const
+            constexpr const T* find( U const& val ) const
             {
                 const Node_t* n = &m_data;
                 uint8 index = 0;
@@ -190,9 +190,9 @@ namespace t
              * @return bool - True if the value was found, false if it was not
              */
             template< class U >
-            CONSTX std::tuple< Node_t*, uint8, bool > find_or_insert( U const& val )
+            constexpr tuple< Node_t*, uint8, bool > find_or_insert( U const& val )
             {
-                std::tuple< Node_t*, uint8, bool > tuple = { nullptr, INVALID_INDEX, false };
+                tuple< Node_t*, uint8, bool > tuple_ = { nullptr, INVALID_INDEX, false };
 
                 auto n = &m_data;
 
@@ -205,10 +205,10 @@ namespace t
                             if ( *n->m_data[i] == val )
                                 return { n, i, true };
                         }
-                        else if ( std::get< 1 >( tuple ) == INVALID_INDEX )
+                        else if ( tuple_.get< 0 >() == INVALID_INDEX )
                         {
-                            std::get< 0 >( tuple ) = n;
-                            std::get< 1 >( tuple ) = i;
+                            tuple_.get< 0 >() = n;
+                            tuple_.get< 1 >() = i;
                         }
                     }
                     if ( n->m_next != nullptr )
@@ -216,11 +216,11 @@ namespace t
                         n = n->m_next;
                         continue;
                     }
-                    if ( std::get< 1 >( tuple ) != INVALID_INDEX )
+                    if ( tuple_.get< 1 >() != INVALID_INDEX )
                     {
-                        std::get< 0 >( tuple )->m_validIndex ^= 1 << std::get< 1 >( tuple );
+                        tuple_.get< 0 >()->m_validIndex ^= 1 << tuple_.get< 1 >();
                         ++m_size;
-                        return tuple;
+                        return tuple_;
                     }
                     n->m_next = new Node_t( T( val ) );
                     ++m_size;
@@ -229,9 +229,9 @@ namespace t
             }
 
             template< class U >
-            CONSTX std::tuple< Node_t*, uint8, bool > find_or_insert( U&& val )
+            constexpr tuple< Node_t*, uint8, bool > find_or_insert( U&& val )
             {
-                std::tuple< Node_t*, uint8, bool > tuple = { nullptr, INVALID_INDEX, false };
+                tuple< Node_t*, uint8, bool > tuple_ = { nullptr, INVALID_INDEX, false };
 
                 auto n = &m_data;
 
@@ -244,10 +244,10 @@ namespace t
                             if ( *n->m_data[ i ] == val )
                                 return { n, i, true };
                         }
-                        else if ( std::get< 1 >( tuple ) == INVALID_INDEX )
+                        else if ( tuple_.get< 1 >() == INVALID_INDEX )
                         {
-                            std::get< 0 >( tuple ) = n;
-                            std::get< 1 >( tuple ) = i;
+                            tuple_.get< 0 >() = n;
+                            tuple_.get< 1 >() = i;
                         }
                     }
                     if ( n->m_next != nullptr )
@@ -255,26 +255,26 @@ namespace t
                         n = n->m_next;
                         continue;
                     }
-                    if ( std::get< 1 >( tuple ) != INVALID_INDEX )
+                    if ( tuple_.get< 1 >() != INVALID_INDEX )
                     {
-                        auto ptr = std::get< 0 >( tuple );
-                        ptr->m_data[ std::get< 1 >( tuple ) ] = UniquePtr< T >( T( std::move( val ) ) );
-                        ptr->m_validIndexes ^= 1 << std::get< 1 >( tuple );
+                        auto ptr = tuple_.get< 0 >();
+                        ptr->m_data[ tuple_.get< 1 >() ] = UniquePtr< T >( T( std::move( val ) ) );
+                        ptr->m_validIndexes ^= 1 << tuple_.get< 1 >();
                         ++m_size;
-                        return tuple;
+                        return tuple_;
                     }
                     n->m_next = new Node_t( T( std::move( val ) ) );
                     ++m_size;
                     return { n->m_next, 0, false };
                 }
 
-                assert( std::get< 0 >( tuple ) != nullptr );
+                assert( tuple_.get< 0 >() != nullptr );
 
-                return tuple;
+                return tuple_;
             }
 
             template< class U >
-            CONSTX bool remove( U const& val )
+            constexpr bool remove( U const& val )
             {
                 auto n = &m_data;
 
@@ -307,10 +307,10 @@ namespace t
                 return false;
             }
 
-            CONSTX uint64 size() const { return m_size; }
+            constexpr uint64 size() const { return m_size; }
 
-            CONSTX HashNode< T >* data() { return &m_data; }
-            CONSTX HashNode< T > const* data() const { return &m_data; }
+            constexpr HashNode< T >* data() { return &m_data; }
+            constexpr HashNode< T > const* data() const { return &m_data; }
         private:
             static constexpr auto INVALID_INDEX = HashNode< T >::INVALID_INDEX;
             HashNode< T > m_data;
@@ -510,7 +510,7 @@ namespace t
         using Iterator = HashIterator< Hash< T > >;
         using ConstIterator = HashConstIterator< Hash< T > >;
     public:
-        CONSTX Hash():
+        constexpr Hash():
             m_buckets( 8 ) {}
 
         constexpr Iterator begin()
@@ -557,14 +557,14 @@ namespace t
         }
 
         template< class U >
-        CONSTX ValueType& at( U const& val )
+        constexpr ValueType& at( U const& val )
         {
             auto hash_ = hash( val );
             return at( val, hash_ );
         }
 
         template< class U >
-        CONSTX ValueType const& at( U const& val ) const
+        constexpr ValueType const& at( U const& val ) const
         {
             auto hash_ = hash( val );
 
@@ -572,7 +572,7 @@ namespace t
         }
 
         template< class U >
-        CONSTX ValueType const& at( U const& val, uint64 hash_ ) const
+        constexpr ValueType const& at( U const& val, uint64 hash_ ) const
         {
             auto found = m_buckets[ hash_ ].find( val );
 
@@ -583,7 +583,7 @@ namespace t
         }
 
         template< class U >
-        CONSTX ValueType& at( U const& val, uint64 hash_ )
+        constexpr ValueType& at( U const& val, uint64 hash_ )
         {
             auto found = m_buckets[ hash_ ].find( val );
 
@@ -593,21 +593,21 @@ namespace t
             return *found;
         }
 
-        CONSTX ValueType& insert( ValueType&& val )
+        constexpr ValueType& insert( ValueType&& val )
         {
             auto hash_ = hash( val );
             
             return insert( std::move( val ), hash_ );
         }
 
-        CONSTX ValueType& insert( ValueType const& val )
+        constexpr ValueType& insert( ValueType const& val )
         {
             auto newval = val;
             
             return insert( std::move( newval ) );
         }
 
-        CONSTX ValueType& insert( ValueType&& val, uint64 hash_ )
+        constexpr ValueType& insert( ValueType&& val, uint64 hash_ )
         {
             if ( m_buckets[ hash_ ].find( val ) )
                 throw std::runtime_error( "Cannot overwrite value with insert!" );
@@ -616,7 +616,7 @@ namespace t
         }
 
         template< class U >
-        CONSTX bool remove( U const& val )
+        constexpr bool remove( U const& val )
         {
             auto hash_ = hash( val );
 
@@ -624,12 +624,12 @@ namespace t
         }
 
         template< class U >
-        CONSTX bool remove( U const& val, uint64 hash_ )
+        constexpr bool remove( U const& val, uint64 hash_ )
         {
             return m_buckets[ hash_ ].remove( val );
         }
 
-        CONSTX uint64 size() const
+        constexpr uint64 size() const
         {
             uint64 size_ = 0;
 

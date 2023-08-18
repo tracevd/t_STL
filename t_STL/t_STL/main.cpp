@@ -313,5 +313,13 @@ int main()
 
     std::cout << str << "\n";
 
+    t::tuple< int, float > const tup = { 1, 3.0f };
+
+    auto x = tup.get< 0 >();
+    auto y = tup.get< 1 >();
+    auto x2 = tup.getNthOfType< int, 0 >();
+    auto& y2 = tup.getNthOfType< float, 0, float const& >();
+    auto x3 = tup.getAs< 0, fString >();
+
     return blah;
 }
