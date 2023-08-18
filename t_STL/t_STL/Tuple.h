@@ -49,7 +49,7 @@ namespace t
 			if constexpr ( N == 0 )
 				return static_cast<TypeAlias>(val);
 			else
-				return (*this)->getAs< N - 1, TypeAlias >();
+				return (*this)->template getAs< N - 1, TypeAlias >();
 		}
 		
 		template< uint64 N, class TypeAlias >
