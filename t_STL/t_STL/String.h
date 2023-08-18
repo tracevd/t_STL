@@ -319,6 +319,9 @@ namespace t
 
 	class StringView;
 
+#include <cfloat>
+#include <cmath>
+
 	namespace fast
 	{
 		class String
@@ -913,7 +916,7 @@ namespace t
 		 *   '!'     -> Not the following character
 		 *   '\'     -> Escape next special character
 		 */
-		template< class StrTy1, class StrTy2, class = std::enable_if_t< !std::_Is_any_of_v< StrTy1, const char*, char* > && !std::_Is_any_of_v< StrTy2, const char*, char* > > >
+		template< class StrTy1, class StrTy2 >
 		constexpr inline bool match( StrTy1 const& pattern, StrTy2 const& string )
 		{
 			if ( pattern.size() == 0 )
