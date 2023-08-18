@@ -47,7 +47,7 @@ namespace t
 		constexpr TypeAlias getAs() const
 		{
 			if constexpr ( N == 0 )
-				return static_cast<TypeAlias>(val);
+				return static_cast< TypeAlias >( val );
 			else
 				return (*this)->template getAs< N - 1, TypeAlias >();
 		}
@@ -58,7 +58,7 @@ namespace t
 			if constexpr ( N == 0 )
 				return static_cast< TypeAlias >( val );
 			else
-				return (*this)->getAs< N-1, TypeAlias >();
+				return (*this)->template getAs< N-1, TypeAlias >();
 		}
 
 		template< class U, uint64 N, class TypeAlias = U >
@@ -109,7 +109,7 @@ namespace t
 			if constexpr ( type::is_same< BaseType, tuple<> > )
 				return 1;
 			else
-				return 1 + ( *this )->size();
+				return 1 + ( *this )->template size();
 		}
 	};
 

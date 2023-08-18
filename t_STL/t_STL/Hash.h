@@ -205,10 +205,10 @@ namespace t
                             if ( *n->m_data[i] == val )
                                 return { n, i, true };
                         }
-                        else if ( tuple_.get< 0 >() == INVALID_INDEX )
+                        else if ( tuple_.template get< 0 >() == INVALID_INDEX )
                         {
-                            tuple_.get< 0 >() = n;
-                            tuple_.get< 1 >() = i;
+                            tuple_.template get< 0 >() = n;
+                            tuple_.template get< 1 >() = i;
                         }
                     }
                     if ( n->m_next != nullptr )
@@ -216,9 +216,9 @@ namespace t
                         n = n->m_next;
                         continue;
                     }
-                    if ( tuple_.get< 1 >() != INVALID_INDEX )
+                    if ( tuple_.template get< 1 >() != INVALID_INDEX )
                     {
-                        tuple_.get< 0 >()->m_validIndex ^= 1 << tuple_.get< 1 >();
+                        tuple_.template get< 0 >()->m_validIndex ^= 1 << tuple_.template get< 1 >();
                         ++m_size;
                         return tuple_;
                     }
@@ -244,10 +244,10 @@ namespace t
                             if ( *n->m_data[ i ] == val )
                                 return { n, i, true };
                         }
-                        else if ( tuple_.get< 1 >() == INVALID_INDEX )
+                        else if ( tuple_.template get< 1 >() == INVALID_INDEX )
                         {
-                            tuple_.get< 0 >() = n;
-                            tuple_.get< 1 >() = i;
+                            tuple_.template get< 0 >() = n;
+                            tuple_.template get< 1 >() = i;
                         }
                     }
                     if ( n->m_next != nullptr )
@@ -255,11 +255,11 @@ namespace t
                         n = n->m_next;
                         continue;
                     }
-                    if ( tuple_.get< 1 >() != INVALID_INDEX )
+                    if ( tuple_.template get< 1 >() != INVALID_INDEX )
                     {
-                        auto ptr = tuple_.get< 0 >();
-                        ptr->m_data[ tuple_.get< 1 >() ] = UniquePtr< T >( T( std::move( val ) ) );
-                        ptr->m_validIndexes ^= 1 << tuple_.get< 1 >();
+                        auto ptr = tuple_.template get< 0 >();
+                        ptr->m_data[ tuple_.template get< 1 >() ] = UniquePtr< T >( T( std::move( val ) ) );
+                        ptr->m_validIndexes ^= 1 << tuple_.template get< 1 >();
                         ++m_size;
                         return tuple_;
                     }
@@ -268,7 +268,7 @@ namespace t
                     return { n->m_next, 0, false };
                 }
 
-                assert( tuple_.get< 0 >() != nullptr );
+                assert( tuple_.template get< 0 >() != nullptr );
 
                 return tuple_;
             }
