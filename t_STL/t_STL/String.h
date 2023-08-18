@@ -319,9 +319,6 @@ namespace t
 
 	class StringView;
 
-#include <cfloat>
-#include <cmath>
-
 	namespace fast
 	{
 		class String
