@@ -309,9 +309,9 @@ int main()
 
     fString str = fString( 1234 );
 
-    auto x = fString( NAN );
+    //auto x = fString( NAN );
 
-    std::cout << x << "\n";
+    std::cout << str << "\n";
 
     return blah;
 }
