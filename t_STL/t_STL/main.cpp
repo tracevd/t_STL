@@ -244,118 +244,24 @@ void HashMapVsUnorderedMap()
     t::forEach( times.data(), times.data() + times.size(),
         [ &totalTime ]( auto time ) { totalTime += time; } );
 
-    std::cout << "For " << NumKeys << " keys inserted:\n";
+    std::cout << "For " << NumKeys << " keys inserted over " << numLoops << " iterations:\n";
 
-    std::cout << "    Total differece: " << totalTime << '\n';
+    std::cout << "    Total time difference (us): " << totalTime << '\n';
 
     if ( totalTime >= 0 )
-        std::cout << "    HashMap was faster by an average of " << totalTime / static_cast< int64 >( numLoops );
+        std::cout << "    average: " << static_cast< double >( totalTime ) / static_cast< double >( numLoops ) << "us faster for HashMap\n\n";
     else
-        std::cout << "    unordered_map was faster by an average of " << totalTime / static_cast< int64 >( numLoops ) * -1;
-
-    std::cout << "us over " << numLoops << " iterations\n";
+        std::cout << "    average: " << static_cast< double >( totalTime ) / static_cast< double >( numLoops ) * -1 << "us faster for unordered_map\n\n";
 }
 
 int main()
 {
-    testTvm();
-
-    std::cout.clear();
-     
+    HashMapVsUnorderedMap<  10 >();
     HashMapVsUnorderedMap<  20 >();
     HashMapVsUnorderedMap<  40 >();
     HashMapVsUnorderedMap<  60 >();
     HashMapVsUnorderedMap<  80 >();
     HashMapVsUnorderedMap< 100 >();
-
-    constexpr int blah = getThing();
-
-    Timer< microseconds > timer;
-
-    timer.start();
-
-    t::HashSet< fString > set;
-
-    set.insert( "blah" );
-    set.insert( "hello" );
-    set.insert( "whatup" );
-    set.insert( "blah_" );
-    set.insert( "blah__" );
-    set.insert( "_blah" );
-    set.insert( "meme" );
-    set.insert( " " );
-    set.insert( "\\ ^-^ /" );
-    set.insert( "bobber" );
-    set.insert( "oppenheimer" );
-    set.insert( "as;fkgjqenrv" );
-    set.insert( "agn4tgt " );
-    set.insert( "leign" );
-    set.insert( "qeothn4etg" );
-    set.insert( "etgw4egeglwentg" );
-    set.insert( "q3giq3n" );
-    set.remove( "hello" );
-    set.remove( "leign" );
-    set.insert( "argw" );
-    set.insert( "ergsev" );
-
-    fString total;
-
-    t::forEach( set.cbegin(), set.cend(),
-        [ &total]( auto const& str ){ ( total += str ) += '\n'; });
-
-    auto end_of_set_insert = timer.stop();
-
-    std::cout << total;
-
-    std::cout << "Took " << end_of_set_insert << "us to insert elements\n";
-
-    timer.start();
-
-    auto size = set.size();
-
-    auto stop_ = timer.stop();
-
-    std::cout << "Took " << stop_ << "us to get size of set\n";
-
-    std::cout << "HashSet size: " << set.size() << '\n';
-
-    auto coolMap = t::HashMap< fString, int >();
-
-    coolMap.place( "hey", 123 );
-    coolMap.place( "blah", 456 );
-    coolMap.place( "woah", 789 );
-
-    std::cout << "----------------\n";
-
-    t::forEach( coolMap.cbegin(), coolMap.cend(),
-        []( auto const& pair )
-        {
-            std::cout << pair.first << ": " << pair.second << '\n';
-        } );
-
-    testAndPrintMatch( "?ello", "hello" );
-    testAndPrintMatch( "????", "hello" );
-    testAndPrintMatch( "?????", "hello" );
-    testAndPrintMatch( "*o", "hello" );
-    testAndPrintMatch( "h*l?", "hello" );
-    testAndPrintMatch( "****", "blah" );
-    testAndPrintMatch( "h!xllo", "hello" );
-    testAndPrintMatch( "!jell!i", "hello" );
-    testAndPrintMatch( "\\!jell!i", "!jello" );
-
-    fString str = fString( 1234 );
-
-    //auto x = fString( NAN );
-
-    std::cout << str << "\n";
-
-    t::tuple< int, float > const tup = { 1, 3.0f };
-
-    auto x = tup.get< 0 >();
-    auto y = tup.get< 1 >();
-    auto x2 = tup.getNthOfType< int, 0 >();
-    auto& y2 = tup.getNthOfType< float, 0, float const& >();
-    auto x3 = tup.getAs< 0, fString >();
-
-    return blah;
+    HashMapVsUnorderedMap< 120 >();
+    return 0;
 }
