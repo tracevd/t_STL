@@ -185,9 +185,7 @@ void testAndPrintMatch( fString const& pattern, fString const& str )
     std::cout << std::boolalpha << t::string::match( pattern, str ) << '\n';
 }
 
-constexpr uint64 NumKeys = 50;
-
-template< class hash >
+template< class hash, uint64 NumKeys >
 int64 InsertAndTimeStuff( Vector< fString > const& keys )
 {
     Timer< microseconds > timer;
@@ -209,55 +207,66 @@ int64 InsertAndTimeStuff( Vector< fString > const& keys )
     return timer.stop();
 }
 
-int main()
+template< uint64 NumKeys >
+void HashMapVsUnorderedMap()
 {
-    testTvm();
-
-    std::cout.clear();
-
-    Vector< int64 > times;
-
     constexpr uint64 numLoops = 5000;
+
+    Vector< int64 > times( numLoops );
 
     for ( uint64 i = 0; i < numLoops; ++i )
     {
-        Vector< fString > keys;
+        Vector< fString > keys( numLoops );
 
         for ( uint64 i = 0; i < NumKeys; ++i )
-            keys.pushBack( generateRandomString() );
+            keys[ i ] = generateRandomString();
 
         int64 time = 0, time_ = 0;
 
         if ( i % 2 )
         {
-            time = InsertAndTimeStuff< std::unordered_map< fString, uint64 > >( keys );
+            time = InsertAndTimeStuff< std::unordered_map< fString, uint64 >, NumKeys >( keys );
 
-            time_ = InsertAndTimeStuff< t::HashMap< fString, uint64 > >( keys );
+            time_ = InsertAndTimeStuff< t::HashMap< fString, uint64 >, NumKeys >( keys );
         }
         else
         {
-            time_ = InsertAndTimeStuff< t::HashMap< fString, uint64 > >( keys );
+            time_ = InsertAndTimeStuff< t::HashMap< fString, uint64 >, NumKeys >( keys );
 
-            time = InsertAndTimeStuff< std::unordered_map< fString, uint64 > >( keys );
+            time = InsertAndTimeStuff< std::unordered_map< fString, uint64 >, NumKeys >( keys );
         }
-        
-        times.pushBack( time - time_ );
+
+        times[ i ] = time - time_;
     }
 
     int64 totalTime = 0;
 
     t::forEach( times.data(), times.data() + times.size(),
-        [ &totalTime ]( auto time ){ totalTime += time; } );
+        [ &totalTime ]( auto time ) { totalTime += time; } );
 
-    std::cout << totalTime << '\n';
+    std::cout << "For " << NumKeys << " keys inserted:\n";
+
+    std::cout << "    Total differece: " << totalTime << '\n';
 
     if ( totalTime >= 0 )
-        std::cout << "HashMap was faster by an average of " << totalTime / numLoops;
+        std::cout << "    HashMap was faster by an average of " << totalTime / static_cast< int64 >( numLoops );
     else
-        std::cout << "unordered_map was faster by an average of " << totalTime / numLoops * -1;
+        std::cout << "    unordered_map was faster by an average of " << totalTime / static_cast< int64 >( numLoops ) * -1;
 
     std::cout << "us over " << numLoops << " iterations\n";
+}
 
+int main()
+{
+    testTvm();
+
+    std::cout.clear();
+     
+    HashMapVsUnorderedMap<  20 >();
+    HashMapVsUnorderedMap<  40 >();
+    HashMapVsUnorderedMap<  60 >();
+    HashMapVsUnorderedMap<  80 >();
+    HashMapVsUnorderedMap< 100 >();
 
     constexpr int blah = getThing();
 
