@@ -249,7 +249,9 @@ int main()
     t::forEach( times.data(), times.data() + times.size(),
         [ &totalTime ]( auto time ){ totalTime += time; } );
 
-    if ( totalTime > 0 )
+    std::cout << totalTime << '\n';
+
+    if ( totalTime >= 0 )
         std::cout << "HashMap was faster by an average of " << totalTime / numLoops;
     else
         std::cout << "unordered_map was faster by an average of " << totalTime / numLoops * -1;
