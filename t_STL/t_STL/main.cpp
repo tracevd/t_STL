@@ -1,12 +1,9 @@
 #include <iostream>
-#include <chrono>
 
 #include "t.h"
 #include "variant/serialize/Serialize.h"
 #include "Timer.h"
 #include "HashSet.h"
-
-#include "variant/ValueImpl.h"
 
 #include <random>
 
@@ -72,16 +69,16 @@ void printHexStr( uint64 val )
     std::cout << std::dec;
 }
 
-void hashAndPrint( t::fast::String const& str )
+void hashAndPrint( t::fString const& str )
 {
     std::cout << str << ":\n";
-    printHexStr( std::hash< t::fast::String >{}( str ) );
+    printHexStr( std::hash< t::fString >{}( str ) );
 }
 
 using std::chrono::microseconds;
 using t::variant::Map;
 using t::String;
-using fString = t::fast::String;
+using fString = t::fString;
 using t::Vector;
 using t::variant::Value;
 
@@ -409,6 +406,23 @@ constexpr int TestImmSharedPtr()
     return val;
 }
 
+constexpr int TestFastString()
+{
+    fString str = "blah";
+
+    str += ", lots of words.";
+
+    str += "\nThis is a really cool sentence.";
+
+    str.replace('.', '!');
+
+    str.replace(',', ':');
+
+    auto strings = str.split(' ');
+
+    return static_cast< int >( str.size() );
+}
+
 int main()
 {
     /*constexpr auto init  = get_seed_constexpr();
@@ -436,6 +450,7 @@ int main()
     constexpr int a = TestSharedPtr();
     constexpr int b = TestUniquePtr();
     constexpr int c = TestImmSharedPtr();
+    constexpr int d = TestFastString();
 
     auto const blah{ t::make_immutable_shared< int >( 123 ) };
 

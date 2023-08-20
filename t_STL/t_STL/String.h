@@ -4,6 +4,7 @@
 
 #include "Tint.h"
 #include "Lib.h"
+#include "Vector.h"
 
 namespace t
 {
@@ -321,8 +322,11 @@ namespace t
 
 	namespace fast
 	{
+		template< class CharTy >
 		class String
 		{
+		public:
+			constexpr static uint32 npos = t::limit< uint32 >::max;
 		public:
 			constexpr String() = default;
 
@@ -431,7 +435,7 @@ namespace t
 					}
 				}
 
-				char buff[ 21 ];
+				CharTy buff[ 21 ];
 				auto end = &buff[ 21 ];
 
 				auto _number = number;
@@ -461,12 +465,12 @@ namespace t
 			}
 
 			template< uint64 N >
-			constexpr String( char const ( &str )[ N ] )
+			constexpr String( CharTy const ( &str )[ N ] )
 			{
 				*this = String( str, static_cast< uint32 >( N-1 ) );
 			}
 
-			constexpr String( const char* str, uint32 length )
+			constexpr String( const CharTy* str, uint32 length )
 			{
 				m_size = length;
 				m_capacity = m_size + DEFAULT_EXTRA_PADDING;
@@ -475,7 +479,7 @@ namespace t
 				m_data[ m_size ] = '\0';
 			}
 
-			constexpr String( const char* str )
+			constexpr String( const CharTy* str )
 			{
 				uint32 length = static_cast< uint32 >( strlen( str ) );
 				*this = String( str, length );
@@ -485,8 +489,8 @@ namespace t
 			{
 				m_size = str.m_size;
 				m_capacity = m_size + DEFAULT_EXTRA_PADDING;
-				m_data = new char[ m_capacity + 1 ];
-				strcpy< char >( m_data, str.m_data, m_size );
+				m_data = new CharTy[ m_capacity + 1 ];
+				strcpy< CharTy >( m_data, str.m_data, m_size );
 				m_data[ m_size ] = '\0';
 			}
 
@@ -521,26 +525,128 @@ namespace t
 				return *this;
 			}
 
-			constexpr String substr( uint32 start, uint32 end = 0 ) const
+			constexpr String substr( uint32 start, uint32 end = npos ) const
 			{
 				if ( end <= start )
 					throw std::runtime_error("End cannot be less than or equal to start!");
 
-				auto const size_ = size();
+				auto const size_ = m_size;
 
 				if ( size_ == 0 )
 					throw std::runtime_error("Empty string!");
 
-				if ( end == 0 || end > size_ )
+				if ( end > size_ )
 					end = size_;
 
-				return String( data() + start, end - start );
+				return String( m_data + start, end - start );
 			}
 
-			constexpr StringView substrv( uint32 start, uint32 end = 0 ) const;
+			constexpr StringView substrv( uint32 start, uint32 end = npos ) const;
 
-			constexpr const char* data() const { return m_data; }
-			constexpr char* data() { return m_data; }
+			constexpr void replace( CharTy from, CharTy to )
+			{
+				if ( m_data == nullptr )
+					return;
+
+				for ( uint32 i = 0; i < m_size; ++i )
+				{
+					if ( m_data[ i ] == from )
+					{
+						m_data[ i ] = to;
+					}
+				}
+			}
+
+			constexpr void replaceFirst( CharTy from, CharTy to )
+			{
+				if ( m_data == nullptr )
+					return;
+
+				for ( uint32 i = 0; i < m_size; ++i )
+				{
+					if ( m_data[ i ] == from )
+					{
+						m_data[ i ] = to;
+						return;
+					}
+				}
+			}
+
+			constexpr void replaceLast( CharTy from, CharTy to )
+			{
+				if ( m_data == nullptr )
+					return;
+
+				for ( uint32 i = m_size-1; i >= 0; --i )
+				{
+					if ( m_data[ i ] == from )
+					{
+						m_data[ i ] = to;
+						return;
+					}
+				}
+			}
+
+			constexpr uint32 indexOf( CharTy c ) const
+			{
+				if ( m_data == nullptr )
+					return npos;
+
+				for ( uint32 i = 0; i < m_size; ++i )
+				{
+					if ( m_data[ i ] == c )
+						return i;
+				}
+
+				return npos;
+			}
+
+			constexpr CharTy lastIndexOf( CharTy c ) const
+			{
+				if ( m_data == nullptr )
+					return npos;
+
+				for ( uint32 i = m_size - 1; i >= 0; --i )
+				{
+					if ( m_data[ i ] == c )
+						return i;
+				}
+
+				return npos;
+			}
+
+			constexpr Vector< String > split( CharTy c ) const
+			{
+				if ( m_data == nullptr )
+					return {};
+
+				Vector< uint32 > indexes;
+
+				for ( uint32 i = 0; i < m_size; ++i )
+				{
+					if ( m_data[ i ] == c )
+						indexes.pushBack( i );
+				}
+
+				if ( indexes.isEmpty() )
+					return {};
+
+				indexes.pushBack( m_size );
+
+				Vector< String > strings( indexes.size() );
+
+				auto stringptr = strings.data();
+
+				for ( uint32 i = 0; i < indexes.size()-1; ++i, ++stringptr )
+				{
+					*stringptr = String( &m_data[ indexes[ i ] ], indexes[ i+1 ] - indexes[ i ] );
+				}
+
+				return strings;
+			}
+
+			constexpr const CharTy* data() const { return m_data; }
+			constexpr CharTy* data() { return m_data; }
 
 			constexpr String& operator=( String const& rhs )
 			{
@@ -555,12 +661,12 @@ namespace t
 				return *this;
 			}
 
-			constexpr String& operator=( const char* rhs )
+			constexpr String& operator=( const CharTy* rhs )
 			{
 				uint32 length = (uint32) strlen( rhs );
 				if ( m_capacity >= length && m_data != nullptr )
 				{
-					::t::strcpy< char >( m_data, rhs, length );
+					strcpy< CharTy >( m_data, rhs, length );
 					m_size = length;
 					m_data[ m_size ] = '\0';
 					return *this;
@@ -569,24 +675,24 @@ namespace t
 				return *this;
 			}
 
-			constexpr char operator[]( uint32 index ) const
+			constexpr CharTy operator[]( uint32 index ) const
 			{
 				return m_data[ index ];
 			}
 
-			constexpr char& operator[]( uint32 index )
+			constexpr CharTy& operator[]( uint32 index )
 			{
 				return m_data[ index ];
 			}
 
-			constexpr char at( uint32 index ) const
+			constexpr CharTy at( uint32 index ) const
 			{
 				if ( index >= m_size )
 					throw std::runtime_error("Past string length!");
 				return this->operator[]( index );
 			}
 
-			constexpr char& at( uint32 index )
+			constexpr CharTy& at( uint32 index )
 			{
 				if ( index >= m_size )
 					throw std::runtime_error( "Past string length!" );
@@ -631,12 +737,12 @@ namespace t
 						reallocate( m_size + rhs.m_size );
 				}
 
-				strcpy< char >( &m_data[ m_size ], rhs.m_data, rhs.m_size + 1 );
+				strcpy< CharTy >( &m_data[ m_size ], rhs.m_data, rhs.m_size + 1 );
 				m_size += rhs.m_size;
 				return *this;
 			}
 
-			constexpr String& operator+=( const char* rhs )
+			constexpr String& operator+=( const CharTy* rhs )
 			{
 				auto length = (uint32) strlen( rhs );
 
@@ -648,14 +754,14 @@ namespace t
 						reallocate( m_size + length );
 				}
 
-				strcpy< char >( &m_data[ m_size ], rhs, length );
+				strcpy< CharTy >( &m_data[ m_size ], rhs, length );
 				m_size += length;
 				m_data[ m_size ] = '\0';
 
 				return *this;
 			}
 
-			constexpr String& operator+=( char c )
+			constexpr String& operator+=( CharTy c )
 			{
 				if ( m_size + 1 > m_capacity )
 				{
@@ -691,11 +797,11 @@ namespace t
 				if ( m_capacity != 0 && m_capacity < capacity )
 					throw std::runtime_error("Excepted a larger buffer to allocate");
 				
-				auto newdata = new char[ capacity ];
+				auto newdata = new CharTy[ capacity ];
 
 				if ( m_data != nullptr )
 				{
-					strcpy< char >( newdata, m_data, m_size );
+					strcpy< CharTy >( newdata, m_data, m_size );
 					delete[] m_data;
 				}
 
@@ -703,7 +809,7 @@ namespace t
 				m_capacity = capacity;
 			}
 
-			constexpr char* release()
+			constexpr CharTy* release()
 			{
 				auto ptr = m_data;
 				m_data = nullptr;
@@ -712,15 +818,15 @@ namespace t
 				return ptr;
 			}
 
-			constexpr char* c_str() { return m_data; }
-			constexpr const char* c_str() const { return m_data; }
+			constexpr CharTy* c_str() { return m_data; }
+			constexpr const CharTy* c_str() const { return m_data; }
 
-			constexpr static inline String makeString( char* allocbuffer, uint32 stringSize )
+			constexpr static inline String makeString( CharTy* allocbuffer, uint32 stringSize )
 			{
 				return String( allocbuffer, stringSize, stringSize );
 			}
 
-			constexpr static inline String makeString( char* allocbuffer, uint32 stringSize, uint32 bufferCapacity )
+			constexpr static inline String makeString( CharTy* allocbuffer, uint32 stringSize, uint32 bufferCapacity )
 			{
 				return String( allocbuffer, stringSize, bufferCapacity );
 			}
@@ -728,7 +834,7 @@ namespace t
 			friend std::istream& operator>>( std::istream& in, t::String& str )
 			{
 				constexpr uint64 buffSz = 256;
-				char buff[ buffSz ];
+				CharTy buff[ buffSz ] = { 0 };
 				in.get( buff, buffSz, '\n' );
 				str = buff;
 				return in;
@@ -744,10 +850,10 @@ namespace t
 		private:
 			constexpr void reallocate( uint32 newcap )
 			{
-				auto newdata = new char[ newcap + 1 ];
+				auto newdata = new CharTy[ newcap + 1 ];
 				if ( m_data != nullptr )
 				{
-					strcpy< char >( newdata, m_data, m_size + 1 );
+					strcpy< CharTy >( newdata, m_data, m_size + 1 );
 					delete[] m_data;
 				}
 				
@@ -764,19 +870,21 @@ namespace t
 				reallocate( m_capacity * 2 );
 			}
 
-			constexpr String( char* allocbuffer, uint32 bufferSize, uint32 bufferCapacity ):
+			constexpr String( CharTy* allocbuffer, uint32 bufferSize, uint32 bufferCapacity ):
 				m_data( allocbuffer ),
 				m_size( bufferSize + 1 ),
 				m_capacity( bufferCapacity ) {}
 
 		private:
-			char* m_data = nullptr;
+			CharTy* m_data = nullptr;
 			uint32 m_size = 0;
 			uint32 m_capacity = 0;
 
 			static constexpr uint32 DEFAULT_EXTRA_PADDING = 7;
 		};
 	}
+
+	using fString = fast::String< char >;
 
 	class StringView
 	{
@@ -796,7 +904,7 @@ namespace t
 			m_data( str.c_str() ),
 			m_size( str.size() ) {}
 
-		constexpr StringView( fast::String const& str ):
+		constexpr StringView( fString const& str ):
 			m_data( str.c_str() ),
 			m_size( str.size() ) {}
 
@@ -818,20 +926,21 @@ namespace t
 		const uint64 m_size;
 	};
 
-	constexpr StringView fast::String::substrv( uint32 start, uint32 end ) const
+	template< class CharTy >
+	constexpr StringView fast::String< CharTy >::substrv( uint32 start, uint32 end ) const
 	{
 		if ( end <= start )
 			throw std::runtime_error( "End cannot be less than or equal to start!" );
 
-		auto const size_ = size();
+		auto const size_ = m_size;
 
 		if ( size_ == 0 )
 			throw std::runtime_error( "Empty string!" );
 
-		if ( end == 0 || end > size_ )
+		if ( end > size_ )
 			end = size_;
 
-		return StringView( data() + start, end - start );
+		return StringView( m_data + start, end - start );
 	}
 }
 
@@ -844,7 +953,7 @@ struct std::hash< t::String >
 	}
 };
 
-constexpr uint64 hash_fstring( t::fast::String const& str )
+constexpr uint64 hash_fstring( t::fString const& str )
 {
 	uint64 hash = 2166136261;
 	constexpr uint64 FNVMultiple = 16777619;
@@ -880,9 +989,9 @@ constexpr uint64 hash_fstring( t::fast::String const& str )
 }
 
 template<>
-struct std::hash< t::fast::String >
+struct std::hash< t::fString >
 {
-	constexpr uint64_t operator()( t::fast::String const& str ) const
+	constexpr uint64_t operator()( t::fString const& str ) const
 	{
 		return hash_fstring( str );
 
@@ -941,11 +1050,11 @@ struct std::hash< t::fast::String >
 };
 
 template<>
-struct t::hasher< t::fast::String >
+struct t::hasher< t::fString >
 {
-	constexpr static inline uint64 hash( t::fast::String const& str )
+	constexpr static inline uint64 hash( t::fString const& str )
 	{
-		return std::hash< t::fast::String >{}( str );
+		return std::hash< t::fString >{}( str );
 	}
 };
 
