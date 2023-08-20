@@ -577,11 +577,13 @@ namespace t
 				if ( m_data == nullptr )
 					return;
 
-				for ( uint32 i = m_size-1; i >= 0; --i )
+				const CharTy* const b4begin = m_data - 1;
+
+				for ( auto _data = m_data + m_size-1; _data > b4begin; --_data )
 				{
-					if ( m_data[ i ] == from )
+					if ( *_data == from )
 					{
-						m_data[ i ] = to;
+						*_data = to;
 						return;
 					}
 				}
@@ -606,10 +608,12 @@ namespace t
 				if ( m_data == nullptr )
 					return npos;
 
-				for ( uint32 i = m_size - 1; i >= 0; --i )
+				const CharTy* const b4begin = m_data - 1;
+
+				for ( auto _data = m_data + m_size - 1; _data > b4begin; --_data )
 				{
-					if ( m_data[ i ] == c )
-						return i;
+					if ( *_data == c )
+						return _data - m_data;
 				}
 
 				return npos;
@@ -956,7 +960,7 @@ struct std::hash< t::String >
 constexpr uint64 hash_fstring( t::fString const& str )
 {
 	uint64 hash = 2166136261;
-	constexpr uint64 FNVMultiple = 16777619;
+	//constexpr uint64 FNVMultiple = 16777619;
 
 	if ( str.size() == 0 )
 		return 0;

@@ -16,15 +16,14 @@ namespace t
 		return length;
 	}
 
-	inline constexpr void memcpy( void* destination, const void* source, uint64 numBytes )
+	template< class T, class U >
+	inline constexpr void memcpy( T* destination, const U* source, uint64 numel )
 	{
-		auto dest = static_cast< uint8* >( destination );
-		auto end = static_cast< const uint8* const>( dest ) + numBytes;
-		auto src  = static_cast< const uint8* >( source );
+		const T* const end = destination + numel;
 		
-		for ( ; dest < end; ++dest, ++src )
+		for ( ; destination < end; ++destination, ++source )
 		{
-			*dest = *src;
+			*destination = std::move( *source );
 		}
 	}
 

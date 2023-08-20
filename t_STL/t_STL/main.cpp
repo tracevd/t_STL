@@ -14,65 +14,10 @@ void printSizeOf()
     std::cout << sizeof( T ) << " bytes\n";
 }
 
-constexpr uint8 MAX_DEPTH = 16;
-
-void testDepth( t::variant::Map const& map, uint8 depth );
-
-void testDepth( t::variant::Value const& val, uint8 depth )
-{
-    /*if ( depth == MAX_DEPTH )
-        throw std::runtime_error("Bad things happened!");
-    if ( val.Is< t::variant::Map >() )
-    {
-        testDepth( val.As< t::variant::Map const& >(), depth + 1 );
-    }
-    else if ( val.Is< t::Vector< t::variant::Map > >() )
-    {
-
-    }*/
-}
-
-void testDepth( t::variant::Map const& map, uint8 depth )
-{
-    /*if ( depth == MAX_DEPTH )
-        throw std::runtime_error("Bad things happened!");
-    for ( const auto& [ key, value ] : map )
-    {
-        testDepth( value, depth + 1 );
-    }*/
-}
-
-void printTree( t::variant::Map const& map, uint64 spaces )
-{
-    //std::string spacestr( spaces, ' ' );
-    //for ( auto const& [ key, value ] : map )
-    //{
-    //    if ( value.Is< t::variant::Map >() )
-    //    {
-    //        /*std::cout << spacestr << key << '\n';
-    //        std::cout << spacestr << std::hex << "0x" << &value.As< t::variant::Map const& >() << '\n';*/
-    //        printTree( value.As< t::variant::Map const& >(), spaces + 2 );
-    //        continue;
-    //    }
-    //    if ( value.Is< t::String >() )
-    //    {
-    //        std::cout << spacestr << key << "(" << t::variant::typeToString( value.getType() ) << ")\n";
-    //        std::cout << spacestr << std::hex << "0x" << &value.As< t::String const& >() << '\n';
-    //        std::cout << std::dec;
-    //    }
-    //}
-}
-
 void printHexStr( uint64 val )
 {
     std::cout << "0x " << std::hex << val << '\n';
     std::cout << std::dec;
-}
-
-void hashAndPrint( t::fString const& str )
-{
-    std::cout << str << ":\n";
-    printHexStr( std::hash< t::fString >{}( str ) );
 }
 
 using std::chrono::microseconds;
@@ -129,36 +74,12 @@ void testTvm()
 
     if ( vm_2 != vm )
         exit( -69 );
-}
 
-#include <assert.h>
-//#include "HashTable.h"
+    std::cout << "For a map with " << vm.size() << " elements:\n";
 
-constexpr int getThing()
-{
-    /*t::HashTable< fString, int > map;
+    std::cout << "    Serialization took:   " << ser << "us\n";
 
-    t::UniquePtr< fString > strptr = fString("blah");
-
-    *strptr = "blah";
-
-    *strptr += "heyy brother";
-
-    map.insert( { "hey", 0 } );
-    map.insert( { "bye", 2 } );
-    map.insert( { "blah", 4 } );
-    map.insert( { "bahbah", 1 } );
-    map.insert( { "haha", 5 } );
-
-    uint64 i = 0;
-
-    Vector< int > vec;
-    vec.resize( map.size() );
-
-    t::transform( map.cbegin(), map.cend(), vec.begin(),
-        []( auto const& pair ){ return pair.val; } );*/
-
-    return 0;
+    std::cout << "    Deserialization took: " << deser << "us\n";
 }
 
 constexpr static uint64 get_seed_constexpr()
@@ -232,7 +153,7 @@ int64 InsertAndTimeStuff( Vector< fString > const& keys )
 
     timer.start();
 
-    hash map;
+    hash map {};
 
     for ( uint64 i = 0; i < NumKeys; ++i )
     {
@@ -447,10 +368,12 @@ int main()
     HashMapVsUnorderedMap< 100 >();
     HashMapVsUnorderedMap< 120 >();*/
 
-    constexpr int a = TestSharedPtr();
-    constexpr int b = TestUniquePtr();
-    constexpr int c = TestImmSharedPtr();
-    constexpr int d = TestFastString();
+    constexpr int a = TestSharedPtr(); (void) a;
+    constexpr int b = TestUniquePtr(); (void) b;
+    constexpr int c = TestImmSharedPtr(); (void) c;
+    constexpr int d = TestFastString(); (void) d;
+
+    testTvm();
 
     auto const blah{ t::make_immutable_shared< int >( 123 ) };
 

@@ -215,17 +215,17 @@ namespace t
 
 		constexpr bool operator<=( const SharedPtr& rhs ) const noexcept { return m_data <= rhs.m_data; }
 
-		constexpr bool operator==( const T* const rhs )   const noexcept { return getPointer() == rhs; }
+		constexpr bool operator==( const T* const rhs )   const noexcept { return m_data == rhs; }
 
-		constexpr bool operator!=( const T* const rhs )   const noexcept { return getPointer() != rhs; }
+		constexpr bool operator!=( const T* const rhs )   const noexcept { return m_data != rhs; }
 
-		constexpr bool operator< ( const T* const rhs )   const noexcept { return getPointer() < rhs; }
+		constexpr bool operator< ( const T* const rhs )   const noexcept { return m_data < rhs; }
 
-		constexpr bool operator>=( const T* const rhs )   const noexcept { return getPointer() >= rhs; }
+		constexpr bool operator>=( const T* const rhs )   const noexcept { return m_data >= rhs; }
 
-		constexpr bool operator> ( const T* const rhs )   const noexcept { return getPointer() > rhs; }
+		constexpr bool operator> ( const T* const rhs )   const noexcept { return m_data > rhs; }
 
-		constexpr bool operator<=( const T* const rhs )   const noexcept { return getPointer() <= rhs; }
+		constexpr bool operator<=( const T* const rhs )   const noexcept { return m_data <= rhs; }
 
 		constexpr bool operator==( std::nullptr_t )       const noexcept { return m_data == nullptr; }
 
@@ -253,7 +253,6 @@ namespace t
 			m_data = nullptr;
 			m_refCount = nullptr;
 		}
-		constexpr inline const void* const getPointer() const { return m_data; }
 
 	private:
 		T* m_data = nullptr;
