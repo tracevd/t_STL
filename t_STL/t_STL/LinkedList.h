@@ -266,21 +266,38 @@ namespace t
 			return pushFront( std::move( cpy ) );
 		}
 
-		constexpr T* find( T const& data )
+		constexpr Iterator find( T const& data )
 		{
 			if ( m_head == nullptr )
-				return nullptr;
+				return end();
 
 			auto it = m_head;
 
 			while ( it )
 			{
 				if ( it->data == data )
-					return &it->data;
+					return Iterator( it );
 				it = it->next;
 			}
 
-			return nullptr;
+			return end();
+		}
+
+		constexpr ConstIterator find( T const& data ) const
+		{
+			if ( m_head == nullptr )
+				return cend();
+
+			auto it = m_head;
+
+			while ( it )
+			{
+				if ( it->data == data )
+					return ConstIterator( it );
+				it = it->next;
+			}
+
+			return cend();
 		}
 
 		constexpr void remove( T const& data )
