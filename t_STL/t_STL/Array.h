@@ -1,5 +1,7 @@
 #pragma once
 
+#include <initializer_list>
+
 namespace t
 {
 	template< typename T, uint64 Size >
