@@ -133,7 +133,7 @@ namespace t
     public:
         using ValueType = hashmap::pair< type::add_const< T >, U >;
     private:
-        using BaseType = Hash< ValueType >;
+        using BaseType = details::Hash< ValueType >;
     public:
         using ConstIterator = BaseType::ConstIterator;
         using Iterator = BaseType::Iterator;

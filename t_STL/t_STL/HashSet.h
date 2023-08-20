@@ -10,7 +10,7 @@ namespace t
 	public:
 		using ValueType = type::add_const< T >;
 	private:
-		using BaseType = Hash< ValueType >;
+		using BaseType = details::Hash< ValueType >;
 	public:
 		using ConstIterator = BaseType::ConstIterator;
 	public:
@@ -66,6 +66,6 @@ namespace t
 		}
 		constexpr uint64 size() const { return m_data.size(); }
 	private:
-		Hash< ValueType > m_data;
+		BaseType m_data;
 	};
 }

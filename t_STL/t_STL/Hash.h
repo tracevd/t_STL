@@ -16,7 +16,7 @@ namespace t
     namespace details
     {
         template< class T >
-        class MultiValueLinkedList;
+        struct MultiValueLinkedList;
 
         template< class T >
         struct HashNode
@@ -73,7 +73,7 @@ namespace t
         };
 
         template< class T >
-        class MultiValueLinkedList
+        struct MultiValueLinkedList
         {
         private:
             using Node_t = HashNode< T >;
@@ -320,6 +320,9 @@ namespace t
     }
 
     template< class Hash >
+    class HashConstIterator;
+
+    template< class Hash >
     class HashIterator
     {
     #ifdef _MSC_VER
@@ -405,6 +408,7 @@ namespace t
         BucketType* m_endBucket = nullptr;
         NodeType* m_currentNode = nullptr;
         uint8 m_currentIndex = 0;
+        friend HashConstIterator< Hash >;
     };
 
     template< class Hash >
@@ -437,6 +441,12 @@ namespace t
             m_currentNode = buckets->data();
             next( 0 );
         }
+
+        constexpr HashConstIterator( HashIterator< Hash > const& it ):
+            m_currentBucket( it.m_currentBucket ),
+            m_endBucket( it.m_endBucket ),
+            m_currentNode( it.m_currentNode ),
+            m_currentIndex( it.m_currentIndex ) {}
 
         constexpr bool operator==( HashConstIterator const& rhs ) const noexcept
         {
@@ -495,181 +505,208 @@ namespace t
         uint8 m_currentIndex = 0;
     };
 
-    /**
+    namespace details
+    {
+        /**
      * @brief TODO: Store hashes along with data for faster re-hashes?
      */
-    template< class T >
-    struct Hash
-    {
-    public:
-        using ValueType = T;
-        using NodeType = details::HashNode< T >;
-        using BucketType = details::MultiValueLinkedList< T >;
-        using BucketListType = Vector< BucketType >;
-
-        using Iterator = HashIterator< Hash< T > >;
-        using ConstIterator = HashConstIterator< Hash< T > >;
-    public:
-        constexpr Hash():
-            m_buckets( 8 ) {}
-
-        constexpr Iterator begin()
+        template< class T >
+        struct Hash
         {
-            if ( size() == 0 )
-                throw std::runtime_error("Creating empty iterator!");
-            
-            return Iterator( m_buckets.data(), m_buckets.data() + m_buckets.size() );
-        }
+        public:
+            using ValueType = T;
+            using NodeType = details::HashNode< T >;
+            using BucketType = details::MultiValueLinkedList< T >;
+            using BucketListType = Vector< BucketType >;
 
-        constexpr Iterator end()
-        {
-            if ( size() == 0 )
-                throw std::runtime_error("Creating empty iterator!");
-            
-            BucketType* begin = m_buckets.data();
-            auto const size = m_buckets.size();
+            using Iterator = HashIterator< Hash< T > >;
+            using ConstIterator = HashConstIterator< Hash< T > >;
+        public:
+            constexpr Hash():
+                m_buckets( 8 ) {}
 
-            return Iterator( begin + size,
-                begin + size,
-                (begin + size)->data(),
-                uint8( 8 ) );
-        }
-
-        constexpr ConstIterator cbegin() const
-        {
-            if ( size() == 0 )
-                throw std::runtime_error("Creating empty iterator!");
-            
-            return ConstIterator( m_buckets.data(), m_buckets.data() + m_buckets.size() );
-        }
-
-        constexpr ConstIterator cend() const
-        {
-            if ( size() == 0 )
-                throw std::runtime_error("Creating empty iterator!");
-            
-            const BucketType* begin = m_buckets.data();
-            auto const size = m_buckets.size();
-            return ConstIterator( begin + size,
-                                  begin + size,
-                                  ( begin + size )->data(),
-                                  uint8(8) );
-        }
-
-        template< class U >
-        constexpr ValueType& at( U const& val )
-        {
-            auto hash_ = hash( val );
-            return at( val, hash_ );
-        }
-
-        template< class U >
-        constexpr ValueType const& at( U const& val ) const
-        {
-            auto hash_ = hash( val );
-
-            return at( val, hash_ );
-        }
-
-        template< class U >
-        constexpr ValueType const& at( U const& val, uint64 hash_ ) const
-        {
-            auto found = m_buckets[ hash_ ].find( val );
-
-            if ( found == nullptr )
-                throw std::runtime_error( "Could not find value!" );
-
-            return *found;
-        }
-
-        template< class U >
-        constexpr ValueType& at( U const& val, uint64 hash_ )
-        {
-            auto found = m_buckets[ hash_ ].find( val );
-
-            if ( found == nullptr )
-                throw std::runtime_error( "Could not find value!" );
-
-            return *found;
-        }
-
-        constexpr ValueType& insert( ValueType&& val )
-        {
-            auto hash_ = hash( val );
-            
-            return insert( std::move( val ), hash_ );
-        }
-
-        constexpr ValueType& insert( ValueType const& val )
-        {
-            auto newval = val;
-            
-            return insert( std::move( newval ) );
-        }
-
-        constexpr ValueType& insert( ValueType&& val, uint64 hash_ )
-        {
-            if ( m_buckets[ hash_ ].find( val ) )
-                throw std::runtime_error( "Cannot overwrite value with insert!" );
-
-            return *m_buckets[ hash_ ].insert_unchecked( std::move( val ) );
-        }
-
-        template< class U >
-        constexpr bool remove( U const& val )
-        {
-            auto hash_ = hash( val );
-
-            return remove( val, hash_ );
-        }
-
-        template< class U >
-        constexpr bool remove( U const& val, uint64 hash_ )
-        {
-            return m_buckets[ hash_ ].remove( val );
-        }
-
-        constexpr uint64 size() const
-        {
-            uint64 size_ = 0;
-
-            for ( uint64 i = 0; i < m_buckets.size(); ++i )
-                size_ += m_buckets[ i ].size();
-
-            return size_;
-        }
-
-        static uint64 fast_mod( uint64 val, uint64 mod )
-        {
-            //return val % mod;
-            return val & ( mod - 1 );
-        }
-
-        void rehash( uint64 cap )
-        {
-            BucketListType newdata( cap );
-
-            for ( auto it = begin(); it != end(); ++it )
+            constexpr Iterator begin()
             {
-                auto hash_ = fast_mod( t::hasher< type::remove_const< ValueType > >::hash( *it ), newdata.size() );
+                if ( size() == 0 )
+                    throw std::runtime_error( "Creating empty iterator!" );
 
-                newdata[ hash_ ].insertUnchecked( std::move( *it ) );
+                return Iterator( m_buckets.data(), m_buckets.data() + m_buckets.size() );
             }
 
-            m_buckets = std::move( newdata );
-        }
+            constexpr Iterator end()
+            {
+                if ( size() == 0 )
+                    throw std::runtime_error( "Creating empty iterator!" );
 
-        uint64 hash( ValueType const& val ) const
-        {
-            return fast_mod( t::hasher< type::remove_const< ValueType > >::hash( val ), m_buckets.size() );
-        }
+                BucketType* begin = m_buckets.data();
+                auto const size = m_buckets.size();
 
-        template< class U >
-        uint64 hash( U const& val ) const
-        {
-            return fast_mod( t::hasher< U >::hash( val ), m_buckets.size() );
-        }
+                return Iterator( begin + size,
+                    begin + size,
+                    (begin + size)->data(),
+                    uint8( 8 ) );
+            }
 
-        BucketListType m_buckets;
-    };
+            constexpr ConstIterator cbegin() const
+            {
+                if ( size() == 0 )
+                    throw std::runtime_error( "Creating empty iterator!" );
+
+                return ConstIterator( m_buckets.data(), m_buckets.data() + m_buckets.size() );
+            }
+
+            constexpr ConstIterator cend() const
+            {
+                if ( size() == 0 )
+                    throw std::runtime_error( "Creating empty iterator!" );
+
+                const BucketType* begin = m_buckets.data();
+                auto const size = m_buckets.size();
+                return ConstIterator( begin + size,
+                    begin + size,
+                    (begin + size)->data(),
+                    uint8( 8 ) );
+            }
+
+            template< class U >
+            constexpr ValueType& at( U const& val )
+            {
+                auto hash_ = hash( val );
+                return at( val, hash_ );
+            }
+
+            template< class U >
+            constexpr ValueType const& at( U const& val ) const
+            {
+                auto hash_ = hash( val );
+
+                return at( val, hash_ );
+            }
+
+            template< class U >
+            constexpr ValueType const& at( U const& val, uint64 hash_ ) const
+            {
+                auto found = m_buckets[hash_].find( val );
+
+                if ( found == nullptr )
+                    throw std::runtime_error( "Could not find value!" );
+
+                return *found;
+            }
+
+            template< class U >
+            constexpr ValueType& at( U const& val, uint64 hash_ )
+            {
+                auto found = m_buckets[hash_].find( val );
+
+                if ( found == nullptr )
+                    throw std::runtime_error( "Could not find value!" );
+
+                return *found;
+            }
+
+            constexpr ValueType& insert( ValueType&& val )
+            {
+                auto hash_ = hash( val );
+
+                return insert( std::move( val ), hash_ );
+            }
+
+            constexpr ValueType& insert( ValueType const& val )
+            {
+                auto newval = val;
+
+                return insert( std::move( newval ) );
+            }
+
+            constexpr ValueType& insert( ValueType&& val, uint64 hash_ )
+            {
+                if ( m_buckets[hash_].find( val ) )
+                    throw std::runtime_error( "Cannot overwrite value with insert!" );
+
+                return *m_buckets[hash_].insert_unchecked( std::move( val ) );
+            }
+
+            template< class U >
+            constexpr bool remove( U const& val )
+            {
+                auto hash_ = hash( val );
+
+                return remove( val, hash_ );
+            }
+
+            template< class U >
+            constexpr bool remove( U const& val, uint64 hash_ )
+            {
+                return m_buckets[hash_].remove( val );
+            }
+
+            constexpr uint64 size() const
+            {
+                uint64 size_ = 0;
+
+                for ( uint64 i = 0; i < m_buckets.size(); ++i )
+                    size_ += m_buckets[i].size();
+
+                return size_;
+            }
+
+            static uint64 fast_mod( uint64 val, uint64 mod )
+            {
+                //return val % mod;
+                return val & (mod - 1);
+            }
+
+            void rehash( uint64 cap )
+            {
+                BucketListType newdata( cap );
+
+                for ( auto it = begin(); it != end(); ++it )
+                {
+                    auto hash_ = fast_mod( t::hasher< type::remove_const< ValueType > >::hash( *it ), newdata.size() );
+
+                    newdata[hash_].insertUnchecked( std::move( *it ) );
+                }
+
+                m_buckets = std::move( newdata );
+            }
+
+            uint64 hash( ValueType const& val ) const
+            {
+                return fast_mod( t::hasher< type::remove_const< ValueType > >::hash( val ), m_buckets.size() );
+            }
+
+            template< class U >
+            uint64 hash( U const& val ) const
+            {
+                return fast_mod( t::hasher< U >::hash( val ), m_buckets.size() );
+            }
+
+            BucketListType m_buckets;
+        };
+    }
+}
+
+template< class Hash >
+constexpr bool operator==( t::HashIterator< Hash > lhs, t::HashConstIterator< Hash > rhs )
+{
+    return lhs.operator->() == rhs.operator->();
+}
+
+template< class Hash >
+constexpr bool operator!=( t::HashIterator< Hash > lhs, t::HashConstIterator< Hash > rhs )
+{
+    return lhs.operator->() != rhs.operator->();
+}
+
+template< class Hash >
+constexpr bool operator==( t::HashConstIterator< Hash > lhs, t::HashIterator< Hash > rhs )
+{
+    return lhs.operator->() == rhs.operator->();
+}
+
+template< class Hash >
+constexpr bool operator!=( t::HashConstIterator< Hash > lhs, t::HashIterator< Hash > rhs )
+{
+    return lhs.operator->() != rhs.operator->();
 }

@@ -4,313 +4,355 @@
 
 namespace t
 {
-	template< typename T >
-	struct Node
+	namespace details
 	{
-	public:
-		using ValueType = T;
-	public:
-		constexpr Node( Node&& n ) noexcept:
-			m_data( std::move( n.m_data ) ),
-			m_next( std::move( n.m_next ) ),
-			m_prev( n.m_prev ) {}
-		constexpr Node( T&& val ):
-			m_data( std::move( val ) ) {}
-		constexpr Node( const T& val ):
-			m_data( val ) {}
-		constexpr Node& operator=( Node&& n ) noexcept
+		template< class T >
+		struct ListNode
 		{
-			m_data = std::move( n.m_data );
-			m_next = UniquePtr< Node< T > >( std::move( n.m_next ) );
-			m_prev = n.m_prev;
-		}
-	public:
-		T m_data;
-		UniquePtr< Node< T > > m_next;
-		Node< T >* m_prev;
-	};
+		public:
+			constexpr ListNode( T&& data ):
+				data( std::move( data ) ) {}
+			constexpr ListNode( T const& data ):
+				data( data ) {}
 
-	template< typename LinkedList >
-	struct LinkedListIterator
+			constexpr T& addNext( T&& data )
+			{
+				auto oldNext = next;
+				next = new ListNode( std::move( data ) );
+				next->prev = this;
+				next->next = oldNext;
+				return next->data;
+			}
+
+			constexpr T& addNext( T const& data )
+			{
+				auto cpy = data;
+				return addNext( std::move( cpy ) );
+			}
+
+			constexpr T& addPrev( T&& data )
+			{
+				auto oldPrev = prev;
+				prev = new ListNode( std::move( data ) );
+				prev->next = this;
+				prev->prev = oldPrev;
+				return prev->data;
+			}
+
+			constexpr T& addPrev( T const& data )
+			{
+				auto cpy = data;
+				return addPrev( std::move( cpy ) );
+			}
+
+		public:
+			T data{};
+			ListNode* next = nullptr;
+			ListNode* prev = nullptr;
+		};
+	}
+
+	template< class List >
+	class ListConstIterator;
+
+	template< class List >
+	class ListIterator
 	{
 	public:
-		using T = typename LinkedList::ValueType;
-	public:
-		LinkedListIterator( Node< T >* data ):
-			m_ptr( data ) {}
-		LinkedListIterator& operator++()
-		{
-			m_ptr = m_ptr->m_next.get();
-			return *this;
-		}
-		LinkedListIterator operator++( int )
-		{
-			LinkedListIterator l = *this;
-			this->operator++();
-			return l;
-		}
-		LinkedListIterator& operator--()
-		{
-			m_ptr = m_ptr->m_prev;
-			return *this;
-		}
-		LinkedListIterator operator--( int )
-		{
-			LinkedListIterator l = *this;
-			this->operator--();
-			return l;
-		}
-		T& operator*() { return m_ptr->m_data; }
-		bool operator==( const LinkedListIterator& rhs ) { return m_ptr == rhs.m_ptr; }
-		bool operator!=( const LinkedListIterator& rhs ) { return !( *this == rhs ); }
-		bool operator==( const void* const ptr ) { return m_ptr == ptr; }
-		bool operator!=( const void* const ptr ) { return m_ptr != ptr; }
+#ifdef _MSC_VER
+		using ValueType = typename List::ValueType;
+#else
+		using ValueType = List::ValueType;
+#endif
 	private:
-		Node< T >* m_ptr;
+		using NodeType = details::ListNode< ValueType >;
+	public:
+		constexpr ListIterator( NodeType* node ):
+			m_node( node ) {}
+
+		ListIterator() = delete;
+
+		constexpr ListIterator& operator++()
+		{
+			m_node = m_node->next;
+			return *this;
+		}
+
+		constexpr bool operator==( ListIterator rhs )
+		{
+			return m_node == rhs.m_node;
+		}
+
+		constexpr bool operator!=( ListIterator rhs )
+		{
+			return m_node != rhs.m_node;
+		}
+
+		constexpr ValueType& operator*() const
+		{
+			return m_node->data;
+		}
+
+		constexpr ValueType* operator->() const
+		{
+			return &m_node->data;
+		}
+
+	private:
+		NodeType* m_node;
+		friend ListConstIterator< List >;
 	};
 
-	template< typename T >
+	template< class List >
+	class ListConstIterator
+	{
+	public:
+#ifdef _MSC_VER
+		using ValueType = typename const List::ValueType;
+	private:
+		using InnerValueType = typename List::ValueType;
+#else
+		using ValueType = const List::ValueType;
+	private:
+		using InnerValueType = List::ValueType;
+#endif
+	private:
+		using NodeType = details::ListNode< InnerValueType >;
+	public:
+		constexpr ListConstIterator( NodeType* node ):
+			m_node( node ) {}
+
+		constexpr ListConstIterator( ListIterator< List > it ):
+			m_node( it.m_node ) {}
+
+		ListConstIterator() = delete;
+
+		constexpr ListConstIterator& operator++()
+		{
+			m_node = m_node->next;
+			return *this;
+		}
+
+		constexpr bool operator==( ListConstIterator rhs )
+		{
+			return m_node == rhs.m_node;
+		}
+
+		constexpr bool operator!=( ListConstIterator rhs )
+		{
+			return m_node != rhs.m_node;
+		}
+
+		constexpr ValueType& operator*() const
+		{
+			return m_node->data;
+		}
+
+		constexpr ValueType* operator->() const
+		{
+			return &m_node->data;
+		}
+
+	private:
+		NodeType* m_node;
+	};
+
+	template< class T >
 	class LinkedList
 	{
 	public:
 		using ValueType = T;
-		using Iterator = LinkedListIterator< LinkedList< T > >;
+		using Iterator = ListIterator< LinkedList >;
+		using ConstIterator = ListConstIterator< LinkedList >;
+	private:
+		using NodeType = details::ListNode< T >;
+	public:
 		constexpr LinkedList() = default;
-		constexpr LinkedList( LinkedList&& list ) noexcept:
-			m_head( list.m_head.release() ),
-			m_size( list.m_size ) {}
-		constexpr LinkedList& operator=( LinkedList&& list ) noexcept
-		{
-			m_head = list.m_head.release();
-			m_size = list.m_size;
-		}
+
 		constexpr ~LinkedList()
 		{
-			if ( m_tail == nullptr )
-				return;
-			UniquePtr< Node< T > >* tail = m_tail;
-			if ( m_size > 5 )
-			{
-				size_t count = 0;
-				while ( tail != nullptr && m_size > 5 )
-				{
-					tail = &tail->get()->m_prev->m_prev->m_next;
-					count++;
-					--m_size;
-					if ( count == 5 )
-					{
-						UniquePtr< Node< T > > ptr = std::move( tail->get()->m_next );
-						count = 0;
-					}
-				}
-				if ( count > 0 )
-				{
-					UniquePtr< Node< T > > ptr = std::move( *tail );
-					count = 0;
-				}
-			}
-		}
-		constexpr T& pushBack( const T& val )
-		{
-			++m_size;
-			if ( m_head == nullptr )
-			{
-				m_head = UniquePtr< Node< T > >( val );
-				m_tail = &m_head;
-				return m_head.get()->m_data;
-			}
-			UniquePtr< Node< T > >* prev = m_tail;
-			m_tail->get()->m_next = UniquePtr< Node< T > >( val );
-			m_tail = &(m_tail->get()->m_next);
-			m_tail->get()->m_prev = prev->get();
-			return m_tail->get()->m_data;
-		}
-		constexpr T& pushFront( const T& val )
-		{
-			++m_size;
-			if ( m_head == nullptr )
-			{
-				m_head = UniquePtr< Node< T > >( val );
-				m_tail = &m_head;
-				return m_head.get()->m_data;
-			}
-			
-			UniquePtr< Node< T > > head = UniquePtr< Node< T > >( val );
-			m_head.get()->m_prev = head.get();
-			head.get()->m_next = std::move( m_head );
-			m_head = std::move( head );
-			if ( &m_head == m_tail )
-				m_tail = &m_tail->get()->m_next;
-			return m_head.get()->m_data;
-		}
-		constexpr T& pushBack( T&& val )
-		{
-			++m_size;
-			if ( m_head == nullptr )
-			{
-				m_head = UniquePtr< Node< T > >( std::move( val ) );
-				m_tail = &m_head;
-				return m_head.get()->m_data;
-			}
-			UniquePtr< Node< T > >* prev = m_tail;
-			m_tail->get()->m_next = UniquePtr< Node< T > >( std::move( val ) );
-			m_tail = &( m_tail->get()->m_next );
-			m_tail->get()->m_prev = prev->get();
-			return m_tail->get()->m_data;
-		}
-		constexpr T& pushFront( T&& val )
-		{
-			++m_size;
-			if ( m_head == nullptr )
-			{
-				m_head = UniquePtr< Node< T > >( std::move( val ) );
-				m_tail = &m_head;
-				return m_head.get()->m_data;
-			}
-			
-			UniquePtr< Node< T > > head = UniquePtr< Node< T > >( std::move( val ) );
-			m_head.get()->m_prev = head.get();
-			head.get()->m_next = std::move( m_head );
-			m_head = std::move( head );
-			if ( &m_head == m_tail )
-				m_tail = &m_tail->get()->m_next;
-			return m_head.get()->m_data;
-		}
-		constexpr T* find( const T& val )
-		{
-			if ( m_size == 0 )
-				return nullptr;
-			const PtrType* head = &m_head;
-			DataType* tail = m_tail->get();
+			auto head = m_head;
 
-			if ( head->get() == nullptr )
-				return nullptr;
-
-			while ( head->get() != nullptr || (tail != head->get() && &tail->m_next != head) )
+			while ( head )
 			{
-				if ( head->get()->m_data == val )
-					return &head->get()->m_data;
-				if ( tail->m_data == val )
-					return &tail->m_data;
-
-				head = &(head->get()->m_next);
-				tail = tail->m_prev;
+				auto cpy = head;
+				head = head->next;
+				delete cpy;
+				if ( head )
+					head->prev = nullptr;
 			}
 
-			return nullptr;
+			m_head = nullptr;
+			m_tail = nullptr;
 		}
-		constexpr T const* find( const T& val ) const
+
+		constexpr auto begin()
 		{
-			if ( m_size == 0 )
-				return nullptr;
+			return Iterator( m_head );
+		}
+
+		constexpr auto end()
+		{
+			return Iterator( nullptr );
+		}
+
+		constexpr auto cbegin()
+		{
+			return ConstIterator( m_head );
+		}
+
+		constexpr auto cend()
+		{
+			return ConstIterator( nullptr );
+		}
+
+		constexpr uint64 size() const { return m_size; }
+
+		constexpr T& pushBack( T&& data )
+		{
+			if ( m_head == nullptr )
+			{
+				InitHeadAndTail( std::move( data ) );
+				return m_head->data;
+			}
+
 			if ( m_size == 1 )
 			{
-				if ( m_head.get()->m_data == val )
-					return &m_head.get()->m_data;
-				return nullptr;
+				m_tail = new NodeType( std::move( data ) );
+				m_head->next = m_tail;
+				++m_size;
+				return m_tail->data;
 			}
-			if ( m_size == 2 )
+
+			m_tail->addNext( std::move( data ) );
+			m_tail = m_tail->next;
+			++m_size;
+			return m_tail->data;
+		}
+
+		constexpr T& pushBack( T const& data )
+		{
+			auto cpy = data;
+
+			return pushBack( std::move( cpy ) );
+		}
+
+		constexpr T& pushFront( T&& data )
+		{
+			if ( m_head == nullptr )
 			{
-				if ( m_head.get()->m_data == val )
-					return &m_head.get()->m_data;
-				if ( m_tail->get()->m_data == val )
-					return &m_tail->get()->m_data;
-				return nullptr;
+				InitHeadAndTail( std::move( data ) );
+				return m_head->data;
 			}
-			const PtrType* head = &m_head;
-			DataType* tail = m_tail->get();
 
-			if ( head->get() == nullptr )
+			if ( m_size == 1 )
+			{
+				m_head = new NodeType( std::move( data ) );
+				m_head->next = m_tail;
+				m_tail->prev = m_head;
+				++m_size;
+				return m_head->data;
+			}
+
+			m_head->addPrev( std::move( data ) );
+			m_head = m_head->prev;
+			++m_size;
+			return m_head->data;
+		}
+
+		constexpr T& pushFront( T const& data )
+		{
+			auto cpy = data;
+			return pushFront( std::move( cpy ) );
+		}
+
+		constexpr T* find( T const& data )
+		{
+			if ( m_head == nullptr )
 				return nullptr;
 
-			while ( head->get() != nullptr && tail != head->get() && &tail->m_next != head )
-			{
-				if ( head->get()->m_data == val )
-					return &head->get()->m_data;
-				if ( tail->m_data == val )
-					return &tail->m_data;
+			auto it = m_head;
 
-				head = &(head->get()->m_next);
-				tail = tail->m_prev;
+			while ( it )
+			{
+				if ( it->data == data )
+					return &it->data;
+				it = it->next;
 			}
 
 			return nullptr;
 		}
-		constexpr void remove( const T& val )
-		{
-			PtrType* head = &m_head;
-			DataType* tail = m_tail->get();
 
-			if ( head->get() == nullptr )
+		constexpr void remove( T const& data )
+		{
+			if ( m_head == nullptr )
 				return;
 
-			while ( head->get() != nullptr || ( tail != head->get() && &tail->m_next != head) )
+			if ( m_size == 1 )
 			{
-				if ( head->get()->m_data == val )
-				{
-					if ( head->get() == m_head.get() )
-					{
-						removeHead();
-						return;
-					}
-					--m_size;
-					DataType* prev = head->get()->m_prev;
-					DataType* newhead = head->get()->m_next.release();
-					if ( &head->get()->m_next == m_tail )
-					{
-						m_tail = head;
-					}
-					*head = newhead;
-					head->get()->m_prev = prev;
-					return;
-				}
-				if ( tail->m_data == val )
-				{
-					if ( tail == m_tail->get() )
-					{
-						removeTail();
-						return;
-					}
-					--m_size;
-					DataType* prev = tail->m_prev;
-					DataType* next = tail->m_next.release();
-					next->m_prev = prev;
-					prev->m_next = next;
-					if ( m_tail == &tail->m_next )
-					{
-						m_tail = &prev->m_next;
-					}
-					return;
-				}
-				head = &( head->get()->m_next );
-				tail = tail->m_prev;
-			}
-		}
-		constexpr uint64 size() const { return m_size; }
-		constexpr Iterator begin() { return Iterator( m_head.get() ); }
-		constexpr Iterator end() { return Iterator( m_tail->get()->m_next.get() ); }
-	private:
-		using DataType = Node< T >;
-		using PtrType = UniquePtr< DataType >;
-		size_t m_size = 0;
-		UniquePtr< Node< T > > m_head;
-		UniquePtr< Node< T > >* m_tail;
-	private:
-		constexpr void removeHead()
-		{
-			--m_size;
-			if ( m_size == 0 )
-			{
-				m_head = nullptr;
+				delete m_head;
+				m_head = m_tail = nullptr;
+				--m_size;
 				return;
 			}
-			DataType* newhead = m_head.get()->m_next.release();
-			m_head = newhead;
+
+			auto it = m_head;
+
+			while ( it )
+			{
+				if ( it->data == data )
+				{
+					if ( it->next )
+						it->next->prev = it->prev;
+					if ( it->prev )
+						it->prev->next = it->next;
+					auto cpy = it;
+					it = it->next;
+					delete cpy;
+					--m_size;
+				}
+				else
+				{
+					it = it->next;
+				}
+			}
 		}
-		constexpr void removeTail()
+
+	private:
+		constexpr void InitHeadAndTail( T&& data )
 		{
-			--m_size;
-			*m_tail = m_tail->get()->m_prev;
+			m_head = new NodeType( std::move( data ) );
+			m_tail = m_head;
+			++m_size;
 		}
+
+	private:
+		NodeType* m_head = nullptr;
+		NodeType* m_tail = nullptr;
+		uint64    m_size = 0;
 	};
+}
+
+template< class List >
+constexpr bool operator==( t::ListIterator< List > lhs, t::ListConstIterator< List > rhs )
+{
+	return lhs.operator->() == rhs.operator->();
+}
+
+template< class List >
+constexpr bool operator!=( t::ListIterator< List > lhs, t::ListConstIterator< List > rhs )
+{
+	return lhs.operator->() != rhs.operator->();
+}
+
+template< class List >
+constexpr bool operator==( t::ListConstIterator< List > lhs, t::ListIterator< List > rhs )
+{
+	return lhs.operator->() == rhs.operator->();
+}
+
+template< class List >
+constexpr bool operator!=( t::ListConstIterator< List > lhs, t::ListIterator< List > rhs )
+{
+	return lhs.operator->() != rhs.operator->();
 }

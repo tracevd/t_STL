@@ -344,6 +344,26 @@ constexpr int TestFastString()
     return static_cast< int >( strings.size() );
 }
 
+constexpr int TestLinkedList()
+{
+    t::LinkedList< int > list;
+
+    list.pushBack( 3 );
+    list.pushFront( 2 );
+    list.pushFront( 1 );
+    list.pushBack( 4 );
+    list.pushBack( 5 );
+
+    list.remove( 5 );
+
+    for ( auto i : list )
+    {
+
+    }
+
+    return *list.find( 4 );
+}
+
 int main()
 {
     /*constexpr auto init  = get_seed_constexpr();
@@ -368,10 +388,11 @@ int main()
     HashMapVsUnorderedMap< 100 >();
     HashMapVsUnorderedMap< 120 >();*/
 
-    constexpr int a = TestSharedPtr(); (void) a;
-    constexpr int b = TestUniquePtr(); (void) b;
+    constexpr int a = TestSharedPtr();    (void) a;
+    constexpr int b = TestUniquePtr();    (void) b;
     constexpr int c = TestImmSharedPtr(); (void) c;
-    constexpr int d = TestFastString(); (void) d;
+    //constexpr int d = TestFastString();   (void) d;
+    constexpr int e = TestLinkedList();   (void) e;
 
     testTvm();
 
@@ -400,6 +421,15 @@ int main()
     {
         std::cout << "ptrs were different, good job\n";
     }
+
+    t::HashMap< int, int > map;
+
+    map.insert( { 1, 2 } );
+    map.insert( { 3, 4 } );
+
+    auto it = map.begin();
+
+    decltype( map )::ConstIterator cit = it;
 
     return 0;
 }
