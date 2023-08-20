@@ -579,6 +579,20 @@ namespace t
 				return m_data[ index ];
 			}
 
+			constexpr char at( uint32 index ) const
+			{
+				if ( index >= m_size )
+					throw std::runtime_error("Past string length!");
+				return this->operator[]( index );
+			}
+
+			constexpr char& at( uint32 index )
+			{
+				if ( index >= m_size )
+					throw std::runtime_error( "Past string length!" );
+				return this->operator[]( index );
+			}
+
 			constexpr bool operator<( String const& rhs )
 			{
 				if ( m_size < rhs.m_size )
@@ -830,14 +844,51 @@ struct std::hash< t::String >
 	}
 };
 
+constexpr uint64 hash_fstring( t::fast::String const& str )
+{
+	uint64 hash = 2166136261;
+	constexpr uint64 FNVMultiple = 16777619;
+
+	if ( str.size() == 0 )
+		return 0;
+
+	for ( uint32 i = 0; i < str.size(); ++i )
+	{
+		const auto c = str[ i ];
+		hash += c;
+		//hash ^= ( hash & 255 ) << ( c & 55 );
+		hash ^= hash << 1;
+		//hash *= FNVMultiple;
+	}
+	/*uint64 hash = 0x7deadbfabeef;
+
+	auto data = str.data();
+
+	if ( data == nullptr )
+		return 0;
+
+	for ( ; *data; ++data )
+	{
+		auto const c = *data;
+
+		hash *= ( uint64( 0x7bd00f ) << ( c & 55 ) ) + 1;
+
+		hash += c;
+	}*/
+
+	return hash;
+}
+
 template<>
 struct std::hash< t::fast::String >
 {
 	constexpr uint64_t operator()( t::fast::String const& str ) const
 	{
+		return hash_fstring( str );
+
 		const uint64_t size = str.size();
 
-		uint64_t hash = 0x0f'0f'0f'0f'0f;
+		uint64_t hash = 0x7f'0f'7f'0f'7f;
 
 		auto half = size / 2u;
 

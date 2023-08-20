@@ -59,6 +59,11 @@ namespace t
 			return m_data.remove( val );
 		}
 
+		constexpr bool contains( ValueType const& val )
+		{
+			auto hash_ = m_data.hash( val );
+			return m_data.m_buckets[ hash_ ].find( val ) != nullptr;
+		}
 		constexpr uint64 size() const { return m_data.size(); }
 	private:
 		Hash< ValueType > m_data;

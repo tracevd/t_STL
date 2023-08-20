@@ -164,6 +164,14 @@ constexpr int getThing()
     return 0;
 }
 
+constexpr static uint64 get_seed_constexpr()
+{
+    auto time = t::hasher< fString >::hash( fString( __TIME__ ) );
+    auto date = t::hasher< fString >::hash( fString( __DATE__ ) );
+
+    return time ^ date;
+}
+
 fString generateRandomString()
 {
     fString x( "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" );
@@ -179,10 +187,45 @@ fString generateRandomString()
     return x.substr( 0, dist(rng) );
 }
 
-void testAndPrintMatch( fString const& pattern, fString const& str )
+template< class hash, uint64 NumKeys >
+void ShowHashValues( Vector< fString > const& keys )
 {
-    std::cout << pattern << " matches " << str << ":\n";
-    std::cout << std::boolalpha << t::string::match( pattern, str ) << '\n';
+    t::HashSet< uint64 > hashes;
+
+    uint64 collisions = 0;
+
+    using std::chrono::milliseconds;
+
+    Timer< milliseconds > timer;
+
+    timer.start();
+
+    for ( uint64 i = 0; i < NumKeys; ++i )
+    {
+        uint64 hash_ = 0;
+        if constexpr ( t::type::is_same< hash, t::hasher< fString > > )
+            hash_ = t::hasher< fString >::hash( keys[ i ].c_str() );
+        else
+            hash_ = std::hash< std::string >{}( keys[ i ].c_str() );
+
+        if ( hashes.contains( hash_ % 16 ) )
+            ++collisions;
+        else
+            hashes.insert( hash_ % 16 );
+    }
+
+    auto stop = timer.stop();
+    
+    if constexpr ( t::type::is_same< hash, t::hasher< fString > > )
+        std::cout << "t::hasher< fString >\n";
+    else
+        std::cout << "std::hash< std::string >\n";
+
+    std::cout << "Took " << stop << "ms (including set operations)\n";
+
+    std::cout << "Total collisions for " << NumKeys << " strings:\n";
+    std::cout << "    " << collisions << '\n';
+    std::cout << "    " << static_cast< double >( collisions ) * 100.0 / static_cast< double >( NumKeys ) << "% collision rate\n\n";
 }
 
 template< class hash, uint64 NumKeys >
@@ -254,14 +297,171 @@ void HashMapVsUnorderedMap()
         std::cout << "    average: " << static_cast< double >( totalTime ) / static_cast< double >( numLoops ) * -1 << "us faster for unordered_map\n\n";
 }
 
+constexpr uint64 lce_a = 4096;
+constexpr uint64 lce_c = 150889;
+constexpr uint64 lce_m = 714025239563;
+
+constexpr static uint64 uniform_distribution( uint64& previous )
+{
+    previous = ( (lce_a * previous + lce_c ) % lce_m );
+    return previous;
+}
+
+constexpr static double uniform_distribution_n( uint64& previous )
+{
+    auto dst = uniform_distribution( previous );
+    return static_cast< double >( dst ) / lce_m;
+}
+
+#include <array>
+
+template <typename T, std::size_t sz>
+constexpr static auto uniform_distribution( T min, T max )
+{
+    std::array< T, sz > dst{};
+    auto previous = get_seed_constexpr();
+    for ( auto& el : dst )
+        el = static_cast< T >( uniform_distribution_n( previous ) * (max - min) + min );
+
+    return dst;
+}
+
+template <typename T, std::size_t sz, std::size_t irwin_numbers = 12>
+constexpr static auto normal_distribution( T min, T max )
+{
+    std::array<T, sz> dst = uniform_distribution< T, sz >( min, max );
+
+    auto previous = get_seed_constexpr();
+
+    for ( auto& el : dst )
+    {
+        auto val = previous * 350693;
+
+        auto const tmp = previous;
+
+        for ( std::size_t i = 0; i < ( tmp & 0xff ) + 12; ++i )
+        {
+            previous *= 0xdbfb00b;
+            val ^= uniform_distribution( previous );
+            val += uniform_distribution( previous );
+        }
+
+        el = val;
+    }
+
+    return dst;
+}
+
+template< uint64 NumKeys >
+void StdHashVsTHash()
+{
+    Vector< fString > keys( 150 );
+    for ( uint64 i = 0; i < keys.size(); ++i )
+        keys[ i ] = generateRandomString();
+
+    ShowHashValues< t::hasher< fString >, NumKeys >( keys );
+    ShowHashValues< std::hash< std::string >, NumKeys >( keys );
+}
+
+constexpr int TestUniquePtr()
+{
+    auto ptr = t::make_unique< int >( 123 );
+    auto ptr2 = t::move( ptr );
+
+    if ( ptr.get() != nullptr )
+        throw std::runtime_error("nonononono");
+
+    auto arr = t::make_unique< int[ 3 ] >( 4, 5, 6 );
+    auto arr2 = t::move( arr );
+
+    if ( arr.get() != nullptr )
+        throw std::runtime_error("nonono");
+
+    return arr2->data()[ 0 ];
+}
+
+constexpr int TestSharedPtr()
+{
+    auto ptr = t::make_shared< int >( 123 );
+    auto ptr2 = ptr;
+
+    auto arr = t::make_shared< int[ 3 ] >( 1, 2, 3 );
+    auto arr2 = arr;
+    auto arr3 = arr2;
+
+    return ( *arr )[ 2 ];
+}
+
+constexpr int TestImmSharedPtr()
+{
+    auto ims = t::make_immutable_shared< int >( 10 );
+
+    auto ims2 = ims;
+
+    if ( ims.isUnique() )
+        throw std::runtime_error("afjnaefn");
+
+    auto val = *ims;
+
+    if ( ims.isShared() )
+        throw std::runtime_error("why are you so stupid");
+
+    return val;
+}
+
 int main()
 {
-    HashMapVsUnorderedMap<  10 >();
+    /*constexpr auto init  = get_seed_constexpr();
+    constexpr auto rands = normal_distribution< uint64, 20 >( 0, t::limit< uint64 >::max );
+
+    std::cout << init << '\n';*/
+
+    /*for ( auto num : rands )
+        std::cout << num << '\n';*/
+
+    /*StdHashVsTHash< 15 >();
+    StdHashVsTHash< 20 >();
+    StdHashVsTHash< 35 >();
+    StdHashVsTHash< 50 >();
+    StdHashVsTHash< 65 >();*/
+
+    /*HashMapVsUnorderedMap<  10 >();
     HashMapVsUnorderedMap<  20 >();
     HashMapVsUnorderedMap<  40 >();
     HashMapVsUnorderedMap<  60 >();
     HashMapVsUnorderedMap<  80 >();
     HashMapVsUnorderedMap< 100 >();
-    HashMapVsUnorderedMap< 120 >();
+    HashMapVsUnorderedMap< 120 >();*/
+
+    constexpr int a = TestSharedPtr();
+    constexpr int b = TestUniquePtr();
+    constexpr int c = TestImmSharedPtr();
+
+    auto const blah{ t::make_immutable_shared< int >( 123 ) };
+
+    auto const blah2 = blah;
+
+    if ( blah.get() != blah2.get() )
+    {
+        std::cout << "What the frick bro\n";
+    }
+    else
+    {
+        std::cout << "ptrs were the same, good job\n";
+    }
+
+    t::ImmutableSharedPtr< int > blah3( 456 );
+
+    auto blah4 = blah3;
+
+    if ( blah3.get() == blah4.get() )
+    {
+        std::cout << "what the frick bro (2)\n";
+    }
+    else
+    {
+        std::cout << "ptrs were different, good job\n";
+    }
+
     return 0;
 }

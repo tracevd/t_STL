@@ -641,7 +641,8 @@ namespace t
 
         static uint64 fast_mod( uint64 val, uint64 mod )
         {
-            return val < mod ? val : val % mod;
+            //return val % mod;
+            return val & ( mod - 1 );
         }
 
         void rehash( uint64 cap )
