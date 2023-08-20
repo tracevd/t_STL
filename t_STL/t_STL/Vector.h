@@ -365,10 +365,6 @@ namespace t
 			--m_size;
 		}
 	private:
-		T* m_data = nullptr;
-		uint64 m_size = 0;
-		uint64 m_capacity = 0;
-	private:
 		constexpr T* find_w_linearSweep( const T& elem )
 		{
 			for ( uint64 i = 0; i < m_size; i++ )
@@ -412,7 +408,6 @@ namespace t
 		constexpr void realloc()
 		{
 			uint64 newSize = m_capacity * 2;
-			// std::cout << "Realloc Vector: " << m_capacity << " -> " << newSize << "\n";
 			auto temp = m_data;
 			m_data = new T[ newSize ];
 			for ( uint64 i = 0; i < m_size; i++ )
@@ -430,5 +425,9 @@ namespace t
 			m_capacity = newSize;
 			delete[] temp;
 		}
+	private:
+		T* m_data = nullptr;
+		uint64 m_size = 0;
+		uint64 m_capacity = 0;
 	};
 }

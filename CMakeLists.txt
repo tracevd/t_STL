@@ -11,6 +11,12 @@ list( REMOVE_ITEM SRC "t_STL/t_STL/main.cpp" )
 
 add_library( t_STL ${SRC} )
 
+if ( MSVC )
+    target_compile_options( t_STL PRIVATE /W4 /WX )
+else()
+    target_compile_options( t_STL, PRIVATE -Wall -Wextra -Wpedantic -Werror )
+endif()
+
 # testing binary
 add_executable( cpp_test "t_STL/t_STL/main.cpp" )
 target_link_libraries( cpp_test PRIVATE t_STL )

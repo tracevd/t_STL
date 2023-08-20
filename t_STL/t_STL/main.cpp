@@ -420,7 +420,7 @@ constexpr int TestFastString()
 
     auto strings = str.split(' ');
 
-    return static_cast< int >( str.size() );
+    return static_cast< int >( strings.size() );
 }
 
 int main()
