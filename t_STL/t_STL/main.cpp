@@ -356,11 +356,6 @@ constexpr int TestLinkedList()
 
     list.remove( 5 );
 
-    for ( auto i : list )
-    {
-
-    }
-
     return *list.find( 4 );
 }
 
@@ -391,7 +386,7 @@ int main()
     constexpr int a = TestSharedPtr();    (void) a;
     constexpr int b = TestUniquePtr();    (void) b;
     constexpr int c = TestImmSharedPtr(); (void) c;
-    //constexpr int d = TestFastString();   (void) d;
+    constexpr int d = TestFastString();   (void) d;
     constexpr int e = TestLinkedList();   (void) e;
 
     testTvm();
@@ -421,15 +416,6 @@ int main()
     {
         std::cout << "ptrs were different, good job\n";
     }
-
-    t::HashMap< int, int > map;
-
-    map.insert( { 1, 2 } );
-    map.insert( { 3, 4 } );
-
-    auto it = map.begin();
-
-    decltype( map )::ConstIterator cit = it;
 
     return 0;
 }
