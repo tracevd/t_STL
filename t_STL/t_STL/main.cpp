@@ -396,7 +396,7 @@ constexpr int TestImmSharedPtr()
 {
     auto ims = t::make_immutable_shared< int >( 10 );
 
-    auto ims2 = ims;
+    auto ims2 = t::ImmutableSharedPtr< int >( ims );
 
     if ( ims.isUnique() )
         throw std::runtime_error("afjnaefn");

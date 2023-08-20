@@ -278,7 +278,7 @@ namespace t
 			m_data( other.m_data ),
 			m_refCount( other.m_refCount )
 		{
-			if ( m_refCount!= nullptr )
+			if ( m_refCount != nullptr )
 				*m_refCount += 1;
 		}
 
@@ -293,6 +293,11 @@ namespace t
 		constexpr ImmutableSharedPtr( T const& data ):
 			m_data( new T( data ) ),
 			m_refCount( new uint64( 1 ) ) {}
+
+		constexpr ~ImmutableSharedPtr()
+		{
+			DestroyData();
+		}
 
 		constexpr ImmutableSharedPtr& operator=( ImmutableSharedPtr&& rhs ) noexcept
 		{
@@ -332,7 +337,11 @@ namespace t
 
 			auto cpy = *m_data;
 
-			*this = ImmutableSharedPtr( std::move( cpy ) );
+			*m_refCount -= 1;
+
+			m_refCount = new uint64( 1 );
+
+			m_data = new T( std::move( cpy ) );
 
 			return m_data;
 		}
