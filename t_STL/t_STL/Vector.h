@@ -74,7 +74,7 @@ namespace t
 	{
 	public:
 		using ValueType = typename Vector::ValueType;
-		using PointerType = ValueType* const;
+		using PointerType = ValueType const*;
 		using ReferenceType = ValueType const&;
 	private:
 		PointerType m_ptr;
@@ -342,7 +342,7 @@ namespace t
 			}
 			return find_w_convergingSweep( elem );
 		}
-		constexpr const T* const find( const T& elem ) const
+		constexpr T const* find( const T& elem ) const
 		{
 			if ( m_size == 0 )
 				return nullptr;
@@ -374,7 +374,7 @@ namespace t
 			}
 			return nullptr;
 		}
-		constexpr const T* const find_w_linearSweep( const T& elem ) const
+		constexpr T const* find_w_linearSweep( const T& elem ) const
 		{
 			for ( uint64 i = 0; i < m_size; i++ )
 			{
@@ -394,7 +394,7 @@ namespace t
 			}
 			return nullptr;
 		}
-		constexpr const T* const find_w_convergingSweep( const T& elem ) const
+		constexpr T const* find_w_convergingSweep( const T& elem ) const
 		{
 			for ( uint64 i = 0, j = m_size - 1; i < m_size && i <= j; i++, j-- )
 			{

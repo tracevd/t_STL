@@ -43,11 +43,11 @@ namespace t
 		{
 			delete[] m_data;
 		}
-		constexpr inline const bool isNull() const
+		constexpr inline bool isNull() const
 		{
-			return m_size == 0;
+			return m_size == 0 || m_data == nullptr;
 		}
-		[[nodiscard]] constexpr const uint64 size() const
+		[[nodiscard]] constexpr uint64 size() const
 		{
 			return m_size;
 		}
@@ -289,7 +289,6 @@ namespace t
 		friend constexpr t::String operator+( const char* const lhs, const t::String& rhs )
 		{
 			auto lhslength = strlen( lhs );
-			auto newstrBuffSize = lhslength + rhs.size() + 1;
 			auto newstr = new char[ lhslength + rhs.size() + 1 ];
 			
 			memcpy( newstr, lhs, lhslength );

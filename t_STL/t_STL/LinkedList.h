@@ -199,7 +199,7 @@ namespace t
 
 			return nullptr;
 		}
-		constexpr const T* const find( const T& val ) const
+		constexpr T const* find( const T& val ) const
 		{
 			if ( m_size == 0 )
 				return nullptr;
