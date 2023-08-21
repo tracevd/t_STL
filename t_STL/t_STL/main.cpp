@@ -395,8 +395,6 @@ int main()
     HashMapVsUnorderedMap< 100 >();
     HashMapVsUnorderedMap< 120 >();*/
 
-    constexpr bool same = t::type::is_same< String, t::GeneralString< char, uint32 > >;
-
     printSizeOf< String >();
     printSizeOf< t::GeneralString< char, uint32 > >();
 
