@@ -344,7 +344,7 @@ constexpr int TestFastString()
     return static_cast< int >( strings.size() );
 }
 
-constexpr int TestLinkedList()
+constexpr t::Array< int, 2 > TestLinkedList()
 {
     t::LinkedList< int > list;
 
@@ -356,7 +356,19 @@ constexpr int TestLinkedList()
 
     list.remove( 5 );
 
-    return *list.find( 4 );
+    auto it = list.find( 4 );
+
+    list.remove( it );
+
+    it = list.find( 2 );
+
+    auto blah = list.back();
+
+    list.pushBack( 69 );
+
+    auto blah2 = list.back();
+
+    return { blah, blah2 };
 }
 
 int main()
@@ -383,11 +395,11 @@ int main()
     HashMapVsUnorderedMap< 100 >();
     HashMapVsUnorderedMap< 120 >();*/
 
-    constexpr int a = TestSharedPtr();    (void) a;
-    constexpr int b = TestUniquePtr();    (void) b;
-    constexpr int c = TestImmSharedPtr(); (void) c;
-    constexpr int d = TestFastString();   (void) d;
-    constexpr int e = TestLinkedList();   (void) e;
+    constexpr auto a = TestSharedPtr();    (void) a;
+    constexpr auto b = TestUniquePtr();    (void) b;
+    constexpr auto c = TestImmSharedPtr(); (void) c;
+    constexpr auto d = TestFastString();   (void) d;
+    constexpr auto e = TestLinkedList();   (void) e;
 
     testTvm();
 

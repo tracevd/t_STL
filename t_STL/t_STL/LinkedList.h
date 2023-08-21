@@ -320,9 +320,25 @@ namespace t
 				if ( it->data == data )
 				{
 					if ( it->next )
+					{
 						it->next->prev = it->prev;
+					}
+					else
+					{
+						m_tail = m_tail->prev;
+						m_tail->next = nullptr;
+					}
+						
 					if ( it->prev )
+					{
 						it->prev->next = it->next;
+					}
+					else
+					{
+						m_head = m_head->next;
+						m_head->prev = nullptr;
+					}
+
 					auto cpy = it;
 					it = it->next;
 					delete cpy;
@@ -333,6 +349,76 @@ namespace t
 					it = it->next;
 				}
 			}
+		}
+
+		constexpr void remove( ConstIterator where )
+		{
+			if ( m_head == nullptr || where == cend() )
+				return;
+
+			auto it = m_head;
+
+			while ( it )
+			{
+				if ( &it->data == where.operator->() )
+				{
+					if ( it->next )
+					{
+						it->next->prev = it->prev;
+					}
+					else
+					{
+						m_tail = m_tail->prev;
+						m_tail->next = nullptr;
+					}
+					if ( it->prev )
+					{
+						it->prev->next = it->next;
+					}
+					else
+					{
+						m_head = m_head->next;
+						m_head->prev = nullptr;
+					}
+					delete it;
+					it = nullptr;
+					return;
+				}
+
+				it = it->next;
+			}
+		}
+
+		constexpr ValueType& back()
+		{
+			if ( m_head == nullptr )
+				throw std::runtime_error("Empty list!");
+
+			return m_tail->data;
+		}
+
+		constexpr ValueType const& back() const
+		{
+			if ( m_head == nullptr )
+				throw std::runtime_error("Empty list!");
+
+			return m_tail->data;
+		}
+
+		constexpr ValueType& front()
+		{
+			if ( m_head == nullptr )
+				throw std::runtime_error("Empty list!");
+
+			return m_head->data;
+		}
+
+		constexpr ValueType const& front() const
+		{
+			if ( m_head == nullptr )
+				throw std::runtime_error( "Empty list!" );
+
+			return m_head->data;
 		}
 
 	private:
