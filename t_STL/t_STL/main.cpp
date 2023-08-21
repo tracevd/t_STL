@@ -2,6 +2,7 @@
 
 #include "t.h"
 #include "variant/serialize/Serialize.h"
+#include "variant/deserialize/Deserialize.h"
 #include "Timer.h"
 #include "HashSet.h"
 
@@ -23,7 +24,6 @@ void printHexStr( uint64 val )
 using std::chrono::microseconds;
 using t::variant::Map;
 using t::String;
-using fString = t::fString;
 using t::Vector;
 using t::variant::Value;
 
@@ -84,15 +84,15 @@ void testTvm()
 
 constexpr static uint64 get_seed_constexpr()
 {
-    auto time = t::hasher< fString >::hash( fString( __TIME__ ) );
-    auto date = t::hasher< fString >::hash( fString( __DATE__ ) );
+    auto time = t::hasher< String >::hash( String( __TIME__ ) );
+    auto date = t::hasher< String >::hash( String( __DATE__ ) );
 
     return time ^ date;
 }
 
-fString generateRandomString()
+String generateRandomString()
 {
-    fString x( "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" );
+    String x( "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" );
     std::random_device rd;
     std::mt19937 generator( rd() );
 
@@ -106,7 +106,7 @@ fString generateRandomString()
 }
 
 template< class hash, uint64 NumKeys >
-void ShowHashValues( Vector< fString > const& keys )
+void ShowHashValues( Vector< String > const& keys )
 {
     t::HashSet< uint64 > hashes;
 
@@ -121,8 +121,8 @@ void ShowHashValues( Vector< fString > const& keys )
     for ( uint64 i = 0; i < NumKeys; ++i )
     {
         uint64 hash_ = 0;
-        if constexpr ( t::type::is_same< hash, t::hasher< fString > > )
-            hash_ = t::hasher< fString >::hash( keys[ i ].c_str() );
+        if constexpr ( t::type::is_same< hash, t::hasher< String > > )
+            hash_ = t::hasher< String >::hash( keys[ i ].c_str() );
         else
             hash_ = std::hash< std::string >{}( keys[ i ].c_str() );
 
@@ -134,8 +134,8 @@ void ShowHashValues( Vector< fString > const& keys )
 
     auto stop = timer.stop();
     
-    if constexpr ( t::type::is_same< hash, t::hasher< fString > > )
-        std::cout << "t::hasher< fString >\n";
+    if constexpr ( t::type::is_same< hash, t::hasher< String > > )
+        std::cout << "t::hasher< String >\n";
     else
         std::cout << "std::hash< std::string >\n";
 
@@ -147,7 +147,7 @@ void ShowHashValues( Vector< fString > const& keys )
 }
 
 template< class hash, uint64 NumKeys >
-int64 InsertAndTimeStuff( Vector< fString > const& keys )
+int64 InsertAndTimeStuff( Vector< String > const& keys )
 {
     Timer< microseconds > timer;
 
@@ -157,7 +157,7 @@ int64 InsertAndTimeStuff( Vector< fString > const& keys )
 
     for ( uint64 i = 0; i < NumKeys; ++i )
     {
-        map.insert( { fString( keys[ i ] ), uint64( i ) } );
+        map.insert( { String( keys[ i ] ), uint64( i ) } );
     }
 
     for ( auto it = map.begin(); it != map.end(); ++it )
@@ -177,7 +177,7 @@ void HashMapVsUnorderedMap()
 
     for ( uint64 i = 0; i < numLoops; ++i )
     {
-        Vector< fString > keys( numLoops );
+        Vector< String > keys( numLoops );
 
         for ( uint64 i = 0; i < NumKeys; ++i )
             keys[ i ] = generateRandomString();
@@ -186,15 +186,15 @@ void HashMapVsUnorderedMap()
 
         if ( i % 2 )
         {
-            time = InsertAndTimeStuff< std::unordered_map< fString, uint64 >, NumKeys >( keys );
+            time = InsertAndTimeStuff< std::unordered_map< String, uint64 >, NumKeys >( keys );
 
-            time_ = InsertAndTimeStuff< t::HashMap< fString, uint64 >, NumKeys >( keys );
+            time_ = InsertAndTimeStuff< t::HashMap< String, uint64 >, NumKeys >( keys );
         }
         else
         {
-            time_ = InsertAndTimeStuff< t::HashMap< fString, uint64 >, NumKeys >( keys );
+            time_ = InsertAndTimeStuff< t::HashMap< String, uint64 >, NumKeys >( keys );
 
-            time = InsertAndTimeStuff< std::unordered_map< fString, uint64 >, NumKeys >( keys );
+            time = InsertAndTimeStuff< std::unordered_map< String, uint64 >, NumKeys >( keys );
         }
 
         times[ i ] = time - time_;
@@ -273,11 +273,11 @@ constexpr static auto normal_distribution( T min, T max )
 template< uint64 NumKeys >
 void StdHashVsTHash()
 {
-    Vector< fString > keys( 150 );
+    Vector< String > keys( 150 );
     for ( uint64 i = 0; i < keys.size(); ++i )
         keys[ i ] = generateRandomString();
 
-    ShowHashValues< t::hasher< fString >, NumKeys >( keys );
+    ShowHashValues< t::hasher< String >, NumKeys >( keys );
     ShowHashValues< std::hash< std::string >, NumKeys >( keys );
 }
 
@@ -329,7 +329,7 @@ constexpr int TestImmSharedPtr()
 
 constexpr int TestFastString()
 {
-    fString str = "blah";
+    String str = "blah";
 
     str += ", lots of words.";
 
@@ -395,10 +395,15 @@ int main()
     HashMapVsUnorderedMap< 100 >();
     HashMapVsUnorderedMap< 120 >();*/
 
+    constexpr bool same = t::type::is_same< String, t::GeneralString< char, uint32 > >;
+
+    printSizeOf< String >();
+    printSizeOf< t::GeneralString< char, uint32 > >();
+
     constexpr auto a = TestSharedPtr();    (void) a;
     constexpr auto b = TestUniquePtr();    (void) b;
     constexpr auto c = TestImmSharedPtr(); (void) c;
-    constexpr auto d = TestFastString();   (void) d;
+    //constexpr auto d = TestFastString();   (void) d;
     constexpr auto e = TestLinkedList();   (void) e;
 
     testTvm();

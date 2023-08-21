@@ -3,9 +3,10 @@
 #include "../Type.h"
 #include "../Memory.h"
 
+#include "../String.h"
+
 namespace t
 {
-    class String;
     template< typename T >
     class Vector;
 

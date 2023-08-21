@@ -13,9 +13,5 @@ namespace t
 		{
 			Vector< uint8_t > Serialize( Map const& map );
 		}
-		
-		Map Deserialize( BufferType const& buffer );
-
-		Map Deserialize( const uint8_t* buffer, uint64 bufferSize );
 	}
 }
