@@ -401,7 +401,7 @@ int main()
     constexpr auto a = TestSharedPtr();    (void) a;
     constexpr auto b = TestUniquePtr();    (void) b;
     constexpr auto c = TestImmSharedPtr(); (void) c;
-    //constexpr auto d = TestFastString();   (void) d;
+    constexpr auto d = TestFastString();   (void) d;
     constexpr auto e = TestLinkedList();   (void) e;
 
     testTvm();
