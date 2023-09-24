@@ -305,7 +305,7 @@ namespace t
 			return *this;
 		}
 
-		constexpr SharedPtr& operator=( SharedPtr&& rhs )
+		constexpr SharedPtr& operator=( SharedPtr&& rhs ) noexcept
 		{
 			BaseType::operator=( std::move( rhs ) );
 			return *this;
@@ -463,11 +463,7 @@ namespace t
 				return;
 			
 			delete m_refCount;
-
-			if constexpr ( type::is_array< T > )
-				delete[] m_data;
-			else
-				delete m_data;
+			delete m_data;
 
 			m_data = nullptr;
 			m_refCount = nullptr;
@@ -475,6 +471,11 @@ namespace t
 	private:
 		T* m_data = nullptr;
 		uint64* m_refCount = nullptr;
+	};
+
+	template< class T >
+	class ImmutableSharedPtr< T[] >
+	{
 	};
 
 	template< class T, class... Args, class = type::enable_if< !type::is_array< T > > >
@@ -499,7 +500,17 @@ namespace t
 		return SharedPtr< T >( new T( std::forward< Args >( args )... ) );
 	}
 
-	template< class T, class... Args, class = type::enable_if< !type::is_array< T > > >
+	template< class T, class = std::enable_if_t< type::is_array< T > > >
+	constexpr auto make_shared( std::initializer_list< type::remove_array< T > >&& args )
+	{
+		SharedPtr< T > ptr = new type::remove_array< T >[ args.size() ];
+		auto raw = ptr.get();
+		for ( auto it = args.begin(); it != args.end(); ++it, ++raw )
+			*raw = std::move( *it );
+		return ptr;
+	}
+
+	template< class T, class... Args >
 	constexpr ImmutableSharedPtr< T > make_immutable_shared( Args&&... args )
 	{
 		return ImmutableSharedPtr< T >( new T( std::forward< Args >( args  )... ) );

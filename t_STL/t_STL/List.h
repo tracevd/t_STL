@@ -228,11 +228,11 @@ namespace t
 		{
 			if ( m_size != rhs.m_size )
 				return false;
+
 			for ( uint64 i = 0; i < m_size; ++i )
-			{
 				if ( m_data[ i ] != rhs.m_data[ i ] )
 					return false;
-			}
+
 			return true;
 		}
 
@@ -248,8 +248,10 @@ namespace t
 		constexpr void resize( uint64 size )
 		{
 			auto newData = new T[ size ];
+
 			for ( uint64 i = 0; i < m_size; ++i )
 				newData[ i ] = std::move( m_data[ i ] );
+
 			delete[] m_data;
 			m_data = newData;
 			m_size = size;
@@ -259,10 +261,10 @@ namespace t
 		constexpr void shrinkToFit()
 		{
 			auto newdata = new T[ m_size ];
+
 			for ( uint64 i = 0; i < m_size; ++i )
-			{
 				newdata[ i ] = std::move( m_data[ i ] );
-			}
+
 			m_capacity = m_size;
 			delete[] m_data;
 			m_data = newdata;
