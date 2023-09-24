@@ -24,7 +24,7 @@ void printHexStr( uint64 val )
 using std::chrono::microseconds;
 using t::variant::Map;
 using t::String;
-using t::Vector;
+using t::List;
 using t::variant::Value;
 
 void testTvm()
@@ -42,17 +42,17 @@ void testTvm()
     vm["int64"] = int64( 8 );
     vm["float"] = float( 9 );
     vm["double"] = double( 10 );
-    vm["u8 vector"] = Vector< uint8 >{ 1, 2, 3, 4, 5 };
-    vm["u16 vector"] = Vector< uint16 >{ 6, 7, 8, 9, 10 };
-    vm["u32 vector"] = Vector< uint32 >{ 11, 12, 13, 14 };
-    vm["u64 vector"] = Vector< uint64 >{ 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
-    vm["i8 vector"] = Vector< int8 >{ 1, 2, 3, 4, 5 };
-    vm["i16 vector"] = Vector< int16 >{ 6, 7, 8, 9, 10 };
-    vm["i32 vector"] = Vector< int32 >{ 11, 12, 13, 14 };
-    vm["i64 vector"] = Vector< int64 >{ 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
-    vm["str vector"] = Vector< String >{ "hey", "blahblah", "broke" };
-    vm["float vector"] = Vector< float >{ 1.f, 2.f, 3.f, 4.5f, 5.f, 7.69420f };
-    vm["double vector"] = Vector< double >{ 25, 26, 27, 28, 29, 30, 31 };
+    vm["u8 vector"] = List< uint8 >{ 1, 2, 3, 4, 5 };
+    vm["u16 vector"] = List< uint16 >{ 6, 7, 8, 9, 10 };
+    vm["u32 vector"] = List< uint32 >{ 11, 12, 13, 14 };
+    vm["u64 vector"] = List< uint64 >{ 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
+    vm["i8 vector"] = List< int8 >{ 1, 2, 3, 4, 5 };
+    vm["i16 vector"] = List< int16 >{ 6, 7, 8, 9, 10 };
+    vm["i32 vector"] = List< int32 >{ 11, 12, 13, 14 };
+    vm["i64 vector"] = List< int64 >{ 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
+    vm["str vector"] = List< String >{ "hey", "blahblah", "broke" };
+    vm["float vector"] = List< float >{ 1.f, 2.f, 3.f, 4.5f, 5.f, 7.69420f };
+    vm["double vector"] = List< double >{ 25, 26, 27, 28, 29, 30, 31 };
     Map map;
     map.insert( { String( "test" ), Value( "value" ) } );
     map.insert( { String( "test2" ), Value( "value2" ) } );
@@ -106,7 +106,7 @@ String generateRandomString()
 }
 
 template< class hash, uint64 NumKeys >
-void ShowHashValues( Vector< String > const& keys )
+void ShowHashValues( List< String > const& keys )
 {
     t::HashSet< uint64 > hashes;
 
@@ -147,7 +147,7 @@ void ShowHashValues( Vector< String > const& keys )
 }
 
 template< class hash, uint64 NumKeys >
-int64 InsertAndTimeStuff( Vector< String > const& keys )
+int64 InsertAndTimeStuff( List< String > const& keys )
 {
     Timer< microseconds > timer;
 
@@ -173,11 +173,11 @@ void HashMapVsUnorderedMap()
 {
     constexpr uint64 numLoops = 5000;
 
-    Vector< int64 > times( numLoops );
+    List< int64 > times( numLoops );
 
     for ( uint64 i = 0; i < numLoops; ++i )
     {
-        Vector< String > keys( numLoops );
+        List< String > keys( numLoops );
 
         for ( uint64 i = 0; i < NumKeys; ++i )
             keys[ i ] = generateRandomString();
@@ -273,7 +273,7 @@ constexpr static auto normal_distribution( T min, T max )
 template< uint64 NumKeys >
 void StdHashVsTHash()
 {
-    Vector< String > keys( 150 );
+    List< String > keys( 150 );
     for ( uint64 i = 0; i < keys.size(); ++i )
         keys[ i ] = generateRandomString();
 
@@ -284,30 +284,47 @@ void StdHashVsTHash()
 constexpr int TestUniquePtr()
 {
     auto ptr = t::make_unique< int >( 123 );
-    auto ptr2 = t::move( ptr );
+    auto ptr2 = std::move( ptr );
+    ptr2 = new int( 456 );
 
-    if ( ptr.get() != nullptr )
+    auto _arr = t::UniquePtr< int[] >( new int[ 5 ] );
+    auto _arr2 = std::move( _arr );
+    _arr2 = new int[ 3 ];
+
+    if ( ptr == ptr2 )
+        throw std::runtime_error("aorgnwrfv");
+
+    if ( ptr != nullptr )
         throw std::runtime_error("nonononono");
 
-    auto arr = t::make_unique< int[ 3 ] >( 4, 5, 6 );
-    auto arr2 = t::move( arr );
+    auto arr = t::make_unique< int[] >( { 4, 5, 6 } );
+    auto arr2 = std::move( arr );
 
     if ( arr.get() != nullptr )
         throw std::runtime_error("nonono");
 
-    return arr2->data()[ 0 ];
+    return arr2.get()[ 0 ];
 }
 
 constexpr int TestSharedPtr()
 {
     auto ptr = t::make_shared< int >( 123 );
-    auto ptr2 = ptr;
+    auto ptr2 = t::SharedPtr< int >( ptr );
 
-    auto arr = t::make_shared< int[ 3 ] >( 1, 2, 3 );
-    auto arr2 = arr;
-    auto arr3 = arr2;
+    if ( !ptr2.isShared() || ptr2.isUnique() )
+        throw std::runtime_error("nonooo");
 
-    return ( *arr )[ 2 ];
+    auto ptr3 = std::move( ptr2 );
+
+    if ( ptr2.get() != nullptr )
+        throw std::runtime_error("glkwnfv");
+
+    if ( ptr2.isShared() || !ptr2.isUnique() )
+        throw std::runtime_error("qorgwnf");
+
+    auto arr = t::SharedPtr< int[] >( new int[ 5 ] );
+
+    return *ptr;
 }
 
 constexpr int TestImmSharedPtr()
@@ -358,6 +375,8 @@ constexpr t::Array< int, 2 > TestLinkedList()
 
     auto it = list.find( 4 );
 
+    *it = 45;
+
     list.remove( it );
 
     it = list.find( 2 );
@@ -396,7 +415,7 @@ int main()
     HashMapVsUnorderedMap< 120 >();*/
 
     printSizeOf< String >();
-    printSizeOf< t::GeneralString< char, uint32 > >();
+    printSizeOf< t::GenericString< char, uint32 > >();
 
     constexpr auto a = TestSharedPtr();    (void) a;
     constexpr auto b = TestUniquePtr();    (void) b;

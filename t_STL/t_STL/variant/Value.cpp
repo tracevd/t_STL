@@ -126,28 +126,28 @@ namespace t
                 return Value( static_cast< ConstDerivedPtr< String > >( m_data.get() )->val );
             case MAP:
                 return Value( static_cast< ConstDerivedPtr< Map > >( m_data.get() )->val.Clone() );
-            case INT8_VECTOR:
-                return Value( static_cast< ConstDerivedPtr< Vector< int8 > > >( m_data.get() )->val );
-            case INT16_VECTOR:
-                return Value( static_cast< ConstDerivedPtr< Vector< int16 > > >( m_data.get() )->val );
-            case INT32_VECTOR:
-                return Value( static_cast< ConstDerivedPtr< Vector< int32 > > >( m_data.get() )->val );
-            case INT64_VECTOR:
-                return Value( static_cast< ConstDerivedPtr< Vector< int64 > > >( m_data.get() )->val );
-            case UINT8_VECTOR:
-                return Value( static_cast< ConstDerivedPtr< Vector< uint8 > > >( m_data.get() )->val );
-            case UINT16_VECTOR:
-                return Value( static_cast< ConstDerivedPtr< Vector< uint16 > > >( m_data.get() )->val );
-            case UINT32_VECTOR:
-                return Value( static_cast< ConstDerivedPtr< Vector< uint32 > > >( m_data.get() )->val );
-            case UINT64_VECTOR:
-                return Value( static_cast< ConstDerivedPtr< Vector< uint64 > > >( m_data.get() )->val );
-            case FLOAT_VECTOR:
-                return Value( static_cast< ConstDerivedPtr< Vector< float > > >( m_data.get() )->val );
-            case DOUBLE_VECTOR:
-                return Value( static_cast< ConstDerivedPtr< Vector< double > > >( m_data.get() )->val );
-            case STRING_VECTOR:
-                return Value( static_cast< ConstDerivedPtr< Vector< String > > >( m_data.get() )->val );
+            case INT8_LIST:
+                return Value( static_cast< ConstDerivedPtr< List< int8 > > >( m_data.get() )->val );
+            case INT16_LIST:
+                return Value( static_cast< ConstDerivedPtr< List< int16 > > >( m_data.get() )->val );
+            case INT32_LIST:
+                return Value( static_cast< ConstDerivedPtr< List< int32 > > >( m_data.get() )->val );
+            case INT64_LIST:
+                return Value( static_cast< ConstDerivedPtr< List< int64 > > >( m_data.get() )->val );
+            case UINT8_LIST:
+                return Value( static_cast< ConstDerivedPtr< List< uint8 > > >( m_data.get() )->val );
+            case UINT16_LIST:
+                return Value( static_cast< ConstDerivedPtr< List< uint16 > > >( m_data.get() )->val );
+            case UINT32_LIST:
+                return Value( static_cast< ConstDerivedPtr< List< uint32 > > >( m_data.get() )->val );
+            case UINT64_LIST:
+                return Value( static_cast< ConstDerivedPtr< List< uint64 > > >( m_data.get() )->val );
+            case FLOAT_LIST:
+                return Value( static_cast< ConstDerivedPtr< List< float > > >( m_data.get() )->val );
+            case DOUBLE_LIST:
+                return Value( static_cast< ConstDerivedPtr< List< double > > >( m_data.get() )->val );
+            case STRING_LIST:
+                return Value( static_cast< ConstDerivedPtr< List< String > > >( m_data.get() )->val );
             default:
                 throw std::runtime_error( "Unknown type attempting to be deleted" );
             }
@@ -186,28 +186,28 @@ namespace t
                 return As< String const& >() == rhs.As< String const& >();
             case MAP:
                 return As< Map const& >() == rhs.As< Map const& >();
-            case INT8_VECTOR:
-                return As< Vector< int8 > const& >() == rhs.As< Vector< int8 > const& >();
-            case INT16_VECTOR:
-                return As< Vector< int16 > const& >() == rhs.As< Vector< int16 > const& >();
-            case INT32_VECTOR:
-                return As< Vector< int32 > const& >() == rhs.As< Vector< int32 > const& >();
-            case INT64_VECTOR:
-                return As< Vector< int64 > const& >() == rhs.As< Vector< int64 > const& >();
-            case UINT8_VECTOR:
-                return As< Vector< uint8 > const& >() == rhs.As< Vector< uint8 > const& >();
-            case UINT16_VECTOR:
-                return As< Vector< uint16 > const& >() == rhs.As< Vector< uint16 > const& >();
-            case UINT32_VECTOR:
-                return As< Vector< uint32 > const& >() == rhs.As< Vector< uint32 > const& >();
-            case UINT64_VECTOR:
-                return As< Vector< uint64 > const& >() == rhs.As< Vector< uint64 > const& >();
-            case FLOAT_VECTOR:
-                return As< Vector< float > const& >() == rhs.As< Vector< float > const& >();
-            case DOUBLE_VECTOR:
-                return As< Vector< double > const& >() == rhs.As< Vector< double > const& >();
-            case STRING_VECTOR:
-                return As< Vector< String > const& >() == rhs.As< Vector< String > const& >();
+            case INT8_LIST:
+                return As< List< int8 > const& >() == rhs.As< List< int8 > const& >();
+            case INT16_LIST:
+                return As< List< int16 > const& >() == rhs.As< List< int16 > const& >();
+            case INT32_LIST:
+                return As< List< int32 > const& >() == rhs.As< List< int32 > const& >();
+            case INT64_LIST:
+                return As< List< int64 > const& >() == rhs.As< List< int64 > const& >();
+            case UINT8_LIST:
+                return As< List< uint8 > const& >() == rhs.As< List< uint8 > const& >();
+            case UINT16_LIST:
+                return As< List< uint16 > const& >() == rhs.As< List< uint16 > const& >();
+            case UINT32_LIST:
+                return As< List< uint32 > const& >() == rhs.As< List< uint32 > const& >();
+            case UINT64_LIST:
+                return As< List< uint64 > const& >() == rhs.As< List< uint64 > const& >();
+            case FLOAT_LIST:
+                return As< List< float > const& >() == rhs.As< List< float > const& >();
+            case DOUBLE_LIST:
+                return As< List< double > const& >() == rhs.As< List< double > const& >();
+            case STRING_LIST:
+                return As< List< String > const& >() == rhs.As< List< String > const& >();
             default:
                 return false;
             }

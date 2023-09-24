@@ -4,14 +4,14 @@
 
 #include "Tint.h"
 #include "Lib.h"
-#include "Vector.h"
+#include "List.h"
 
 namespace t
 {
 	class StringView;
 
 	template< class CharTy, class SizeTy >
-	class GeneralString
+	class GenericString
 	{
 	public:
 		using CharType = CharTy;
@@ -19,9 +19,9 @@ namespace t
 	public:
 		constexpr static SizeTy npos = t::limit< SizeTy >::max;
 	public:
-		constexpr GeneralString() = default;
+		constexpr GenericString() = default;
 
-		//constexpr explicit GeneralString( float number )
+		//constexpr explicit GenericString( float number )
 		//{
 		//	constexpr double PRECISION = 0.00000000000001;
 		//	constexpr uint32 MAX_NUMBER_STRING_SIZE = 32;
@@ -115,13 +115,13 @@ namespace t
 		//}
 
 		template< typename T, typename = std::enable_if_t< std::is_arithmetic_v< T > && !std::is_floating_point_v< T > > >
-		constexpr explicit GeneralString( T number )
+		constexpr explicit GenericString( T number )
 		{
 			if constexpr ( std::is_same_v< T, int64 > )
 			{
 				if ( number == limit< int64 >::min )
 				{
-					*this = GeneralString( "-9223372036854775808", 20 );
+					*this = GenericString( "-9223372036854775808", 20 );
 					return;
 				}
 			}
@@ -152,16 +152,16 @@ namespace t
 				}
 			}
 
-			*this = GeneralString( end, static_cast< SizeTy >( &buff[21] - end ) );
+			*this = GenericString( end, static_cast< SizeTy >( &buff[21] - end ) );
 		}
 
 		template< uint64 N >
-		constexpr GeneralString( CharTy const ( &str )[ N ] )
+		constexpr GenericString( CharTy const ( &str )[ N ] )
 		{
-			*this = GeneralString( str, static_cast< SizeTy >( N-1 ) );
+			*this = GenericString( str, static_cast< SizeTy >( N-1 ) );
 		}
 
-		constexpr GeneralString( const CharTy* str, SizeTy length )
+		constexpr GenericString( const CharTy* str, SizeTy length )
 		{
 			m_size = length;
 			m_capacity = m_size + DEFAULT_EXTRA_PADDING;
@@ -170,13 +170,13 @@ namespace t
 			m_data[ m_size ] = '\0';
 		}
 
-		constexpr GeneralString( const CharTy* str )
+		constexpr GenericString( const CharTy* str )
 		{
 			SizeTy length = static_cast< SizeTy >( strlen( str ) );
-			*this = GeneralString( str, length );
+			*this = GenericString( str, length );
 		}
 
-		constexpr GeneralString( GeneralString const& str )
+		constexpr GenericString( GenericString const& str )
 		{
 			m_size = str.m_size;
 			m_capacity = m_size + DEFAULT_EXTRA_PADDING;
@@ -185,12 +185,12 @@ namespace t
 			m_data[ m_size ] = '\0';
 		}
 
-		constexpr GeneralString( GeneralString&& str ) noexcept
+		constexpr GenericString( GenericString&& str ) noexcept
 		{
 			*this = std::move( str );
 		}
 
-		constexpr ~GeneralString()
+		constexpr ~GenericString()
 		{
 			delete[] m_data;
 			m_data	   = nullptr;
@@ -198,7 +198,7 @@ namespace t
 			m_size	   = 0;
 		}
 
-		constexpr GeneralString& operator=( GeneralString&& rhs ) noexcept
+		constexpr GenericString& operator=( GenericString&& rhs ) noexcept
 		{
 			if ( rhs.m_size <= m_capacity )
 			{
@@ -216,7 +216,7 @@ namespace t
 			return *this;
 		}
 
-		constexpr GeneralString substr( SizeTy start, SizeTy end = npos ) const
+		constexpr GenericString substr( SizeTy start, SizeTy end = npos ) const
 		{
 			if ( end <= start )
 				throw std::runtime_error("End cannot be less than or equal to start!");
@@ -229,7 +229,7 @@ namespace t
 			if ( end > size_ )
 				end = size_;
 
-			return GeneralString( m_data + start, end - start );
+			return GenericString( m_data + start, end - start );
 		}
 
 		constexpr StringView substrv( SizeTy start, SizeTy end = npos ) const;
@@ -310,12 +310,12 @@ namespace t
 			return npos;
 		}
 
-		constexpr Vector< GeneralString > split( CharTy c ) const
+		constexpr List< GenericString > split( CharTy c ) const
 		{
 			if ( m_data == nullptr )
 				return {};
 
-			Vector< SizeTy > indexes;
+			List< SizeTy > indexes;
 
 			for ( SizeTy i = 0; i < m_size; ++i )
 			{
@@ -328,13 +328,13 @@ namespace t
 
 			indexes.pushBack( m_size );
 
-			Vector< GeneralString > strings( indexes.size() );
+			List< GenericString > strings( indexes.size() );
 
 			auto stringptr = strings.data();
 
 			for ( SizeTy i = 0; i < indexes.size()-1; ++i, ++stringptr )
 			{
-				*stringptr = GeneralString( &m_data[ indexes[ i ] ], indexes[ i+1 ] - indexes[ i ] );
+				*stringptr = GenericString( &m_data[ indexes[ i ] ], indexes[ i+1 ] - indexes[ i ] );
 			}
 
 			return strings;
@@ -343,7 +343,7 @@ namespace t
 		constexpr const CharTy* data() const { return m_data; }
 		constexpr CharTy* data() { return m_data; }
 
-		constexpr GeneralString& operator=( GeneralString const& rhs )
+		constexpr GenericString& operator=( GenericString const& rhs )
 		{
 			if ( m_capacity >= rhs.m_size && m_data != nullptr )
 			{
@@ -352,11 +352,11 @@ namespace t
 				m_data[ m_size ] = '\0';
 				return *this;
 			}
-			*this = GeneralString( rhs );
+			*this = GenericString( rhs );
 			return *this;
 		}
 
-		constexpr GeneralString& operator=( const CharTy* rhs )
+		constexpr GenericString& operator=( const CharTy* rhs )
 		{
 			SizeTy length = (SizeTy) strlen( rhs );
 			if ( m_capacity >= length && m_data != nullptr )
@@ -366,7 +366,7 @@ namespace t
 				m_data[ m_size ] = '\0';
 				return *this;
 			}
-			*this = GeneralString( rhs, length );
+			*this = GenericString( rhs, length );
 			return *this;
 		}
 
@@ -394,7 +394,7 @@ namespace t
 			return m_data[ index ];
 		}
 
-		constexpr bool operator<( GeneralString const& rhs )
+		constexpr bool operator<( GenericString const& rhs )
 		{
 			if ( m_size < rhs.m_size )
 				return true;
@@ -408,7 +408,7 @@ namespace t
 			return true;
 		}
 
-		constexpr bool operator>( GeneralString const& rhs )
+		constexpr bool operator>( GenericString const& rhs )
 		{
 			if ( m_size > rhs.m_size )
 				return true;
@@ -422,7 +422,7 @@ namespace t
 			return true;
 		}
 
-		constexpr GeneralString& operator+=( GeneralString const& rhs )
+		constexpr GenericString& operator+=( GenericString const& rhs )
 		{
 			if ( m_size + rhs.m_size > m_capacity )
 			{
@@ -437,7 +437,7 @@ namespace t
 			return *this;
 		}
 
-		constexpr GeneralString& operator+=( const CharTy* rhs )
+		constexpr GenericString& operator+=( const CharTy* rhs )
 		{
 			auto length = (SizeTy) strlen( rhs );
 
@@ -456,7 +456,7 @@ namespace t
 			return *this;
 		}
 
-		constexpr GeneralString& operator+=( CharTy c )
+		constexpr GenericString& operator+=( CharTy c )
 		{
 			if ( m_size + 1 > m_capacity )
 			{
@@ -469,7 +469,7 @@ namespace t
 			return *this;
 		}
 
-		constexpr bool operator==( GeneralString const& rhs ) const
+		constexpr bool operator==( GenericString const& rhs ) const
 		{
 			if ( m_size != rhs.m_size )
 				return false;
@@ -486,7 +486,7 @@ namespace t
 			return true;
 		}
 
-		constexpr bool operator!=( GeneralString const& rhs ) const
+		constexpr bool operator!=( GenericString const& rhs ) const
 		{
 			if ( m_size != rhs.m_size )
 				return true;
@@ -538,17 +538,17 @@ namespace t
 		constexpr CharTy* c_str() { return m_data; }
 		constexpr const CharTy* c_str() const { return m_data; }
 
-		constexpr static inline GeneralString makeString( CharTy* allocbuffer, SizeTy stringSize )
+		constexpr static inline GenericString makeString( CharTy* allocbuffer, SizeTy stringSize )
 		{
-			return GeneralString( allocbuffer, stringSize, stringSize );
+			return GenericString( allocbuffer, stringSize, stringSize );
 		}
 
-		constexpr static inline GeneralString makeString( CharTy* allocbuffer, SizeTy stringSize, SizeTy bufferCapacity )
+		constexpr static inline GenericString makeString( CharTy* allocbuffer, SizeTy stringSize, SizeTy bufferCapacity )
 		{
-			return GeneralString( allocbuffer, stringSize, bufferCapacity );
+			return GenericString( allocbuffer, stringSize, bufferCapacity );
 		}
 		
-		friend std::istream& operator>>( std::istream& in, GeneralString& str )
+		friend std::istream& operator>>( std::istream& in, GenericString& str )
 		{
 			constexpr SizeTy buffSz = 256;
 			CharTy buff[ buffSz ] = { 0 };
@@ -557,7 +557,7 @@ namespace t
 			return in;
 		}
 
-		friend std::ostream& operator<<( std::ostream& os, const GeneralString& str )
+		friend std::ostream& operator<<( std::ostream& os, const GenericString& str )
 		{
 			if ( str.c_str() == nullptr )
 				return os << "";
@@ -587,7 +587,7 @@ namespace t
 			reallocate( m_capacity * 2 );
 		}
 
-		constexpr GeneralString( CharTy* allocbuffer, SizeTy bufferSize, SizeTy bufferCapacity ):
+		constexpr GenericString( CharTy* allocbuffer, SizeTy bufferSize, SizeTy bufferCapacity ):
 			m_data( allocbuffer ),
 			m_size( bufferSize + 1 ),
 			m_capacity( bufferCapacity ) {}
@@ -600,7 +600,7 @@ namespace t
 		static constexpr SizeTy DEFAULT_EXTRA_PADDING = 7;
 	};
 
-	using String = GeneralString< char, uint64 >;
+	using String = GenericString< char, uint64 >;
 
 	class StringView
 	{
@@ -639,7 +639,7 @@ namespace t
 	};
 
 	template< class CharTy, class SizeTy >
-	constexpr StringView GeneralString< CharTy, SizeTy >::substrv( SizeTy start, SizeTy end ) const
+	constexpr StringView GenericString< CharTy, SizeTy >::substrv( SizeTy start, SizeTy end ) const
 	{
 		if ( end <= start )
 			throw std::runtime_error( "End cannot be less than or equal to start!" );

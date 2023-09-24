@@ -2,7 +2,7 @@
 
 #include <assert.h>
 #include "Type.h"
-#include "Vector.h"
+#include "List.h"
 #include "LinkedList.h"
 #include "Memory.h"
 #include "Array.h"
@@ -650,7 +650,7 @@ namespace t
 		};
 
 		using Bucket = MultiValueLinkedList;
-		using BucketList = Vector< Bucket >;
+		using BucketList = List< Bucket >;
 
 		constexpr inline uint64 hash( const KeyTy& key ) const
 		{

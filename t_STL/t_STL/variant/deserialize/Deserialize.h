@@ -6,7 +6,7 @@ namespace t
 {
 	namespace variant
 	{
-		using BufferType = Vector< uint8 >;
+		using BufferType = List< uint8 >;
 
 		Map Deserialize( BufferType const& buffer );
 

@@ -15,19 +15,19 @@
 	template T Value::As< T, void >() const;
 #endif
 
-#define DefineNormalAndVector( template, T ) \
+#define DefineNormalAndList( template, T ) \
 DefineTemplate( template, T ) \
-DefineTemplate( template, Vector< T > )
+DefineTemplate( template, List< T > )
 
 #define DefineAll( template ) \
-DefineNormalAndVector( template, int8 ) \
-DefineNormalAndVector( template, int16 ) \
-DefineNormalAndVector( template, int32 ) \
-DefineNormalAndVector( template, int64 ) \
-DefineNormalAndVector( template, uint8 ) \
-DefineNormalAndVector( template, uint16 ) \
-DefineNormalAndVector( template, uint32 ) \
-DefineNormalAndVector( template, uint64 ) \
-DefineNormalAndVector( template, float ) \
-DefineNormalAndVector( template, double ) \
-DefineNormalAndVector( template, String )
+DefineNormalAndList( template, int8 ) \
+DefineNormalAndList( template, int16 ) \
+DefineNormalAndList( template, int32 ) \
+DefineNormalAndList( template, int64 ) \
+DefineNormalAndList( template, uint8 ) \
+DefineNormalAndList( template, uint16 ) \
+DefineNormalAndList( template, uint32 ) \
+DefineNormalAndList( template, uint64 ) \
+DefineNormalAndList( template, float ) \
+DefineNormalAndList( template, double ) \
+DefineNormalAndList( template, String )

@@ -7,18 +7,20 @@ namespace t
 	namespace details
 	{
 		template< class T >
-		struct ListNode
+		struct LinkedListNode
 		{
 		public:
-			constexpr ListNode( T&& data ):
+			constexpr LinkedListNode( T&& data ):
 				data( std::move( data ) ) {}
-			constexpr ListNode( T const& data ):
+			constexpr LinkedListNode( T const& data ):
 				data( data ) {}
+
+			LinkedListNode() = delete;
 
 			constexpr T& addNext( T&& data )
 			{
 				auto oldNext = next;
-				next = new ListNode( std::move( data ) );
+				next = new LinkedListNode( std::move( data ) );
 				next->prev = this;
 				next->next = oldNext;
 				return next->data;
@@ -33,7 +35,7 @@ namespace t
 			constexpr T& addPrev( T&& data )
 			{
 				auto oldPrev = prev;
-				prev = new ListNode( std::move( data ) );
+				prev = new LinkedListNode( std::move( data ) );
 				prev->next = this;
 				prev->prev = oldPrev;
 				return prev->data;
@@ -47,16 +49,16 @@ namespace t
 
 		public:
 			T data{};
-			ListNode* next = nullptr;
-			ListNode* prev = nullptr;
+			LinkedListNode* next = nullptr;
+			LinkedListNode* prev = nullptr;
 		};
 	}
 
 	template< class List >
-	class ListConstIterator;
+	class LinkedListConstIterator;
 
 	template< class List >
-	class ListIterator
+	class LinkedListIterator
 	{
 	public:
 #ifdef _MSC_VER
@@ -65,25 +67,25 @@ namespace t
 		using ValueType = List::ValueType;
 #endif
 	private:
-		using NodeType = details::ListNode< ValueType >;
+		using NodeType = details::LinkedListNode< ValueType >;
 	public:
-		constexpr ListIterator( NodeType* node ):
+		constexpr LinkedListIterator( NodeType* node ):
 			m_node( node ) {}
 
-		ListIterator() = delete;
+		LinkedListIterator() = delete;
 
-		constexpr ListIterator& operator++()
+		constexpr LinkedListIterator& operator++()
 		{
 			m_node = m_node->next;
 			return *this;
 		}
 
-		constexpr bool operator==( ListIterator rhs )
+		constexpr bool operator==( LinkedListIterator rhs )
 		{
 			return m_node == rhs.m_node;
 		}
 
-		constexpr bool operator!=( ListIterator rhs )
+		constexpr bool operator!=( LinkedListIterator rhs )
 		{
 			return m_node != rhs.m_node;
 		}
@@ -100,11 +102,11 @@ namespace t
 
 	private:
 		NodeType* m_node;
-		friend ListConstIterator< List >;
+		friend LinkedListConstIterator< List >;
 	};
 
 	template< class List >
-	class ListConstIterator
+	class LinkedListConstIterator
 	{
 	public:
 #ifdef _MSC_VER
@@ -117,28 +119,28 @@ namespace t
 		using InnerValueType = List::ValueType;
 #endif
 	private:
-		using NodeType = details::ListNode< InnerValueType >;
+		using NodeType = details::LinkedListNode< InnerValueType >;
 	public:
-		constexpr ListConstIterator( NodeType* node ):
+		constexpr LinkedListConstIterator( NodeType* node ):
 			m_node( node ) {}
 
-		constexpr ListConstIterator( ListIterator< List > it ):
+		constexpr LinkedListConstIterator( LinkedListIterator< List > it ):
 			m_node( it.m_node ) {}
 
-		ListConstIterator() = delete;
+		LinkedListConstIterator() = delete;
 
-		constexpr ListConstIterator& operator++()
+		constexpr LinkedListConstIterator& operator++()
 		{
 			m_node = m_node->next;
 			return *this;
 		}
 
-		constexpr bool operator==( ListConstIterator rhs )
+		constexpr bool operator==( LinkedListConstIterator rhs )
 		{
 			return m_node == rhs.m_node;
 		}
 
-		constexpr bool operator!=( ListConstIterator rhs )
+		constexpr bool operator!=( LinkedListConstIterator rhs )
 		{
 			return m_node != rhs.m_node;
 		}
@@ -162,10 +164,10 @@ namespace t
 	{
 	public:
 		using ValueType = T;
-		using Iterator = ListIterator< LinkedList >;
-		using ConstIterator = ListConstIterator< LinkedList >;
+		using Iterator = LinkedListIterator< LinkedList >;
+		using ConstIterator = LinkedListConstIterator< LinkedList >;
 	private:
-		using NodeType = details::ListNode< T >;
+		using NodeType = details::LinkedListNode< T >;
 	public:
 		constexpr LinkedList() = default;
 
@@ -437,25 +439,25 @@ namespace t
 }
 
 template< class List >
-constexpr bool operator==( t::ListIterator< List > lhs, t::ListConstIterator< List > rhs )
+constexpr bool operator==( t::LinkedListIterator< List > lhs, t::LinkedListConstIterator< List > rhs )
 {
 	return lhs.operator->() == rhs.operator->();
 }
 
 template< class List >
-constexpr bool operator!=( t::ListIterator< List > lhs, t::ListConstIterator< List > rhs )
+constexpr bool operator!=( t::LinkedListIterator< List > lhs, t::LinkedListConstIterator< List > rhs )
 {
 	return lhs.operator->() != rhs.operator->();
 }
 
 template< class List >
-constexpr bool operator==( t::ListConstIterator< List > lhs, t::ListIterator< List > rhs )
+constexpr bool operator==( t::LinkedListConstIterator< List > lhs, t::LinkedListIterator< List > rhs )
 {
 	return lhs.operator->() == rhs.operator->();
 }
 
 template< class List >
-constexpr bool operator!=( t::ListConstIterator< List > lhs, t::ListIterator< List > rhs )
+constexpr bool operator!=( t::LinkedListConstIterator< List > lhs, t::LinkedListIterator< List > rhs )
 {
 	return lhs.operator->() != rhs.operator->();
 }

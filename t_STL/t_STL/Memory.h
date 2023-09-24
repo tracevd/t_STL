@@ -1,262 +1,344 @@
 #pragma once
 
+#include <compare>
+
 #include "Tint.h"
 #include "Type.h"
 #include "Array.h"
 
 namespace t
 {
-	template< typename T >
-	class UniquePtr
+	namespace details
 	{
+		template< typename T >
+		class UniquePtrBase
+		{
+		protected:
+			using ValueType = type::remove_array< T >;
+		protected:
+			constexpr UniquePtrBase() = default;
+
+			constexpr UniquePtrBase( ValueType* alloc ) noexcept:
+				m_data( alloc ) {};
+
+			constexpr UniquePtrBase( UniquePtrBase&& ptr ) noexcept:
+				m_data( ptr.m_data )
+			{
+				ptr.m_data = nullptr;
+			}
+
+			constexpr UniquePtrBase& operator=( UniquePtrBase&& rhs ) noexcept
+			{
+				if ( this == &rhs )
+					return *this;
+				m_data = rhs.m_data;
+				rhs.m_data = nullptr;
+				return *this;
+			}
+
+			constexpr UniquePtrBase& operator=( ValueType* allocation ) noexcept
+			{
+				if ( allocation == m_data )
+					return *this;
+				this->DestroyData();
+
+				this->m_data = allocation;
+				return *this;
+			}
+		public:
+			UniquePtrBase( UniquePtrBase const& ) = delete;
+			UniquePtrBase& operator=( UniquePtrBase const& ) = delete;
+
+			constexpr ~UniquePtrBase() { DestroyData(); }
+
+			[[nodiscard]] constexpr ValueType* release() noexcept { auto cpy_ptr = m_data; m_data = nullptr; return cpy_ptr; }
+
+			[[nodiscard]] constexpr ValueType* get() const noexcept { return m_data; }
+
+			[[nodiscard]] constexpr const ValueType* operator->() const noexcept { return m_data; }
+
+			[[nodiscard]] constexpr ValueType* operator->() noexcept { return m_data; }
+
+			[[nodiscard]] constexpr ValueType& operator*() noexcept { return *m_data; }
+
+			[[nodiscard]] constexpr ValueType const& operator*() const noexcept { return *m_data; }
+
+			[[nodiscard]] constexpr auto operator<=>( UniquePtrBase const& rhs ) const noexcept { return m_data <=> rhs.m_data; }
+
+			[[nodiscard]] constexpr bool operator==( const void* rhs ) const noexcept { return m_data == rhs; }
+			[[nodiscard]] constexpr bool operator!=( const void* rhs ) const noexcept { return m_data != rhs; }
+			[[nodiscard]] constexpr bool operator==( std::nullptr_t )  const { return m_data == nullptr; }
+			[[nodiscard]] constexpr bool operator!=( std::nullptr_t )  const { return m_data != nullptr; }
+
+			[[nodiscard]] constexpr operator bool() const { return m_data != nullptr; }
+		protected:
+			constexpr void DestroyData()
+			{
+				if constexpr ( type::is_array< T > )
+					delete[] m_data;
+				else
+					delete m_data;
+			}
+		protected:
+			ValueType* m_data = nullptr;
+		};
+	}
+
+	template< typename T >
+	class UniquePtr : public details::UniquePtrBase< T >
+	{
+	private:
+		using BaseType = details::UniquePtrBase< T >;
 	public:
 		constexpr UniquePtr() = default;
-		UniquePtr( const UniquePtr& al ) = delete;
-		UniquePtr& operator=( const UniquePtr& rhs ) = delete;
 
-		constexpr UniquePtr( T* allocation ):
-			m_data( allocation ) {}
+		constexpr UniquePtr( const T& in ):
+			BaseType( new T( in ) ) {}
 
-		constexpr UniquePtr( const T& in ) :
-			m_data( new T( in ) ) {}
+		constexpr UniquePtr( T&& in ) noexcept:
+			BaseType( new T( move( in ) ) ) {}
 
-		constexpr UniquePtr( T&& in ) :
-			m_data( new T( move( in ) ) ) {}
+		constexpr UniquePtr( T* allocation ) noexcept:
+			BaseType( allocation ) {}
 
-		constexpr UniquePtr( UniquePtr&& other ) noexcept
-		{
-			m_data = other.m_data;
-			other.m_data = nullptr;
-		}
+		constexpr UniquePtr( UniquePtr&& other ) noexcept:
+			BaseType( std::move( other ) ) {}
 
 		constexpr UniquePtr& operator=( UniquePtr&& rhs ) noexcept
 		{
-			if ( this == &rhs )
-				return *this;
-			DestroyData();
-			m_data = rhs.m_data;
-			rhs.m_data = nullptr;
+			BaseType::operator=( std::move( rhs ) );
 			return *this;
 		}
 
-		constexpr UniquePtr& operator=( T* allocation ) noexcept
+		constexpr UniquePtr& operator=( T* alloc )
 		{
-			if ( allocation == m_data )
-				return *this;
-			DestroyData();
-
-			m_data = allocation;
+			BaseType::operator=( alloc );
 			return *this;
 		}
-
-		constexpr ~UniquePtr()
-		{
-			DestroyData();
-		}
-
-		constexpr T* release() { auto cpy_ptr = m_data; m_data = nullptr; return cpy_ptr; }
-
-		constexpr T* get() const noexcept { return m_data; }
-
-		constexpr const T* operator->() const noexcept { return m_data; }
-
-		constexpr T* operator->() noexcept { return m_data; }
-
-		constexpr T& operator*() { return *m_data; }
-
-		constexpr T const& operator*() const { return *m_data; }
-
-		constexpr bool operator==( const UniquePtr& rhs ) const { return m_data == rhs.m_data; }
-
-		constexpr bool operator!=( const UniquePtr& rhs ) const { return m_data != rhs.m_data; }
-
-		constexpr bool operator< ( const UniquePtr& rhs ) const { return m_data < rhs.m_data; }
-
-		constexpr bool operator>=( const UniquePtr& rhs ) const { return m_data >= rhs.m_data; }
-
-		constexpr bool operator> ( const UniquePtr& rhs ) const { return m_data > rhs.m_data; }
-
-		constexpr bool operator<=( const UniquePtr& rhs ) const { return m_data <= rhs.m_data; }
-
-		constexpr bool operator==( const void* const rhs ) const { return m_data == rhs; }
-
-		constexpr bool operator!=( const void* const rhs ) const { return m_data != rhs; }
-
-		constexpr bool operator< ( const void* const rhs ) const { return m_data < rhs; }
-
-		constexpr bool operator>=( const void* const rhs ) const { return m_data >= rhs; }
-
-		constexpr bool operator> ( const void* const rhs ) const { return m_data > rhs; }
-
-		constexpr bool operator<=( const void* const rhs ) const { return m_data <= rhs; }
-
-		constexpr operator bool() const { return m_data != nullptr; }
-	private:
-		constexpr void DestroyData()
-		{
-			if constexpr ( type::is_array< T > )
-			{
-				delete[] m_data;
-			}
-			else
-			{
-				delete m_data;
-			}
-
-			m_data = nullptr;
-		}
-	private:
-		T* m_data = nullptr;
 	};
 
-	template< typename T >
-	class SharedPtr
+	template< class T >
+	class UniquePtr< T[] > : public details::UniquePtrBase< T[] >
 	{
+	private:
+		using BaseType = details::UniquePtrBase< T[] >;
+		using ValueType = BaseType::ValueType;
+	public:
+		constexpr UniquePtr() = default;
+
+		constexpr UniquePtr( ValueType* allocation ) noexcept:
+			BaseType( allocation ) {}
+
+		constexpr UniquePtr( UniquePtr&& other ) noexcept:
+			BaseType( std::move( other ) ) {}
+
+		constexpr UniquePtr& operator=( UniquePtr&& rhs ) noexcept
+		{
+			BaseType::operator=( std::move( rhs ) );
+			return *this;
+		}
+
+		constexpr UniquePtr& operator=( ValueType* alloc )
+		{
+			BaseType::operator=( alloc );
+			return *this;
+		}
+
+		[[nodiscard]] constexpr ValueType& operator[]( uint64 index ) noexcept { return this->m_data[ index ]; }
+		[[nodiscard]] constexpr ValueType const& operator[]( uint64 index ) const noexcept { return this->m_data[ index ]; }
+	};
+
+	namespace details
+	{
+		template< class T >
+		class SharedPtrBase
+		{
+		protected:
+			using ValueType = type::remove_array< T >;
+		protected:
+			constexpr SharedPtrBase() = default;
+
+			constexpr SharedPtrBase( ValueType* alloc ) noexcept:
+				m_data( alloc ),
+				m_refCount( new uint64( 1 ) ) {};
+
+			constexpr SharedPtrBase( SharedPtrBase const& ptr ):
+				m_data( ptr.m_data ),
+				m_refCount( ptr.m_refCount )
+			{
+				if ( m_refCount )
+					*m_refCount += 1;
+			}
+
+			constexpr SharedPtrBase( SharedPtrBase&& ptr ):
+				m_data( ptr.m_data ),
+				m_refCount( ptr.m_refCount )
+			{
+				ptr.m_data = nullptr;
+				ptr.m_refCount = nullptr;
+			}
+
+			constexpr void operator=( SharedPtrBase const& rhs )
+			{
+				if ( this == &rhs )
+					return;
+
+				DestroyData();
+
+				m_data = rhs.m_data;
+				m_refCount = rhs.m_refCount;
+
+				if ( m_refCount )
+					*m_refCount += 1;
+			}
+			
+			constexpr void operator=( SharedPtrBase&& rhs )
+			{
+				if ( this == &rhs )
+					return;
+
+				DestroyData();
+
+				m_data = rhs.m_data;
+				m_refCount = rhs.m_refCount;
+
+				rhs.m_data = nullptr;
+				rhs.m_refCount = nullptr;
+			}
+
+			void operator=( ValueType* alloc )
+			{
+				DestroyData();
+
+				m_data = alloc;
+				if ( m_data == nullptr )
+					return;
+				m_refCount = new uint64( 1 );
+			}
+		public:
+			constexpr ~SharedPtrBase() { DestroyData(); }
+
+			[[nodiscard]] constexpr bool isUnique() const noexcept
+			{
+				if ( m_data == nullptr || m_refCount == nullptr )
+					return true;
+				return *m_refCount == 1;
+			}
+
+			[[nodiscard]] constexpr bool isShared() const noexcept
+			{
+				return !isUnique();
+			}
+
+			[[nodiscard]] constexpr ValueType* get() const noexcept { return m_data; }
+
+			[[nodiscard]] constexpr const ValueType* operator->() const noexcept { return m_data; }
+
+			[[nodiscard]] constexpr ValueType* operator->() noexcept { return m_data; }
+
+			[[nodiscard]] constexpr ValueType& operator*() noexcept { return *m_data; }
+
+			[[nodiscard]] constexpr ValueType const& operator*() const noexcept { return *m_data; }
+
+			[[nodiscard]] constexpr auto operator<=>( SharedPtrBase const& rhs ) const noexcept { return m_data <=> rhs.m_data; }
+
+			[[nodiscard]] constexpr bool operator==( const void* rhs ) const noexcept { return m_data == rhs; }
+			[[nodiscard]] constexpr bool operator!=( const void* rhs ) const noexcept { return m_data != rhs; }
+			[[nodiscard]] constexpr bool operator==( std::nullptr_t )  const { return m_data == nullptr; }
+			[[nodiscard]] constexpr bool operator!=( std::nullptr_t )  const { return m_data != nullptr; }
+
+			[[nodiscard]] constexpr operator bool() const { return m_data != nullptr; }
+		protected:
+			constexpr void DestroyData()
+			{
+				if ( m_refCount == nullptr )
+					return;
+				*m_refCount -= 1;
+				if ( *m_refCount )
+				{
+					m_refCount = nullptr;
+					m_data = nullptr;
+					return;
+				}
+				delete m_refCount;
+
+				if constexpr ( type::is_array< T > )
+					delete[] m_data;
+				else
+					delete m_data;
+
+				m_data = nullptr;
+				m_refCount = nullptr;
+			}
+		protected:
+			ValueType* m_data = nullptr;
+			uint64* m_refCount = nullptr;
+		};
+	}
+
+	template< typename T >
+	class SharedPtr : public details::SharedPtrBase< T >
+	{
+	private:
+		using BaseType = details::SharedPtrBase< T >;
 	public:
 		constexpr SharedPtr() = default;
 
 		constexpr SharedPtr( const T& in ):
-			m_data( new T( in ) ),
-			m_refCount( new uint64( 1 ) ) {}
+			BaseType( new T( in ) ) {}
 
 		constexpr SharedPtr( T&& in ):
-			m_data( new T( move( in ) ) ),
-			m_refCount( new uint64( 1 ) ) {}
+			BaseType( new T( move( in ) ) ) {}
 
 		constexpr SharedPtr( T* allocation ):
-			m_data( allocation ),
-			m_refCount( new uint64( 1 ) ) {}
+			BaseType( allocation ) {}
 
 		constexpr SharedPtr( const SharedPtr& ptr ):
-			m_data( ptr.m_data ),
-			m_refCount( ptr.m_refCount )
-		{
-			if ( m_data != nullptr && m_refCount != nullptr )
-			{
-				*m_refCount += 1;
-			}
-		}
+			BaseType( ptr ) {}
 
 		constexpr SharedPtr( SharedPtr&& ptr ) noexcept:
-			m_data( ptr.m_data ),
-			m_refCount( ptr.m_refCount )
-		{
-			ptr.m_data = nullptr;
-			ptr.m_refCount = nullptr;
-		}
-
-		constexpr ~SharedPtr()
-		{
-			DestroyData();
-		}
+			BaseType( std::move( ptr ) ) {}
 
 		constexpr SharedPtr& operator=( SharedPtr const& rhs )
 		{
-			if ( this == &rhs || m_data == rhs.m_data )
-				return *this;
-			DestroyData();
-
-			m_data = rhs.m_data;
-			m_refCount = rhs.m_refCount;
-
-			if ( rhs.m_data != nullptr && m_refCount != nullptr )
-				*m_refCount += 1;
-
+			BaseType::operator=( rhs );
 			return *this;
 		}
 
-		constexpr SharedPtr& operator=( SharedPtr&& rhs ) noexcept
+		constexpr SharedPtr& operator=( SharedPtr&& rhs )
 		{
-			if ( this == &rhs )
-				return *this;
-			DestroyData();
-
-			m_data = rhs.m_data;
-			m_refCount = rhs.m_refCount;
-			rhs.m_data = nullptr;
-			rhs.m_refCount = nullptr;
-
+			BaseType::operator=( std::move( rhs ) );
 			return *this;
 		}
 
-		constexpr bool isUnique() const noexcept
+		constexpr SharedPtr& operator=( T* alloc )
 		{
-			if ( m_data == nullptr || m_refCount == nullptr )
-				return true;
-			return *m_refCount == 1;
+			BaseType::operator=( alloc );
+			return *this;
 		}
+	};
 
-		constexpr bool isShared() const noexcept
-		{
-			return !isUnique();
-		}
-
-		constexpr const T* get() const noexcept { return m_data; }
-
-		constexpr T* get() noexcept { return m_data; }
-
-		constexpr const T* operator->() const noexcept { return get(); }
-
-		constexpr T* operator->() noexcept { return get(); }
-
-		constexpr T& operator*() { return *m_data; }
-
-		constexpr T const& operator*() const { return *m_data; }
-
-		constexpr bool operator==( const SharedPtr& rhs ) const noexcept { return m_data == rhs.m_data; }
-
-		constexpr bool operator!=( const SharedPtr& rhs ) const noexcept { return m_data != rhs.m_data; }
-
-		constexpr bool operator< ( const SharedPtr& rhs ) const noexcept { return m_data < rhs.m_data; }
-
-		constexpr bool operator>=( const SharedPtr& rhs ) const noexcept { return m_data >= rhs.m_data; }
-
-		constexpr bool operator> ( const SharedPtr& rhs ) const noexcept { return m_data > rhs.m_data; }
-
-		constexpr bool operator<=( const SharedPtr& rhs ) const noexcept { return m_data <= rhs.m_data; }
-
-		constexpr bool operator==( const T* const rhs )   const noexcept { return m_data == rhs; }
-
-		constexpr bool operator!=( const T* const rhs )   const noexcept { return m_data != rhs; }
-
-		constexpr bool operator< ( const T* const rhs )   const noexcept { return m_data < rhs; }
-
-		constexpr bool operator>=( const T* const rhs )   const noexcept { return m_data >= rhs; }
-
-		constexpr bool operator> ( const T* const rhs )   const noexcept { return m_data > rhs; }
-
-		constexpr bool operator<=( const T* const rhs )   const noexcept { return m_data <= rhs; }
-
-		constexpr bool operator==( std::nullptr_t )       const noexcept { return m_data == nullptr; }
-
-		constexpr bool operator!=( std::nullptr_t )       const noexcept { return m_data != nullptr; }
-
-		constexpr operator bool() const noexcept { return m_data != nullptr; }
+	template< typename T >
+	class SharedPtr< T[] > : public details::SharedPtrBase< T[] >
+	{
 	private:
-		constexpr void DestroyData()
-		{
-			if ( m_data == nullptr || m_refCount == nullptr )
-				return;
+		using BaseType = details::SharedPtrBase< T[] >;
+	public:
+		constexpr SharedPtr() = default;
 
-			*m_refCount -= 1;
+		constexpr SharedPtr( T* allocation ) :
+			BaseType( allocation ) {}
 
-			if ( *m_refCount != 0 )
-				return;
-				
-			delete m_refCount;
+		constexpr SharedPtr( const SharedPtr& ptr ) :
+			BaseType( ptr ) {}
 
-			if constexpr ( type::is_array< T > )
-				delete[] m_data;
-			else
-				delete m_data;
+		constexpr SharedPtr( SharedPtr&& ptr ) noexcept:
+			BaseType( ptr ) {}
 
-			m_data = nullptr;
-			m_refCount = nullptr;
-		}
+		using BaseType::operator=;
 
-	private:
-		T* m_data = nullptr;
-		uint64* m_refCount = nullptr;
+		T& operator[]( uint64 index ) noexcept { return this->m_data[ index ]; }
+		T const& operator[]( uint64 index ) const noexcept { return this->m_data[ index ]; }
 	};
 
 	template< class T >
@@ -353,6 +435,10 @@ namespace t
 
 		constexpr T* operator->() noexcept { return get(); }
 
+		constexpr auto operator<=>( ImmutableSharedPtr const& rhs ) const { return m_data <=> rhs.m_data; }
+
+		constexpr auto operator<=>( const T* const rhs ) const { return m_data <=> rhs; }
+
 		constexpr bool isUnique() const noexcept
 		{
 			if ( m_data == nullptr || m_refCount == nullptr )
@@ -397,13 +483,14 @@ namespace t
 		return UniquePtr< T >( new T( std::forward< Args >( args )... ) );
 	}
 
-	template< class T, class... Elem, class = type::enable_if< type::is_array< T > > >
-	constexpr auto make_unique( Elem&&... args )
+	template< class T, class = std::enable_if_t< type::is_array< T > > >
+	constexpr auto make_unique( std::initializer_list< type::remove_array< T > >&& args )
 	{
-		using raw_t = type::remove_array< T >;
-		constexpr uint64 size = sizeof( T ) / sizeof( raw_t );
-		using ArrayTy = t::Array< raw_t, size >;
-		return UniquePtr< ArrayTy >( new ArrayTy( { std::forward< Elem >( args )... } ) );
+		UniquePtr< T > ptr = new type::remove_array< T >[ args.size() ];
+		auto raw = ptr.get();
+		for ( auto it = args.begin(); it != args.end(); ++it, ++raw )
+			*raw = std::move( *it );
+		return ptr;
 	}
 
 	template< class T, class... Args, class = std::enable_if_t< !type::is_array< T > > >
@@ -412,27 +499,9 @@ namespace t
 		return SharedPtr< T >( new T( std::forward< Args >( args )... ) );
 	}
 
-	template< class T, class... Elem, class = type::enable_if< type::is_array< T > > >
-	constexpr auto make_shared( Elem&&... args )
-	{
-		using raw_t = type::remove_array< T >;
-		constexpr uint64 size = sizeof( T ) / sizeof( raw_t );
-		using ArrayTy = t::Array< raw_t, size >;
-		return SharedPtr< ArrayTy >( new ArrayTy( { std::forward< Elem >( args )... } ) );
-	}
-
 	template< class T, class... Args, class = type::enable_if< !type::is_array< T > > >
 	constexpr ImmutableSharedPtr< T > make_immutable_shared( Args&&... args )
 	{
 		return ImmutableSharedPtr< T >( new T( std::forward< Args >( args  )... ) );
-	}
-
-	template< class T, class... Elem, class = type::enable_if< type::is_array< T > > >
-	constexpr auto make_immutable_shared( Elem&&... args )
-	{
-		using raw_t = type::remove_array< T >;
-		constexpr uint64 size = sizeof( T ) / sizeof( raw_t );
-		using ArrayTy = t::Array< raw_t, size >;
-		return ImmutableSharedPtr< ArrayTy >( new ArrayTy( { std::forward< Elem >( args )... } ) );
 	}
 }

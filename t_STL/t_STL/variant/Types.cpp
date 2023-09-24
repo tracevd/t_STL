@@ -35,27 +35,27 @@ namespace t
                 return "String";
             case MAP:
                 return "Map";
-            case INT8_VECTOR:
+            case INT8_LIST:
                 return "i8[]";
-            case INT16_VECTOR:
+            case INT16_LIST:
                 return "i16[]";
-            case INT32_VECTOR:
+            case INT32_LIST:
                 return "i32[]";
-            case INT64_VECTOR:
+            case INT64_LIST:
                 return "i64[]";
-            case UINT8_VECTOR:
+            case UINT8_LIST:
                 return "u8[]";
-            case UINT16_VECTOR:
+            case UINT16_LIST:
                 return "u16[]";
-            case UINT32_VECTOR:
+            case UINT32_LIST:
                 return "u32[]";
-            case UINT64_VECTOR:
+            case UINT64_LIST:
                 return "u64[]";
-            case FLOAT_VECTOR:
+            case FLOAT_LIST:
                 return "float[]";
-            case DOUBLE_VECTOR:
+            case DOUBLE_LIST:
                 return "double[]";
-            case STRING_VECTOR:
+            case STRING_LIST:
                 return "String[]";
             default:
                 return "void";

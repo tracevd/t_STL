@@ -8,7 +8,7 @@
 namespace t
 {
     template< typename T >
-    class Vector;
+    class List;
 
     template< typename T >
     struct is_vector
@@ -17,7 +17,7 @@ namespace t
     };
 
     template< typename T >
-    struct is_vector< Vector< T > >
+    struct is_vector< List< T > >
     {
         static constexpr bool value = true;
     };
@@ -34,18 +34,18 @@ namespace t
             FLOAT, DOUBLE,
             STRING,
             MAP,
-            VECTOR = 0x10,
-            INT8_VECTOR = INT8 | VECTOR,
-            INT16_VECTOR = INT16 | VECTOR,
-            INT32_VECTOR = INT32 | VECTOR,
-            INT64_VECTOR = INT64 | VECTOR,
-            UINT8_VECTOR = UINT8 | VECTOR,
-            UINT16_VECTOR = UINT16 | VECTOR,
-            UINT32_VECTOR = UINT32 | VECTOR,
-            UINT64_VECTOR = UINT64 | VECTOR,
-            FLOAT_VECTOR = FLOAT | VECTOR,
-            DOUBLE_VECTOR = DOUBLE | VECTOR,
-            STRING_VECTOR = STRING | VECTOR
+            LIST = 0x10,
+            INT8_LIST = INT8 | LIST,
+            INT16_LIST = INT16 | LIST,
+            INT32_LIST = INT32 | LIST,
+            INT64_LIST = INT64 | LIST,
+            UINT8_LIST = UINT8 | LIST,
+            UINT16_LIST = UINT16 | LIST,
+            UINT32_LIST = UINT32 | LIST,
+            UINT64_LIST = UINT64 | LIST,
+            FLOAT_LIST = FLOAT | LIST,
+            DOUBLE_LIST = DOUBLE | LIST,
+            STRING_LIST = STRING | LIST
         };
 
         #include "ValueTypeDefines.h"

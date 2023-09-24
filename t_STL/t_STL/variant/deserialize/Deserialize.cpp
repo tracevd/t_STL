@@ -21,11 +21,11 @@ namespace t
 		}
 
 		template< typename T >
-		Value DeserializeVector( const uint8* buffer, uint64& bufferOffset, uint64 numel )
+		Value DeserializeList( const uint8* buffer, uint64& bufferOffset, uint64 numel )
 		{
-			if constexpr ( std::is_same_v< T, Vector< String > > )
+			if constexpr ( std::is_same_v< T, List< String > > )
 			{
-				Vector< String > vec;
+				List< String > vec;
 				vec.reserve( numel );
 
 				for ( ; numel > 0; --numel )
@@ -103,11 +103,11 @@ namespace t
 		namespace bitstream_v1
 		{
 			template< typename T >
-			void DeserializeAndInsertVector( Map& map, String&& key, const uint8* buffer, uint64& bufferOffset )
+			void DeserializeAndInsertList( Map& map, String&& key, const uint8* buffer, uint64& bufferOffset )
 			{
 				auto numel = ReadValueFromBuffer< uint64 >( &buffer[bufferOffset] );
 				bufferOffset += sizeof( uint64 );
-				map.insert( { std::move( key ), DeserializeVector< T >( buffer, bufferOffset, numel ) } );
+				map.insert( { std::move( key ), DeserializeList< T >( buffer, bufferOffset, numel ) } );
 			}
 
 			template< typename T >
@@ -181,38 +181,38 @@ namespace t
 					case MAP:
 						DeserializeAndInsertMap( out_vm, std::move( key ), buffer, bufferSize, bufferOffset );
 						continue;
-					case INT8_VECTOR:
-						DeserializeAndInsertVector< Vector< int8 > >( out_vm, std::move( key ), buffer, bufferOffset );
+					case INT8_LIST:
+						DeserializeAndInsertList< List< int8 > >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
-					case INT16_VECTOR:
-						DeserializeAndInsertVector< Vector< int16 > >( out_vm, std::move( key ), buffer, bufferOffset );
+					case INT16_LIST:
+						DeserializeAndInsertList< List< int16 > >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
-					case INT32_VECTOR:
-						DeserializeAndInsertVector< Vector< int32 > >( out_vm, std::move( key ), buffer, bufferOffset );
+					case INT32_LIST:
+						DeserializeAndInsertList< List< int32 > >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
-					case INT64_VECTOR:
-						DeserializeAndInsertVector< Vector< int64 > >( out_vm, std::move( key ), buffer, bufferOffset );
+					case INT64_LIST:
+						DeserializeAndInsertList< List< int64 > >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
-					case UINT8_VECTOR:
-						DeserializeAndInsertVector< Vector< uint8 > >( out_vm, std::move( key ), buffer, bufferOffset );
+					case UINT8_LIST:
+						DeserializeAndInsertList< List< uint8 > >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
-					case UINT16_VECTOR:
-						DeserializeAndInsertVector< Vector< uint16 > >( out_vm, std::move( key ), buffer, bufferOffset );
+					case UINT16_LIST:
+						DeserializeAndInsertList< List< uint16 > >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
-					case UINT32_VECTOR:
-						DeserializeAndInsertVector< Vector< uint32 > >( out_vm, std::move( key ), buffer, bufferOffset );
+					case UINT32_LIST:
+						DeserializeAndInsertList< List< uint32 > >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
-					case UINT64_VECTOR:
-						DeserializeAndInsertVector< Vector< uint64 > >( out_vm, std::move( key ), buffer, bufferOffset );
+					case UINT64_LIST:
+						DeserializeAndInsertList< List< uint64 > >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
-					case FLOAT_VECTOR:
-						DeserializeAndInsertVector< Vector< float > >( out_vm, std::move( key ), buffer, bufferOffset );
+					case FLOAT_LIST:
+						DeserializeAndInsertList< List< float > >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
-					case DOUBLE_VECTOR:
-						DeserializeAndInsertVector< Vector< double > >( out_vm, std::move( key ), buffer, bufferOffset );
+					case DOUBLE_LIST:
+						DeserializeAndInsertList< List< double > >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
-					case STRING_VECTOR:
-						DeserializeAndInsertVector< Vector< String > >( out_vm, std::move( key ), buffer, bufferOffset );
+					case STRING_LIST:
+						DeserializeAndInsertList< List< String > >( out_vm, std::move( key ), buffer, bufferOffset );
 						continue;
 					default:
 						throw std::runtime_error( "De-Serialization for this type is unsupported" );
