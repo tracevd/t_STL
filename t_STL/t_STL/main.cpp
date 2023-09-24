@@ -548,7 +548,7 @@ int main()
 
     std::cout << "Vec took an average of: " << vecTime / numTimes << "us\n";
 
-    constexpr int afovn = dothing();
+    constexpr int afovn = dothing(); (void) afovn;
 
     return 0;
 }
