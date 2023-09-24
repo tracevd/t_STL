@@ -212,7 +212,7 @@ namespace t
 		constexpr List& operator=( List&& list )
 		{
 			if ( this == &list )
-				return;
+				return *this;
 
 			m_data = list.m_data;
 			m_size = list.m_size;
