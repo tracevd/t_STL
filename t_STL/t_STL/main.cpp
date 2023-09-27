@@ -482,7 +482,7 @@ int main()
     auto ser = int64( 0 );
     auto deser = int64( 0 );
 
-    constexpr auto NumLoops = 1;
+    constexpr auto NumLoops = 10000;
 
     for ( auto i = 0; i < NumLoops; ++i )
     {
@@ -508,9 +508,9 @@ int main()
 
     std::cout << "---------------------------\n";
     
-    std::cout << (int) std::endian::native << '\n';
-    std::cout << "Little: " << (int) std::endian::little << '\n';
-    std::cout << "Big:    " << (int) std::endian::big << '\n';
+    std::cout << "Native: " << (int) t::endianness::native << '\n';
+    std::cout << "Little: " << (int) t::endianness::little << '\n';
+    std::cout << "Big:    " << (int) t::endianness::big << '\n';
 
     return 0;
 }
