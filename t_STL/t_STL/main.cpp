@@ -70,7 +70,7 @@ t::pair< int64, int64 > testTvm()
 
     t.start();
 
-    auto buffer = t::variant::Serialize< t::endianness::native >( vm );
+    auto buffer = t::variant::Serialize< t::endianness::not_native >( vm );
 
     auto ser = t.stop();
 
@@ -508,9 +508,10 @@ int main()
 
     std::cout << "---------------------------\n";
     
-    std::cout << "Native: " << (int) t::endianness::native << '\n';
-    std::cout << "Little: " << (int) t::endianness::little << '\n';
-    std::cout << "Big:    " << (int) t::endianness::big << '\n';
+    std::cout << "Native:    " << (int) t::endianness::native << '\n';
+    std::cout << "NotNative: " << (int) t::endianness::not_native << '\n';
+    std::cout << "Little:    " << (int) t::endianness::little << '\n';
+    std::cout << "Big:       " << (int) t::endianness::big << '\n';
 
     return 0;
 }
