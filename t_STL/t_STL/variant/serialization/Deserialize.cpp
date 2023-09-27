@@ -82,8 +82,6 @@ namespace t
 
 		Value DeserializeEmptyValue( const uint8* buffer, uint64& bufferOffset, const bool swapbytes )
 		{
-			bufferOffset += sizeof( Type );
-
 			return Value();
 		}
 
