@@ -29,7 +29,9 @@ namespace t
 			if ( size() != rhs.size() )
 				return false;
 
-			for ( const auto& [key, value] : *this )
+			std::cout << size() << '\n';
+
+			for ( const auto& [ key, value ] : *this )
 			{
 				std::cout << key << '\n';
 				auto it = rhs.find( key );
@@ -44,8 +46,9 @@ namespace t
 		Map Map::QuickClone() const
 		{
 			Map copy;
+			copy.reserve( size() );
 
-			for ( const auto& [key, value] : *this )
+			for ( const auto& [ key, value ] : *this )
 			{
 				copy.insert( { key, value.QuickClone() } );
 			}
@@ -58,7 +61,7 @@ namespace t
 			Map copy;
 			copy.reserve( size() );
 
-			for ( const auto& [key, value] : *this )
+			for ( const auto& [ key, value ] : *this )
 			{
 				copy.insert( { key,  value.Clone() } );
 			}

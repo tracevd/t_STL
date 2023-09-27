@@ -83,7 +83,7 @@ t::pair< int64, int64 > testTvm()
     std::cout << "Finished Deserialization\n";
 
     if ( vm_2 != vm )
-        exit( -69 );
+        throw std::runtime_error("Maps were not equal!");
 
     std::cout << "Maps were equivalent\n";
 
