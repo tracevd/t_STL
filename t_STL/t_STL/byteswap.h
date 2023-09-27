@@ -48,13 +48,13 @@ namespace t
 
 	inline float byteswap( float data )
 	{
-		auto dataInt = byteswap( *reinterpret_cast< uint32* >( &data ) );
+		auto dataInt = byteswap( *reinterpret_cast< uint32* >( static_cast< void* >( &data ) ) );
 		return *reinterpret_cast< float* >( &dataInt );
 	}
 
 	inline double byteswap( double data )
 	{
-		auto dataInt = byteswap( *reinterpret_cast< uint64* >( &data ) );
+		auto dataInt = byteswap( *reinterpret_cast< uint64* >( static_cast< void* >( &data ) ) );
 		return *reinterpret_cast< double* >( &dataInt );
 	}
 

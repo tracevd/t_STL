@@ -624,14 +624,14 @@ int main()
     std::cout << "Deserialization took an average of " << deser / NumLoops << "uS\n";
 
     {
-        constexpr int16 val = 0xf00d;
+        constexpr int16 val = int16(0xf00d);
         constexpr auto val2 = t::byteswap( val );
         static_assert( val2 == 0x0df0 );
         static_assert( t::byteswap( val2 ) == val );
 
-        constexpr int64 _val = 0xf00ddeadf00ddead;
+        constexpr int64 _val = int64(0xf00ddeadf00ddead);
         constexpr auto _val2 = t::byteswap( _val );
-        static_assert( _val2 == 0xadde0df0adde0df0 );
+        static_assert( _val2 == int64(0xadde0df0adde0df0) );
         static_assert( t::byteswap( _val2 ) == _val );
     }
     
