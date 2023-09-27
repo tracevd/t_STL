@@ -40,8 +40,8 @@ t::pair< int64, int64 > testTvm()
     vm["int16"] = int16( 6 );
     vm["int32"] = int32( 7 );
     vm["int64"] = int64( 8 );
-    vm["float"] = float( 9 );
-    vm["double"] = double( 10 );
+    vm["float"] = float( 9.0 );
+    vm["double"] = double( 10.0 );
     vm["u8 vector"] = Buffer< uint8 >{ 1, 2, 3, 4, 5 };
     vm["u16 vector"] = Buffer< uint16 >{ 6, 7, 8, 9, 10 };
     vm["u32 vector"] = Buffer< uint32 >{ 11, 12, 13, 14 };
@@ -57,6 +57,12 @@ t::pair< int64, int64 > testTvm()
     map.insert( { String( "test" ), Value( "value" ) } );
     map.insert( { String( "test2" ), Value( "value2" ) } );
     vm["vm"] = std::move( map );
+
+    Buffer< int32 > buff( 9000 );
+    for ( auto i = -4500; i < 4500; ++i )
+        buff[ i + 4500 ] = i;
+
+    vm["blahaosvnawrvnaiurvnaevnarvoanrvaijnviarv"] = std::move( buff );
 
     Timer< microseconds > t;
 
