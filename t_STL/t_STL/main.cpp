@@ -58,13 +58,13 @@ t::pair< int64, int64 > testTvm()
     map.insert( { String( "test2" ), Value( "value2" ) } );
     vm["vm"] = std::move( map );
 
-    Buffer< int32 > buff( 9000 );
+    /*Buffer< int32 > buff( 9000 );
     for ( auto i = -4500; i < 4500; ++i )
         buff[ i + 4500 ] = i;
 
-    vm["blahaosvnawrvnaiurvnaevnarvoanrvaijnviarv"] = std::move( buff );
+    vm["blahaosvnawrvnaiurvnaevnarvoanrvaijnviarv"] = std::move( buff );*/
 
-    vm["empty"] = Value();
+    //vm["empty"] = Value();
 
     Timer< microseconds > t;
 
