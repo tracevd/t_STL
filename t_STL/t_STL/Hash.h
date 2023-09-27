@@ -508,8 +508,9 @@ namespace t
     namespace details
     {
         /**
-     * @brief TODO: Store hashes along with data for faster re-hashes?
-     */
+         * @breif TODO: Implement rehashing
+         * @brief TODO: Store hashes along with data for faster re-hashes?
+         */
         template< class T >
         struct Hash
         {
@@ -665,7 +666,7 @@ namespace t
                 {
                     auto hash_ = fast_mod( t::hasher< type::remove_const< ValueType > >::hash( *it ), newdata.size() );
 
-                    newdata[hash_].insertUnchecked( std::move( *it ) );
+                    newdata[ hash_ ].insertUnchecked( std::move( *it ) );
                 }
 
                 m_buckets = std::move( newdata );

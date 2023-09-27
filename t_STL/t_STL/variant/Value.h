@@ -84,9 +84,9 @@ namespace t
             template< typename T >
             Value& operator=( T data );
 
-            bool operator==( Value const& rhs ) const;
+            [[nodiscard]] bool operator==( Value const& rhs ) const;
 
-            bool operator!=( Value const& rhs ) const
+            [[nodiscard]] bool operator!=( Value const& rhs ) const
             {
                 return !( *this == rhs );
             }
@@ -94,28 +94,28 @@ namespace t
             /**
              * @brief Return this value's type
              */
-            Type getType() const { return m_type; }
+            [[nodiscard]] Type getType() const { return m_type; }
 
             /**
              * @brief Return if this value is empty or not
              */
-            bool isEmpty() const { return m_type == VOID; }
+            [[nodiscard]] bool isEmpty() const { return m_type == VOID; }
 
             /**
              * @brief Returns whether or not this value's data is unique. If empty, returns true
              */
-            bool isUnique() const;
+            [[nodiscard]] bool isUnique() const { return m_data.isUnique(); }
 
             /**
              * @brief Returns whether or not this value's data is shared. If empty, returns false
              */
-            bool isShared() const { return !isUnique(); }
+            [[nodiscard]] bool isShared() const { return m_data.isShared(); }
 
             /**
              * @brief Check the type of the value
              */
             template< typename T >
-            bool Is() const
+            [[nodiscard]] bool Is() const
             {
                 auto constexpr type = templateToVariantType< type::decay< T > >();
 
@@ -128,17 +128,17 @@ namespace t
              * Cast to mutable reference. If underlying data is shared, create unique copy to be changed
              */
             template< typename T, typename = type::enable_if< type::is_reference< T > && !type::is_const< type::remove_reference< T > > > >
-            T As();
+            [[nodiscard]] T As();
 
             /**
              * Cast to const reference or plain type
              */
             template< typename T, typename = type::enable_if< type::is_const< type::remove_reference< T > > || !type::is_reference< T > > >
-            T As() const;
+            [[nodiscard]] T As() const;
 
-            Value Clone() const;
+            [[nodiscard]] Value Clone() const;
 
-            Value QuickClone() const;
+            [[nodiscard]] Value QuickClone() const;
 
             ~Value() = default;
 

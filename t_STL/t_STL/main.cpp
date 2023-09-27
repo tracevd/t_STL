@@ -439,6 +439,62 @@ constexpr int dothing()
     return v[ 23 ];
 }
 
+#include "Tree.h"
+
+constexpr int testTree()
+{
+    t::Tree< int > tree;
+
+    tree.insert( 5 );
+    tree.insert( 15 );
+    tree.insert( 0 );
+    tree.insert( -1 );
+    tree.insert( 25 );
+
+    if ( tree.size() != 5 )
+        throw std::runtime_error("asgl ");
+
+    auto ptr = tree.find( 25 );
+
+    tree.remove( 5 );
+
+    if ( tree.size() != 4 )
+        throw std::runtime_error("sljfnsf");
+
+    tree.insert( 105 );
+
+    if ( tree.size() != 5 )
+        throw std::runtime_error( "aslnv" );
+
+    tree.insert( 45 );
+    tree.insert( 69 );
+    tree.insert( 43 );
+
+    tree.remove( 45 );
+    tree.remove( 105 );
+
+    tree.insert( 26 );
+    tree.insert( 27 );
+    tree.insert( -69 );
+
+    if ( ptr == nullptr )
+        throw std::runtime_error("kfmgsfv");
+
+    constexpr t::Array< int, 9 > arr = { -69, -1, 0, 15, 25, 26, 27, 43, 69 };
+
+    auto data = arr.data();
+
+    for ( auto it = tree.begin(); it != tree.end(); ++it, ++data )
+    {
+        if ( data >= arr.data() + arr.size() )
+            throw std::runtime_error("ofgnsf");
+        if ( *data != *it )
+            throw std::runtime_error("expected to be in order!");
+    }
+
+    return *ptr;
+}
+
 int main()
 {
     /*constexpr auto init  = get_seed_constexpr();
@@ -512,7 +568,7 @@ int main()
     t::forEach( vec.data(), vec.data() + 3,
         []( auto val ){ std::cout << val << '\n'; });
 
-    int64 listTime = 0;
+    /*int64 listTime = 0;
     int64 vecTime  = 0;
 
     constexpr int64 numTimes = 2000;
@@ -546,9 +602,13 @@ int main()
 
     std::cout << "List took an average of: " << listTime / numTimes << "us\n";
 
-    std::cout << "Vec took an average of: " << vecTime / numTimes << "us\n";
+    std::cout << "Vec took an average of: " << vecTime / numTimes << "us\n";*/
 
     constexpr int afovn = dothing(); (void) afovn;
+
+    std::cout << "---------------\n";
+
+    constexpr int aoasnf = testTree();
 
     return 0;
 }
