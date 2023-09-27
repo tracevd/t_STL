@@ -21,8 +21,8 @@ namespace t
             constexpr TreeNode() = default;
 
             constexpr TreeNode( T&& data, TreeNode* parent ):
-                m_parent( parent ),
-                m_data( std::move( data ) ) {}
+                m_data( std::move( data ) ),
+                m_parent( parent ) {}
 
             TreeNode( TreeNode const& ) = delete;
             TreeNode( TreeNode&& ) = delete;
@@ -326,7 +326,6 @@ namespace t
             }
             else
             {
-                successor;
             }
 
             successor->m_left = node->m_left;

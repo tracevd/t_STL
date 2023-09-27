@@ -608,7 +608,7 @@ int main()
 
     std::cout << "---------------\n";
 
-    constexpr int aoasnf = testTree();
+    constexpr int aoasnf = testTree(); (void) aoasnf;
 
     return 0;
 }
