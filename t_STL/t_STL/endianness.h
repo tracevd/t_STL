@@ -6,7 +6,7 @@
 
 namespace t
 {
-	enum class endianness
+	enum class endianness : uint8
 	{
 		little = 0,
 		big    = 1,
