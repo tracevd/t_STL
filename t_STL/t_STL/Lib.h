@@ -30,7 +30,7 @@ namespace t
 	template< class CharTy >
 	inline constexpr void strcpy( CharTy* destination, const CharTy* source, uint64 length )
 	{
-		const char* const end = destination + length;
+		const CharTy* const end = destination + length;
 
 		for ( ; destination != end; ++destination, ++source )
 		{

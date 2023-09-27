@@ -513,5 +513,16 @@ int main()
     std::cout << "Little:    " << (int) t::endianness::little << '\n';
     std::cout << "Big:       " << (int) t::endianness::big << '\n';
 
+    String x = "123456";
+
+    t::forEach( x.crbegin(), x.crend(),
+        []( char c ){ std::cout << c; } );
+
+    t::GenericString< int, int > str;
+
+    str += 123;
+
+    std::cout << '\n';
+
     return 0;
 }
