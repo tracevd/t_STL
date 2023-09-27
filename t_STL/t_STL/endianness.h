@@ -10,7 +10,8 @@ namespace t
 	{
 		little = 0,
 		big    = 1,
-		native = std::endian::native == std::endian::little ? little : big
+		native = std::endian::native == std::endian::little ? little : big,
+		not_native = std::endian::native == std::endian::little ? big : little
 	};
 
 	constexpr uint8 byteswap( uint8 data )
