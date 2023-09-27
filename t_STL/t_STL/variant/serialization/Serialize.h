@@ -1,9 +1,8 @@
 #pragma once
 
-#include <bit>
-
 #include "../Map.h"
 #include "../../List.h"
+#include "../../endianness.h"
 
 namespace t
 {
@@ -13,11 +12,11 @@ namespace t
 
 		inline namespace bitstream_v1
 		{
-			template< std::endian endianness = std::endian::native >
+			template< endianness = endianness::native >
 			List< uint8_t > Serialize( Map const& map );
 
-			extern template List< uint8_t > Serialize< std::endian::big >( Map const& );
-			extern template List< uint8_t > Serialize< std::endian::little >( Map const& );
+			extern template List< uint8_t > Serialize< endianness::little >( Map const& );
+			extern template List< uint8_t > Serialize< endianness::big >( Map const& );
 		}
 	}
 }

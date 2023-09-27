@@ -1,6 +1,6 @@
 #include "Deserialize.h"
 
-#include "../../byteswap.h"
+#include "../../endianness.h"
 
 namespace t
 {

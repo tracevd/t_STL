@@ -62,7 +62,7 @@ t::pair< int64, int64 > testTvm()
 
     t.start();
 
-    auto buffer = t::variant::Serialize< std::endian::big >( vm );
+    auto buffer = t::variant::Serialize< t::endianness::big >( vm );
 
     auto ser = t.stop();
 
@@ -386,55 +386,6 @@ constexpr t::Array< int, 2 > TestLinkedList()
     return { blah, blah2 };
 }
 
-#include "Allocation.h"
-
-template< class T >
-class Vec
-{
-public:
-    constexpr Vec() = default;
-
-    constexpr ~Vec() { m_data.destroy(); m_size = 0; }
-
-    constexpr const T* data() const { return m_data.ptr(); }
-
-    constexpr T& operator[]( uint64 index )
-    {
-        return m_data[ index ];
-    }
-
-    constexpr T& pushBack( T const& in )
-    {
-        if ( cap() <= m_size )
-            realloc();
-
-        m_data[ m_size ] = in;
-        return m_data[ m_size++ ];
-    }
-private:
-    constexpr uint64 cap() const { return m_data.numel(); }
-
-    constexpr void realloc()
-    {
-        const uint64 newcap = cap() ? cap() * 2 : 4;
-
-        m_data.reallocate( newcap );
-    }
-private:
-    t::Allocation< T[] > m_data;
-    uint64 m_size = 0;
-};
-
-constexpr int dothing()
-{
-    Vec< int > v;
-
-    for ( auto i = 0; i < 50'000; ++i )
-        v.pushBack( i );
-
-    return v[ 23 ];
-}
-
 #include "Tree.h"
 
 constexpr int testTree()
@@ -491,18 +442,8 @@ constexpr int testTree()
     return *ptr;
 }
 
-#include "byteswap.h"
-
 int main()
 {
-    /*constexpr auto init  = get_seed_constexpr();
-    constexpr auto rands = normal_distribution< uint64, 20 >( 0, t::limit< uint64 >::max );
-
-    std::cout << init << '\n';*/
-
-    /*for ( auto num : rands )
-        std::cout << num << '\n';*/
-
     /*StdHashVsTHash< 15 >();
     StdHashVsTHash< 20 >();
     StdHashVsTHash< 35 >();
@@ -525,84 +466,6 @@ int main()
     constexpr auto c = TestImmSharedPtr(); (void) c;
     constexpr auto d = TestFastString();   (void) d;
     constexpr auto e = TestLinkedList();   (void) e;
-
-    testTvm();
-
-    auto const blah{ t::make_immutable_shared< int >( 123 ) };
-
-    auto const blah2 = blah;
-
-    if ( blah.get() != blah2.get() )
-    {
-        std::cout << "What the frick bro\n";
-    }
-    else
-    {
-        std::cout << "ptrs were the same, good job\n";
-    }
-
-    t::ImmutableSharedPtr< int > blah3( 456 );
-
-    auto blah4 = blah3;
-
-    if ( blah3.get() == blah4.get() )
-    {
-        std::cout << "what the frick bro (2)\n";
-    }
-    else
-    {
-        std::cout << "ptrs were different, good job\n";
-    }
-
-    printSizeOf< t::Allocation< int > >();
-    printSizeOf< t::Allocation< int[] > >();
-    printSizeOf< Vec< int > >();
-
-    auto vec = Vec< int >();
-    vec.pushBack( 123 );
-    vec.pushBack( 456 );
-    vec.pushBack( 789 );
-
-    t::forEach( vec.data(), vec.data() + 3,
-        []( auto val ){ std::cout << val << '\n'; });
-
-    /*int64 listTime = 0;
-    int64 vecTime  = 0;
-
-    constexpr int64 numTimes = 2000;
-
-    for ( auto j = 0; j < numTimes; ++j )
-    {
-        Timer< microseconds > t;
-
-        t.start();
-
-        Vec< int32 > v;
-
-        for ( int32 i = 0; i < 1'000'000; ++i )
-            v.pushBack( i );
-
-        auto tim = t.stop();
-
-        vecTime += tim;
-
-        t.start();
-
-        List< int32 > l;
-
-        for ( int32 i = 0; i < 1'000'000; ++i )
-            l.pushBack( i );
-
-        tim = t.stop();
-
-        listTime += tim;
-    }
-
-    std::cout << "List took an average of: " << listTime / numTimes << "us\n";
-
-    std::cout << "Vec took an average of: " << vecTime / numTimes << "us\n";*/
-
-    constexpr int afovn = dothing(); (void) afovn;
 
     std::cout << "---------------\n";
 
