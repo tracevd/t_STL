@@ -105,7 +105,7 @@ namespace t
 			template< typename T >
 			void DeserializeAndInsertList( Map& map, String&& key, const uint8* buffer, uint64& bufferOffset )
 			{
-				auto numel = ReadValueFromBuffer< uint64 >( &buffer[bufferOffset] );
+				auto numel = ReadValueFromBuffer< uint64 >( &buffer[ bufferOffset ] );
 				bufferOffset += sizeof( uint64 );
 				map.insert( { std::move( key ), DeserializeList< T >( buffer, bufferOffset, numel ) } );
 			}
@@ -118,7 +118,7 @@ namespace t
 
 			Map Deserialize( const uint8* buffer, uint64 bufferSize, uint64& bufferOffset )
 			{
-				auto const endianness = *reinterpret_cast<const uint16*>(&buffer[bufferOffset]);
+				auto const endianness = *reinterpret_cast< const uint16* >( &buffer[ bufferOffset ] );
 				bufferOffset += sizeof( uint16 );
 
 				const bool endianness_is_same = endianness == 1;
@@ -126,7 +126,7 @@ namespace t
 				if ( !endianness_is_same )
 					throw std::runtime_error( "Conversion from different endianness is not supported yet" );
 
-				const auto numel = *reinterpret_cast<const uint64*>(&buffer[bufferOffset]);
+				const auto numel = *reinterpret_cast<const uint64*>( &buffer[ bufferOffset ] );
 
 				bufferOffset += sizeof( uint64 );
 
@@ -138,7 +138,7 @@ namespace t
 				{
 					String key = DeserializeString( buffer, bufferOffset );
 
-					Type type = (Type) buffer[bufferOffset];
+					Type type = static_cast< Type >( buffer[ bufferOffset ] );
 					bufferOffset += sizeof( Type );
 
 					//std::cout << key << '\n';
@@ -230,16 +230,14 @@ namespace t
 			{
 				throw std::runtime_error( "Invalid buffer length! Must be long enough for Header!" );
 			}
-			const auto t = buffer[0];
-			const auto v = buffer[1];
-			const auto m = buffer[2];
+			const auto t = buffer[ 0 ];
+			const auto v = buffer[ 1 ];
+			const auto m = buffer[ 2 ];
 
 			if ( t != 't' || v != 'v' || m != 'm' )
-			{
 				throw std::runtime_error( "Expected valid Header!" );
-			}
 
-			const auto version = buffer[3];
+			const auto version = buffer[ 3 ];
 
 			if ( version != 1 )
 				throw std::runtime_error( "Invalid Map version!" );

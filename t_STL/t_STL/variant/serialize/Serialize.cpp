@@ -30,34 +30,37 @@ namespace t
 			return (data >> 8 & 0xff) | (data & 0xff) << 8;
 		}
 
-		template< typename T >
-		void AddToBuffer( BufferType& buffer, T data );
-
-		template<>
-		void AddToBuffer< uint8 >( BufferType& buffer, uint8 data )
+		template< std::endian >
+		void AddToBuffer( BufferType& buffer, uint8 data )
 		{
 			buffer.pushBack( data );
 		}
 
-		template<>
-		void AddToBuffer< uint16 >( BufferType& buffer, uint16 data )
+		template< std::endian endianness >
+		void AddToBuffer( BufferType& buffer, uint16 data )
 		{
-			const uint8* const ptr = reinterpret_cast<uint8*>(&data);
+			if constexpr ( endianness != std::endian::native )
+				data = byteswap( data );
+			const uint8* const ptr = reinterpret_cast< uint8* >( &data );
 			buffer.pushBack( ptr[ 0 ] );
 			buffer.pushBack( ptr[ 1 ] );
 		}
-		template<>
-		void AddToBuffer< uint32 >( BufferType& buffer, uint32 data )
+		template< std::endian endianness >
+		void AddToBuffer( BufferType& buffer, uint32 data )
 		{
+			if constexpr ( endianness != std::endian::native )
+				data = byteswap( data );
 			const uint8* const ptr = reinterpret_cast< uint8* >( &data );
 			buffer.pushBack( ptr[ 0 ] );
 			buffer.pushBack( ptr[ 1 ] );
 			buffer.pushBack( ptr[ 2 ] );
 			buffer.pushBack( ptr[ 3 ] );
 		}
-		template<>
-		void AddToBuffer< uint64 >( BufferType& buffer, uint64 data )
+		template< std::endian endianness >
+		void AddToBuffer( BufferType& buffer, uint64 data )
 		{
+			if constexpr ( endianness != std::endian::native )
+				data = byteswap( data );
 			const uint8* const ptr = reinterpret_cast<uint8*>(&data);
 			buffer.pushBack( ptr[ 0 ] );
 			buffer.pushBack( ptr[ 1 ] );
@@ -69,170 +72,176 @@ namespace t
 			buffer.pushBack( ptr[ 7 ] );
 		}
 
-		template<>
-		void AddToBuffer< int8 >( BufferType& buffer, int8 data )
+		template< std::endian endianness >
+		void AddToBuffer( BufferType& buffer, int8 data )
 		{
-			AddToBuffer< uint8 >( buffer, *reinterpret_cast< uint8* >( &data ) );
+			AddToBuffer< endianness >( buffer, *reinterpret_cast< uint8* >( &data ) );
 		}
 
-		template<>
-		void AddToBuffer< int16 >( BufferType& buffer, int16 data )
+		template< std::endian endianness >
+		void AddToBuffer( BufferType& buffer, int16 data )
 		{
-			AddToBuffer< uint16 >( buffer, *reinterpret_cast< uint16* >( &data ) );
+			AddToBuffer< endianness >( buffer, *reinterpret_cast< uint16* >( &data ) );
 		}
 
-		template<>
-		void AddToBuffer< int32 >( BufferType& buffer, int32 data )
+		template< std::endian endianness >
+		void AddToBuffer( BufferType& buffer, int32 data )
 		{
-			AddToBuffer< uint32 >( buffer, *reinterpret_cast< uint32* >( &data ) );
+			AddToBuffer< endianness >( buffer, *reinterpret_cast< uint32* >( &data ) );
 		}
 
-		template<>
-		void AddToBuffer< int64 >( BufferType& buffer, int64 data )
+		template< std::endian endianness >
+		void AddToBuffer( BufferType& buffer, int64 data )
 		{
-			AddToBuffer< uint64 >( buffer, *reinterpret_cast< uint64* >( &data ) );
+			AddToBuffer< endianness >( buffer, *reinterpret_cast< uint64* >( &data ) );
 		}
 
-		template<>
-		void AddToBuffer< float >( BufferType& buffer, float data )
+		template< std::endian endianness >
+		void AddToBuffer( BufferType& buffer, float data )
 		{
-			AddToBuffer< uint32 >( buffer, *reinterpret_cast< uint32* >( &data ) );
+			AddToBuffer< endianness >( buffer, *reinterpret_cast< uint32* >( &data ) );
 		}
 
-		template<>
-		void AddToBuffer< double >( BufferType& buffer, double data )
+		template< std::endian endianness >
+		void AddToBuffer( BufferType& buffer, double data )
 		{
-			AddToBuffer< uint64 >( buffer, *reinterpret_cast< uint64* >( &data ) );
+			AddToBuffer< endianness >( buffer, *reinterpret_cast< uint64* >( &data ) );
 		}
 
-		template< typename T >
+		template< std::endian endianness, typename T >
 		void AddToBuffer( BufferType& buffer, List< T > const& data )
 		{
 			for ( uint64 i = 0; i < data.size(); ++i )
 			{
-				AddToBuffer( buffer, data[ i ] );
+				AddToBuffer< endianness >( buffer, data[ i ] );
 			}
 		}
 
 		inline namespace bitstream_v1
 		{
+			template< std::endian >
 			void Serialize( BufferType& buffer, Map const& map );
 
+			template< std::endian endianness >
 			void Serialize( BufferType& buffer, String const& str )
 			{
-				AddToBuffer( buffer, (uint16) str.size() );
+				AddToBuffer< endianness >( buffer, static_cast< uint16 >( str.size() ) );
 				for ( uint64 i = 0; i < str.size(); ++i )
 				{
-					AddToBuffer( buffer, *(uint8*) &str[ i ] );
+					AddToBuffer< endianness >( buffer, *reinterpret_cast< uint8 const* >( &str[ i ] ) );
 				}
 			}
 
-			template< typename T >
+			template< std::endian, typename T >
 			void SerializeComplexValue( BufferType& buffer, T const& data );
 
-			template< typename T >
+			template< std::endian endianness, typename T >
 			void SerializePrimitiveValue( BufferType& buffer, T data )
 			{
 				auto constexpr type = templateToVariantType< T >();
 				static_assert( type != VOID, "Invalid Type attempting to be serialized" );
-				AddToBuffer< uint8 >( buffer, type );
-				AddToBuffer< T >( buffer, data );
+				AddToBuffer< endianness >( buffer, static_cast< uint8 >( type ) );
+				AddToBuffer< endianness >( buffer, data );
 			}
 
-			template< typename T >
+			template< std::endian endianness, typename T >
 			void SerializeListValue( BufferType& buffer, List< T > const& data )
 			{
-				AddToBuffer< uint8 >( buffer, templateToVariantType< List< T > >() );
-				AddToBuffer< uint64 >( buffer, data.size() );
+				AddToBuffer< endianness >( buffer, static_cast< uint8 >( templateToVariantType< List< T > >() ) );
+				AddToBuffer< endianness >( buffer, uint64( data.size() ) );
 
 				for ( uint64 i = 0; i < data.size(); ++i )
 				{
-					AddToBuffer< T >( buffer, data[ i ] );
+					AddToBuffer< endianness >( buffer, data[ i ] );
 				}
 			}
 
-			template<>
-			void SerializeComplexValue< String >( BufferType& buffer, String const& data )
+			template< std::endian endianness >
+			void SerializeComplexValue( BufferType& buffer, String const& data )
 			{
-				AddToBuffer( buffer, (uint8) templateToVariantType< String >() );
-				Serialize( buffer, data );
+				AddToBuffer< endianness >( buffer, static_cast< uint8 >( templateToVariantType< String >() ) );
+				Serialize< endianness >( buffer, data );
 			}
 
-			template<>
-			void SerializeComplexValue< Map >( BufferType& buffer, Map const& data )
+			template< std::endian endianness >
+			void SerializeComplexValue( BufferType& buffer, Map const& data )
 			{
-				AddToBuffer( buffer, (uint8) templateToVariantType< Map >() );
-				Serialize( buffer, data );
+				AddToBuffer< endianness >( buffer, static_cast< uint8 >( templateToVariantType< Map >() ) );
+				Serialize< endianness >( buffer, data );
 			}
 
-			template<>
-			void SerializeComplexValue< List< String > >( BufferType& buffer, List< String > const& data )
+			template< std::endian endianness >
+			void SerializeComplexValue( BufferType& buffer, List< String > const& data )
 			{
-				AddToBuffer< uint8 >( buffer, (uint8) templateToVariantType< List< String > >() );
-				AddToBuffer< uint64 >( buffer, data.size() );
+				AddToBuffer< endianness >( buffer, static_cast< uint8 >( templateToVariantType< List< String > >() ) );
+				AddToBuffer< endianness >( buffer, uint64( data.size() ) );
 				for ( uint64 i = 0; i < data.size(); ++i )
 				{
-					Serialize( buffer, data[ i ] );
+					Serialize< endianness >( buffer, data[ i ] );
 				}
 			}
 
+			template< std::endian endianness >
 			void SerializeValue( BufferType& buffer, Value const& val )
 			{
 				const auto type = val.getType();
 
+				constexpr auto end = endianness;
+
 				switch ( type )
 				{
 				case Type::INT8:
-					return SerializePrimitiveValue( buffer, val.As< int8 >() );
+					return SerializePrimitiveValue< end >( buffer, val.As< int8 >() );
 				case Type::INT16:
-					return SerializePrimitiveValue( buffer, val.As< int16 >() );
+					return SerializePrimitiveValue< end >( buffer, val.As< int16 >() );
 				case Type::INT32:
-					return SerializePrimitiveValue( buffer, val.As< int32 >() );
+					return SerializePrimitiveValue< end >( buffer, val.As< int32 >() );
 				case Type::INT64:
-					return SerializePrimitiveValue( buffer, val.As< int64 >() );
+					return SerializePrimitiveValue< end >( buffer, val.As< int64 >() );
 				case Type::UINT8:
-					return SerializePrimitiveValue( buffer, val.As< uint8 >() );
+					return SerializePrimitiveValue< end >( buffer, val.As< uint8 >() );
 				case Type::UINT16:
-					return SerializePrimitiveValue( buffer, val.As< uint16 >() );
+					return SerializePrimitiveValue< end >( buffer, val.As< uint16 >() );
 				case Type::UINT32:
-					return SerializePrimitiveValue( buffer, val.As< uint32 >() );
+					return SerializePrimitiveValue< end >( buffer, val.As< uint32 >() );
 				case Type::UINT64:
-					return SerializePrimitiveValue( buffer, val.As< uint64 >() );
+					return SerializePrimitiveValue< end >( buffer, val.As< uint64 >() );
 				case Type::FLOAT:
-					return SerializePrimitiveValue( buffer, val.As< float >() );
+					return SerializePrimitiveValue< end >( buffer, val.As< float >() );
 				case Type::DOUBLE:
-					return SerializePrimitiveValue( buffer, val.As< double >() );
+					return SerializePrimitiveValue< end >( buffer, val.As< double >() );
 				case Type::STRING:
-					return SerializeComplexValue( buffer, val.As< String const& >() );
+					return SerializeComplexValue< end >( buffer, val.As< String const& >() );
 				case Type::MAP:
-					return SerializeComplexValue( buffer, val.As< Map const& >() );
+					return SerializeComplexValue< end >( buffer, val.As< Map const& >() );
 				case Type::INT8_LIST:
-					return SerializeListValue( buffer, val.As< List< int8 > const& >() );
+					return SerializeListValue< end >( buffer, val.As< List< int8 > const& >() );
 				case Type::INT16_LIST:
-					return SerializeListValue( buffer, val.As< List< int16 > const& >() );
+					return SerializeListValue< end >( buffer, val.As< List< int16 > const& >() );
 				case Type::INT32_LIST:
-					return SerializeListValue( buffer, val.As< List< int32 > const& >() );
+					return SerializeListValue< end >( buffer, val.As< List< int32 > const& >() );
 				case Type::INT64_LIST:
-					return SerializeListValue( buffer, val.As< List< int64 > const& >() );
+					return SerializeListValue< end >( buffer, val.As< List< int64 > const& >() );
 				case Type::UINT8_LIST:
-					return SerializeListValue( buffer, val.As< List< uint8 > const& >() );
+					return SerializeListValue< end >( buffer, val.As< List< uint8 > const& >() );
 				case Type::UINT16_LIST:
-					return SerializeListValue( buffer, val.As< List< uint16 > const& >() );
+					return SerializeListValue< end >( buffer, val.As< List< uint16 > const& >() );
 				case Type::UINT32_LIST:
-					return SerializeListValue( buffer, val.As< List< uint32 > const& >() );
+					return SerializeListValue< end >( buffer, val.As< List< uint32 > const& >() );
 				case Type::UINT64_LIST:
-					return SerializeListValue( buffer, val.As< List< uint64 > const& >() );
+					return SerializeListValue< end >( buffer, val.As< List< uint64 > const& >() );
 				case Type::FLOAT_LIST:
-					return SerializeListValue( buffer, val.As< List< float > const& >() );
+					return SerializeListValue< end >( buffer, val.As< List< float > const& >() );
 				case Type::DOUBLE_LIST:
-					return SerializeListValue( buffer, val.As< List< double > const& >() );
+					return SerializeListValue< end >( buffer, val.As< List< double > const& >() );
 				case Type::STRING_LIST:
-					return SerializeComplexValue( buffer, val.As< List< String > const& >() );
+					return SerializeComplexValue< end >( buffer, val.As< List< String > const& >() );
 				default:
 					throw std::runtime_error( "Type not supported" );
 				}
 			}
 
+			template< std::endian endianness >
 			void Serialize( BufferType& buffer, Map const& map )
 			{
 				buffer.pushBack( 't' );
@@ -240,24 +249,28 @@ namespace t
 				buffer.pushBack( 'm' );
 				buffer.pushBack( 1 );
 
-				AddToBuffer< uint16 >( buffer, 1 );
-				AddToBuffer< uint64 >( buffer, map.size() );
+				AddToBuffer< endianness >( buffer, uint16( 1 ) );
+				AddToBuffer< endianness >( buffer, uint64( map.size() ) );
 				
 				for ( const auto& [ key, value ] : map )
 				{
-					Serialize( buffer, key );
-					SerializeValue( buffer, value );
+					Serialize< endianness >( buffer, key );
+					SerializeValue< endianness >( buffer, value );
 				}
 			}
 
+			template< std::endian endianness >
 			BufferType Serialize( Map const& map )
 			{
 				BufferType buffer;
 
-				Serialize( buffer, map );
+				Serialize< endianness >( buffer, map );
 
 				return buffer;
 			}
+
+			template BufferType Serialize< std::endian::little >( Map const& );
+			template BufferType Serialize< std::endian::big >( Map const& );
 		}
 	}
 }

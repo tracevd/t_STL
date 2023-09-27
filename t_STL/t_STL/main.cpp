@@ -27,7 +27,7 @@ using t::String;
 using t::List;
 using t::variant::Value;
 
-void testTvm()
+t::pair< int64, int64 > testTvm()
 {
     Map vm;
 
@@ -75,11 +75,7 @@ void testTvm()
     if ( vm_2 != vm )
         exit( -69 );
 
-    std::cout << "For a map with " << vm.size() << " elements:\n";
-
-    std::cout << "    Serialization took:   " << ser << "us\n";
-
-    std::cout << "    Deserialization took: " << deser << "us\n";
+    return { ser, deser };
 }
 
 constexpr static uint64 get_seed_constexpr()
@@ -609,6 +605,21 @@ int main()
     std::cout << "---------------\n";
 
     constexpr int aoasnf = testTree(); (void) aoasnf;
+
+    auto ser = int64( 0 );
+    auto deser = int64( 0 );
+
+    constexpr auto NumLoops = 1000;
+
+    for ( auto i = 0; i < NumLoops; ++i )
+    {
+        auto [ _ser, _deser ] = testTvm();
+        ser += _ser;
+        deser += _deser;
+    }
+
+    std::cout << "Serialization took an average of " << ser / NumLoops << "uS\n";
+    std::cout << "Deserialization took an average of " << deser / NumLoops << "uS\n";
 
     return 0;
 }
