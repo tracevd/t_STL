@@ -238,11 +238,14 @@ namespace t
 
 		constexpr void reserve( uint64 capacity )
 		{
-			if ( m_data != nullptr )
-				delete[] m_data;
-			m_data = new T[ capacity ];
+			auto newdata = new T[ capacity ];
+
+			for ( uint64 i = 0; i < m_size && i < capacity; ++i )
+				newdata[ i ] = std::move( m_data[ i ] );
+
+			delete[] m_data;
+			m_data = newdata;
 			m_capacity = capacity;
-			m_size = 0;
 		}
 
 		constexpr void resize( uint64 size )

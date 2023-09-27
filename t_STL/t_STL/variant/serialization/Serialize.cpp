@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <type_traits>
+#include <cassert>
 
 #include "../../endianness.h"
 
@@ -161,12 +162,20 @@ namespace t
 			}
 
 			template< endianness e >
+			void SerializeEmptyValue( BufferType& buffer )
+			{
+				AddToBuffer< e >( buffer, static_cast< uint8 >( Type::VOID ) );
+			}
+
+			template< endianness e >
 			void SerializeValue( BufferType& buffer, Value const& val )
 			{
 				const auto type = val.getType();
 
 				switch ( type )
 				{
+				case Type::VOID:
+					return SerializeEmptyValue< e >( buffer );
 				case Type::INT8:
 					return SerializePrimitiveValue< e >( buffer, val.As< int8 >() );
 				case Type::INT16:
@@ -213,9 +222,8 @@ namespace t
 					return SerializeListValue< e >( buffer, val.As< Buffer< double > const& >() );
 				case Type::STRING_LIST:
 					return SerializeComplexValue< e >( buffer, val.As< Buffer< String > const& >() );
-				default:
-					throw std::runtime_error( "Type not supported" );
 				}
+				assert( false );
 			}
 
 			template< endianness e >
@@ -240,6 +248,10 @@ namespace t
 			BufferType Serialize( Map const& map )
 			{
 				BufferType buffer;
+
+				constexpr auto DefaultBufferLength = 160;
+
+				buffer.reserve( DefaultBufferLength );
 
 				Serialize< e >( buffer, map );
 

@@ -1,3 +1,4 @@
+#include <cassert>
 #include "Deserialize.h"
 
 #include "../../endianness.h"
@@ -82,6 +83,13 @@ namespace t
 			}
 		}
 
+		Value DeserializeEmptyValue( const uint8* buffer, uint64& bufferOffset, const bool swapbytes )
+		{
+			bufferOffset += sizeof( Type );
+
+			return Value();
+		}
+
 		namespace bitstream_v1
 		{
 			Map Deserialize( const uint8* buffer, uint64 bufferSize, uint64& bufferOffset );
@@ -129,6 +137,11 @@ namespace t
 				map.insert( { std::move( key ), DeserializeValue< T >( buffer, bufferOffset, swapbytes ) } );
 			}
 
+			void DeserializeAndInsertEmptyValue( Map& map, String&& key, const uint8* buffer, uint64& bufferOffset, bool swapbytes )
+			{
+				map.insert( { std::move( key ), DeserializeEmptyValue( buffer, bufferOffset, swapbytes ) } );
+			}
+
 			Map Deserialize( const uint8* buffer, uint64 bufferSize, uint64& bufferOffset )
 			{
 				auto const endianness = *reinterpret_cast< const uint16* >( &buffer[ bufferOffset ] );
@@ -158,6 +171,9 @@ namespace t
 
 					switch ( type )
 					{
+					case VOID:
+						DeserializeAndInsertEmptyValue( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						continue;
 					case INT8:
 						DeserializeAndInsertValue< int8 >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
@@ -227,9 +243,8 @@ namespace t
 					case STRING_LIST:
 						DeserializeAndInsertList< Buffer< String > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
-					default:
-						throw std::runtime_error( "De-Serialization for this type is unsupported" );
 					}
+					assert( false );
 				}
 
 				return out_vm;

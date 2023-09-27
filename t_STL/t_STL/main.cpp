@@ -64,6 +64,8 @@ t::pair< int64, int64 > testTvm()
 
     vm["blahaosvnawrvnaiurvnaevnarvoanrvaijnviarv"] = std::move( buff );
 
+    vm["empty"] = Value();
+
     Timer< microseconds > t;
 
     t.start();
