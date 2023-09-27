@@ -68,16 +68,11 @@ t::pair< int64, int64 > testTvm()
 
     Timer< microseconds > t;
 
-    std::cout << "Starting serialization\n";
-
     t.start();
 
     auto buffer = t::variant::Serialize< t::endianness::not_native >( vm );
 
     auto ser = t.stop();
-
-    std::cout << "Finished Serialization\n";
-    std::cout << "Starting Deserialization\n";
 
     t.start();
 
@@ -85,7 +80,7 @@ t::pair< int64, int64 > testTvm()
 
     auto deser = t.stop();
 
-    std::cout << "Finihsed Deserialization\n";
+    std::cout << "Finished Deserialization\n";
 
     if ( vm_2 != vm )
         exit( -69 );
