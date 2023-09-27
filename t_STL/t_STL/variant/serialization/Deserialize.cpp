@@ -166,7 +166,7 @@ namespace t
 					Type type = static_cast< Type >( buffer[ bufferOffset ] );
 					bufferOffset += sizeof( Type );
 
-					//std::cout << key << '\n';
+					std::cout << key << ": " << typeToString( type ) << '\n';
 
 					switch ( type )
 					{
