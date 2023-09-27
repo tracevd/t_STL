@@ -82,6 +82,9 @@ t::pair< int64, int64 > testTvm()
 
     std::cout << "Finished Deserialization\n";
 
+    std::cout << "Original size: " << vm.size() << '\n';
+    std::cout << "New size: " << vm_2.size() << '\n';
+
     if ( vm_2 != vm )
         throw std::runtime_error("Maps were not equal!");
 
