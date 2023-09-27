@@ -235,9 +235,9 @@ namespace t
 		}
 
 		constexpr GenericString( const CharTy* str, SizeTy length ):
+			m_data( new CharTy[length + 1] ),
 			m_size( length ),
-			m_capacity( length ),
-			m_data( new CharTy[ length + 1 ] )
+			m_capacity( length )			
 		{
 			strcpy( m_data, str, m_size );
 			m_data[ m_size ] = '\0';
@@ -250,9 +250,9 @@ namespace t
 		}
 
 		constexpr GenericString( GenericString const& str ):
+			m_data( new CharTy[ str.m_size + 1 ] ),
 			m_size( str.m_size ),
-			m_capacity( str.m_size ),
-			m_data( new CharTy[ str.m_size + 1 ] )
+			m_capacity( str.m_size )
 		{
 			strcpy( m_data, str.m_data, m_size );
 			m_data[ m_size ] = '\0';

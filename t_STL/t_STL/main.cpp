@@ -513,16 +513,18 @@ int main()
     std::cout << "Little:    " << (int) t::endianness::little << '\n';
     std::cout << "Big:       " << (int) t::endianness::big << '\n';
 
-    String x = "123456";
+    String x;
 
-    t::forEach( x.crbegin(), x.crend(),
-        []( char c ){ std::cout << c; } );
+    Timer< microseconds > t_;
 
-    t::GenericString< int, int > str;
+    t_.start();
 
-    str += 123;
+    for ( uint64 i = 0; i < 5000; ++i )
+        x += "This is cool. ";
 
-    std::cout << '\n';
+    auto time = t_.stop();
+
+    std::cout << "Took " << time << "uS\n";
 
     return 0;
 }
