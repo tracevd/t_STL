@@ -13,18 +13,18 @@
         std::is_same_v< T, double > ||\
         std::is_same_v< T, float > ||\
         std::is_same_v< T, t::variant::Map > ||\
-        std::is_same_v< T, List< int8 > > ||\
-        std::is_same_v< T, List< int16 > > ||\
-        std::is_same_v< T, List< int32 > > ||\
-        std::is_same_v< T, List< int64 > > ||\
-        std::is_same_v< T, List< uint8 > > ||\
-        std::is_same_v< T, List< uint16 > > ||\
-        std::is_same_v< T, List< uint32 > > ||\
-        std::is_same_v< T, List< uint64 > > ||\
-        std::is_same_v< T, List< float > > ||\
-        std::is_same_v< T, List< double > > ||\
-        std::is_same_v< T, List< String > > ||\
-        std::is_same_v< T, List< t::variant::Map > >
+        std::is_same_v< T, Buffer< int8 > > ||\
+        std::is_same_v< T, Buffer< int16 > > ||\
+        std::is_same_v< T, Buffer< int32 > > ||\
+        std::is_same_v< T, Buffer< int64 > > ||\
+        std::is_same_v< T, Buffer< uint8 > > ||\
+        std::is_same_v< T, Buffer< uint16 > > ||\
+        std::is_same_v< T, Buffer< uint32 > > ||\
+        std::is_same_v< T, Buffer< uint64 > > ||\
+        std::is_same_v< T, Buffer< float > > ||\
+        std::is_same_v< T, Buffer< double > > ||\
+        std::is_same_v< T, Buffer< String > > ||\
+        std::is_same_v< T, Buffer< t::variant::Map > >
 
 #define DefineType( T, type_, str ) \
 template<> \
@@ -61,14 +61,14 @@ DefineType( float, FLOAT, "float" ) \
 DefineType( double, DOUBLE, "double" ) \
 DefineType( String, STRING, "String" ) \
 DefineType( ::t::variant::Map, MAP, "Map" ) \
-DefineType( List< int8 >, INT8_LIST, "i8[]" ) \
-DefineType( List< int16 >, INT16_LIST, "i16[]" ) \
-DefineType( List< int32 >, INT32_LIST, "i32[]" ) \
-DefineType( List< int64 >, INT64_LIST, "i64[]" ) \
-DefineType( List< uint8 >, UINT8_LIST, "u8[]" ) \
-DefineType( List< uint16 >, UINT16_LIST, "u16[]" ) \
-DefineType( List< uint32 >, UINT32_LIST, "u32[]" ) \
-DefineType( List< uint64 >, UINT64_LIST, "u64[]" ) \
-DefineType( List< float >, FLOAT_LIST, "float[]" ) \
-DefineType( List< double >, DOUBLE_LIST, "double[]" ) \
-DefineType( List< String >, STRING_LIST, "String[]" )
+DefineType( Buffer< int8 >, INT8_LIST, "i8[]" ) \
+DefineType( Buffer< int16 >, INT16_LIST, "i16[]" ) \
+DefineType( Buffer< int32 >, INT32_LIST, "i32[]" ) \
+DefineType( Buffer< int64 >, INT64_LIST, "i64[]" ) \
+DefineType( Buffer< uint8 >, UINT8_LIST, "u8[]" ) \
+DefineType( Buffer< uint16 >, UINT16_LIST, "u16[]" ) \
+DefineType( Buffer< uint32 >, UINT32_LIST, "u32[]" ) \
+DefineType( Buffer< uint64 >, UINT64_LIST, "u64[]" ) \
+DefineType( Buffer< float >, FLOAT_LIST, "float[]" ) \
+DefineType( Buffer< double >, DOUBLE_LIST, "double[]" ) \
+DefineType( Buffer< String >, STRING_LIST, "String[]" )

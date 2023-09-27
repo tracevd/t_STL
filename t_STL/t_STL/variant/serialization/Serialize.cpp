@@ -88,7 +88,7 @@ namespace t
 		}
 
 		template< endianness e, typename T >
-		void AddToBuffer( BufferType& buffer, List< T > const& data )
+		void AddToBuffer( BufferType& buffer, Buffer< T > const& data )
 		{
 			for ( uint64 i = 0; i < data.size(); ++i )
 			{
@@ -124,9 +124,9 @@ namespace t
 			}
 
 			template< endianness e, typename T >
-			void SerializeListValue( BufferType& buffer, List< T > const& data )
+			void SerializeListValue( BufferType& buffer, Buffer< T > const& data )
 			{
-				AddToBuffer< e >( buffer, static_cast< uint8 >( templateToVariantType< List< T > >() ) );
+				AddToBuffer< e >( buffer, static_cast< uint8 >( templateToVariantType< Buffer< T > >() ) );
 				AddToBuffer< e >( buffer, uint64( data.size() ) );
 
 				for ( uint64 i = 0; i < data.size(); ++i )
@@ -150,9 +150,9 @@ namespace t
 			}
 
 			template< endianness e >
-			void SerializeComplexValue( BufferType& buffer, List< String > const& data )
+			void SerializeComplexValue( BufferType& buffer, Buffer< String > const& data )
 			{
-				AddToBuffer< e >( buffer, static_cast< uint8 >( templateToVariantType< List< String > >() ) );
+				AddToBuffer< e >( buffer, static_cast< uint8 >( templateToVariantType< Buffer< String > >() ) );
 				AddToBuffer< e >( buffer, uint64( data.size() ) );
 				for ( uint64 i = 0; i < data.size(); ++i )
 				{
@@ -192,27 +192,27 @@ namespace t
 				case Type::MAP:
 					return SerializeComplexValue< e >( buffer, val.As< Map const& >() );
 				case Type::INT8_LIST:
-					return SerializeListValue< e >( buffer, val.As< List< int8 > const& >() );
+					return SerializeListValue< e >( buffer, val.As< Buffer< int8 > const& >() );
 				case Type::INT16_LIST:
-					return SerializeListValue< e >( buffer, val.As< List< int16 > const& >() );
+					return SerializeListValue< e >( buffer, val.As< Buffer< int16 > const& >() );
 				case Type::INT32_LIST:
-					return SerializeListValue< e >( buffer, val.As< List< int32 > const& >() );
+					return SerializeListValue< e >( buffer, val.As< Buffer< int32 > const& >() );
 				case Type::INT64_LIST:
-					return SerializeListValue< e >( buffer, val.As< List< int64 > const& >() );
+					return SerializeListValue< e >( buffer, val.As< Buffer< int64 > const& >() );
 				case Type::UINT8_LIST:
-					return SerializeListValue< e >( buffer, val.As< List< uint8 > const& >() );
+					return SerializeListValue< e >( buffer, val.As< Buffer< uint8 > const& >() );
 				case Type::UINT16_LIST:
-					return SerializeListValue< e >( buffer, val.As< List< uint16 > const& >() );
+					return SerializeListValue< e >( buffer, val.As< Buffer< uint16 > const& >() );
 				case Type::UINT32_LIST:
-					return SerializeListValue< e >( buffer, val.As< List< uint32 > const& >() );
+					return SerializeListValue< e >( buffer, val.As< Buffer< uint32 > const& >() );
 				case Type::UINT64_LIST:
-					return SerializeListValue< e >( buffer, val.As< List< uint64 > const& >() );
+					return SerializeListValue< e >( buffer, val.As< Buffer< uint64 > const& >() );
 				case Type::FLOAT_LIST:
-					return SerializeListValue< e >( buffer, val.As< List< float > const& >() );
+					return SerializeListValue< e >( buffer, val.As< Buffer< float > const& >() );
 				case Type::DOUBLE_LIST:
-					return SerializeListValue< e >( buffer, val.As< List< double > const& >() );
+					return SerializeListValue< e >( buffer, val.As< Buffer< double > const& >() );
 				case Type::STRING_LIST:
-					return SerializeComplexValue< e >( buffer, val.As< List< String > const& >() );
+					return SerializeComplexValue< e >( buffer, val.As< Buffer< String > const& >() );
 				default:
 					throw std::runtime_error( "Type not supported" );
 				}

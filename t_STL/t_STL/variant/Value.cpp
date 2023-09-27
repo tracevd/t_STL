@@ -127,27 +127,27 @@ namespace t
             case MAP:
                 return Value( static_cast< ConstDerivedPtr< Map > >( m_data.get() )->val.Clone() );
             case INT8_LIST:
-                return Value( static_cast< ConstDerivedPtr< List< int8 > > >( m_data.get() )->val );
+                return Value( static_cast< ConstDerivedPtr< Buffer< int8 > > >( m_data.get() )->val );
             case INT16_LIST:
-                return Value( static_cast< ConstDerivedPtr< List< int16 > > >( m_data.get() )->val );
+                return Value( static_cast< ConstDerivedPtr< Buffer< int16 > > >( m_data.get() )->val );
             case INT32_LIST:
-                return Value( static_cast< ConstDerivedPtr< List< int32 > > >( m_data.get() )->val );
+                return Value( static_cast< ConstDerivedPtr< Buffer< int32 > > >( m_data.get() )->val );
             case INT64_LIST:
-                return Value( static_cast< ConstDerivedPtr< List< int64 > > >( m_data.get() )->val );
+                return Value( static_cast< ConstDerivedPtr< Buffer< int64 > > >( m_data.get() )->val );
             case UINT8_LIST:
-                return Value( static_cast< ConstDerivedPtr< List< uint8 > > >( m_data.get() )->val );
+                return Value( static_cast< ConstDerivedPtr< Buffer< uint8 > > >( m_data.get() )->val );
             case UINT16_LIST:
-                return Value( static_cast< ConstDerivedPtr< List< uint16 > > >( m_data.get() )->val );
+                return Value( static_cast< ConstDerivedPtr< Buffer< uint16 > > >( m_data.get() )->val );
             case UINT32_LIST:
-                return Value( static_cast< ConstDerivedPtr< List< uint32 > > >( m_data.get() )->val );
+                return Value( static_cast< ConstDerivedPtr< Buffer< uint32 > > >( m_data.get() )->val );
             case UINT64_LIST:
-                return Value( static_cast< ConstDerivedPtr< List< uint64 > > >( m_data.get() )->val );
+                return Value( static_cast< ConstDerivedPtr< Buffer< uint64 > > >( m_data.get() )->val );
             case FLOAT_LIST:
-                return Value( static_cast< ConstDerivedPtr< List< float > > >( m_data.get() )->val );
+                return Value( static_cast< ConstDerivedPtr< Buffer< float > > >( m_data.get() )->val );
             case DOUBLE_LIST:
-                return Value( static_cast< ConstDerivedPtr< List< double > > >( m_data.get() )->val );
+                return Value( static_cast< ConstDerivedPtr< Buffer< double > > >( m_data.get() )->val );
             case STRING_LIST:
-                return Value( static_cast< ConstDerivedPtr< List< String > > >( m_data.get() )->val );
+                return Value( static_cast< ConstDerivedPtr< Buffer< String > > >( m_data.get() )->val );
             default:
                 throw std::runtime_error( "Unknown type attempting to be deleted" );
             }
@@ -187,27 +187,27 @@ namespace t
             case MAP:
                 return As< Map const& >() == rhs.As< Map const& >();
             case INT8_LIST:
-                return As< List< int8 > const& >() == rhs.As< List< int8 > const& >();
+                return As< Buffer< int8 > const& >() == rhs.As< Buffer< int8 > const& >();
             case INT16_LIST:
-                return As< List< int16 > const& >() == rhs.As< List< int16 > const& >();
+                return As< Buffer< int16 > const& >() == rhs.As< Buffer< int16 > const& >();
             case INT32_LIST:
-                return As< List< int32 > const& >() == rhs.As< List< int32 > const& >();
+                return As< Buffer< int32 > const& >() == rhs.As< Buffer< int32 > const& >();
             case INT64_LIST:
-                return As< List< int64 > const& >() == rhs.As< List< int64 > const& >();
+                return As< Buffer< int64 > const& >() == rhs.As< Buffer< int64 > const& >();
             case UINT8_LIST:
-                return As< List< uint8 > const& >() == rhs.As< List< uint8 > const& >();
+                return As< Buffer< uint8 > const& >() == rhs.As< Buffer< uint8 > const& >();
             case UINT16_LIST:
-                return As< List< uint16 > const& >() == rhs.As< List< uint16 > const& >();
+                return As< Buffer< uint16 > const& >() == rhs.As< Buffer< uint16 > const& >();
             case UINT32_LIST:
-                return As< List< uint32 > const& >() == rhs.As< List< uint32 > const& >();
+                return As< Buffer< uint32 > const& >() == rhs.As< Buffer< uint32 > const& >();
             case UINT64_LIST:
-                return As< List< uint64 > const& >() == rhs.As< List< uint64 > const& >();
+                return As< Buffer< uint64 > const& >() == rhs.As< Buffer< uint64 > const& >();
             case FLOAT_LIST:
-                return As< List< float > const& >() == rhs.As< List< float > const& >();
+                return As< Buffer< float > const& >() == rhs.As< Buffer< float > const& >();
             case DOUBLE_LIST:
-                return As< List< double > const& >() == rhs.As< List< double > const& >();
+                return As< Buffer< double > const& >() == rhs.As< Buffer< double > const& >();
             case STRING_LIST:
-                return As< List< String > const& >() == rhs.As< List< String > const& >();
+                return As< Buffer< String > const& >() == rhs.As< Buffer< String > const& >();
             default:
                 return false;
             }

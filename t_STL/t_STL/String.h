@@ -4,7 +4,7 @@
 
 #include "Tint.h"
 #include "Lib.h"
-#include "List.h"
+#include "Buffer.h"
 
 namespace t
 {
@@ -310,12 +310,12 @@ namespace t
 			return npos;
 		}
 
-		constexpr List< GenericString > split( CharTy c ) const
+		constexpr Buffer< GenericString > split( CharTy c ) const
 		{
 			if ( m_data == nullptr )
 				return {};
 
-			List< SizeTy > indexes;
+			Buffer< SizeTy > indexes;
 
 			for ( SizeTy i = 0; i < m_size; ++i )
 			{
@@ -328,7 +328,7 @@ namespace t
 
 			indexes.pushBack( m_size );
 
-			List< GenericString > strings( indexes.size() );
+			Buffer< GenericString > strings( indexes.size() );
 
 			auto stringptr = strings.data();
 

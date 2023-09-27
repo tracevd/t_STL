@@ -27,9 +27,9 @@ namespace t
 		template< typename T >
 		Value DeserializeList( const uint8* buffer, uint64& bufferOffset, uint64 numel, const bool swapbytes )
 		{
-			if constexpr ( std::is_same_v< T, List< String > > )
+			if constexpr ( std::is_same_v< T, Buffer< String > > )
 			{
-				List< String > vec;
+				Buffer< String > vec;
 				vec.reserve( numel );
 
 				for ( ; numel > 0; --numel )
@@ -195,37 +195,37 @@ namespace t
 						DeserializeAndInsertMap( out_vm, std::move( key ), buffer, bufferSize, bufferOffset, swapbytes );
 						continue;
 					case INT8_LIST:
-						DeserializeAndInsertList< List< int8 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertList< Buffer< int8 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case INT16_LIST:
-						DeserializeAndInsertList< List< int16 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertList< Buffer< int16 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case INT32_LIST:
-						DeserializeAndInsertList< List< int32 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertList< Buffer< int32 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case INT64_LIST:
-						DeserializeAndInsertList< List< int64 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertList< Buffer< int64 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case UINT8_LIST:
-						DeserializeAndInsertList< List< uint8 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertList< Buffer< uint8 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case UINT16_LIST:
-						DeserializeAndInsertList< List< uint16 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertList< Buffer< uint16 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case UINT32_LIST:
-						DeserializeAndInsertList< List< uint32 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertList< Buffer< uint32 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case UINT64_LIST:
-						DeserializeAndInsertList< List< uint64 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertList< Buffer< uint64 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case FLOAT_LIST:
-						DeserializeAndInsertList< List< float > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertList< Buffer< float > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case DOUBLE_LIST:
-						DeserializeAndInsertList< List< double > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertList< Buffer< double > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case STRING_LIST:
-						DeserializeAndInsertList< List< String > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertList< Buffer< String > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					default:
 						throw std::runtime_error( "De-Serialization for this type is unsupported" );

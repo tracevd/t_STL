@@ -8,7 +8,7 @@
 namespace t
 {
     template< typename T >
-    class List;
+    class Buffer;
 
     template< typename T >
     struct is_vector
@@ -17,7 +17,7 @@ namespace t
     };
 
     template< typename T >
-    struct is_vector< List< T > >
+    struct is_vector< Buffer< T > >
     {
         static constexpr bool value = true;
     };

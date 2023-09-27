@@ -24,7 +24,7 @@ void printHexStr( uint64 val )
 using std::chrono::microseconds;
 using t::variant::Map;
 using t::String;
-using t::List;
+using t::Buffer;
 using t::variant::Value;
 
 t::pair< int64, int64 > testTvm()
@@ -42,17 +42,17 @@ t::pair< int64, int64 > testTvm()
     vm["int64"] = int64( 8 );
     vm["float"] = float( 9 );
     vm["double"] = double( 10 );
-    vm["u8 vector"] = List< uint8 >{ 1, 2, 3, 4, 5 };
-    vm["u16 vector"] = List< uint16 >{ 6, 7, 8, 9, 10 };
-    vm["u32 vector"] = List< uint32 >{ 11, 12, 13, 14 };
-    vm["u64 vector"] = List< uint64 >{ 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
-    vm["i8 vector"] = List< int8 >{ 1, 2, 3, 4, 5 };
-    vm["i16 vector"] = List< int16 >{ 6, 7, 8, 9, 10 };
-    vm["i32 vector"] = List< int32 >{ 11, 12, 13, 14 };
-    vm["i64 vector"] = List< int64 >{ 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
-    vm["str vector"] = List< String >{ "hey", "blahblah", "broke" };
-    vm["float vector"] = List< float >{ 1.f, 2.f, 3.f, 4.5f, 5.f, 7.69420f };
-    vm["double vector"] = List< double >{ 25, 26, 27, 28, 29, 30, 31 };
+    vm["u8 vector"] = Buffer< uint8 >{ 1, 2, 3, 4, 5 };
+    vm["u16 vector"] = Buffer< uint16 >{ 6, 7, 8, 9, 10 };
+    vm["u32 vector"] = Buffer< uint32 >{ 11, 12, 13, 14 };
+    vm["u64 vector"] = Buffer< uint64 >{ 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
+    vm["i8 vector"] = Buffer< int8 >{ 1, 2, 3, 4, 5 };
+    vm["i16 vector"] = Buffer< int16 >{ 6, 7, 8, 9, 10 };
+    vm["i32 vector"] = Buffer< int32 >{ 11, 12, 13, 14 };
+    vm["i64 vector"] = Buffer< int64 >{ 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
+    vm["str vector"] = Buffer< String >{ "hey", "blahblah", "broke" };
+    vm["float vector"] = Buffer< float >{ 1.f, 2.f, 3.f, 4.5f, 5.f, 7.69420f };
+    vm["double vector"] = Buffer< double >{ 25, 26, 27, 28, 29, 30, 31 };
     Map map;
     map.insert( { String( "test" ), Value( "value" ) } );
     map.insert( { String( "test2" ), Value( "value2" ) } );
@@ -102,7 +102,7 @@ String generateRandomString()
 }
 
 template< class hash, uint64 NumKeys >
-void ShowHashValues( List< String > const& keys )
+void ShowHashValues( Buffer< String > const& keys )
 {
     t::HashSet< uint64 > hashes;
 
@@ -143,7 +143,7 @@ void ShowHashValues( List< String > const& keys )
 }
 
 template< class hash, uint64 NumKeys >
-int64 InsertAndTimeStuff( List< String > const& keys )
+int64 InsertAndTimeStuff( Buffer< String > const& keys )
 {
     Timer< microseconds > timer;
 
@@ -169,11 +169,11 @@ void HashMapVsUnorderedMap()
 {
     constexpr uint64 numLoops = 5000;
 
-    List< int64 > times( numLoops );
+    Buffer< int64 > times( numLoops );
 
     for ( uint64 i = 0; i < numLoops; ++i )
     {
-        List< String > keys( numLoops );
+        Buffer< String > keys( numLoops );
 
         for ( uint64 i = 0; i < NumKeys; ++i )
             keys[ i ] = generateRandomString();
@@ -269,7 +269,7 @@ constexpr static auto normal_distribution( T min, T max )
 template< uint64 NumKeys >
 void StdHashVsTHash()
 {
-    List< String > keys( 150 );
+    Buffer< String > keys( 150 );
     for ( uint64 i = 0; i < keys.size(); ++i )
         keys[ i ] = generateRandomString();
 

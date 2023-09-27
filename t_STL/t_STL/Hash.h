@@ -2,7 +2,7 @@
 
 #include <assert.h>
 #include "Type.h"
-#include "List.h"
+#include "Buffer.h"
 #include "Memory.h"
 #include "Array.h"
 #include "Tuple.h"
@@ -518,7 +518,7 @@ namespace t
             using ValueType = T;
             using NodeType = details::HashNode< T >;
             using BucketType = details::MultiValueLinkedList< T >;
-            using BucketListType = List< BucketType >;
+            using BucketListType = Buffer< BucketType >;
 
             using Iterator = HashIterator< Hash< T > >;
             using ConstIterator = HashConstIterator< Hash< T > >;
