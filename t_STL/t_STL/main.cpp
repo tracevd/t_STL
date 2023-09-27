@@ -86,7 +86,7 @@ t::pair< int64, int64 > testTvm()
     std::cout << "New size: " << vm_2.size() << '\n';
 
     if ( vm_2 != vm )
-        throw std::runtime_error("Maps were not equal!");
+        exit( -69 );
 
     std::cout << "Maps were equivalent\n";
 
