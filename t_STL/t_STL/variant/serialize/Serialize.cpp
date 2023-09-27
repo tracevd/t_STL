@@ -3,33 +3,12 @@
 #include <iostream>
 #include <type_traits>
 
+#include "../../byteswap.h"
 
 namespace t
 {
 	namespace variant
 	{
-		template< typename T >
-		T byteswap( T data );
-
-		template<>
-		uint64 byteswap( uint64 data )
-		{
-			return (data >> 56 & 0xff) | (data >> 48 & 0xff) << 8 | (data >> 40 & 0xff) << 16 | (data >> 32 & 0xff) << 24 |
-				   (data >> 24 & 0xff) << 32 | (data >> 16 & 0xff) << 40 | (data >>  8 & 0xff) << 48 | (data & 0xff) << 56;
-		}
-
-		template<>
-		uint32 byteswap( uint32 data )
-		{
-			return (data >> 24 & 0xff) | (data >> 16 & 0xff) << 8 | (data >> 8 & 0xff) << 16 | (data & 0xff) << 24;
-		}
-
-		template<>
-		uint16 byteswap( uint16 data )
-		{
-			return (data >> 8 & 0xff) | (data & 0xff) << 8;
-		}
-
 		template< std::endian >
 		void AddToBuffer( BufferType& buffer, uint8 data )
 		{

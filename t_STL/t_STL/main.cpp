@@ -62,7 +62,7 @@ t::pair< int64, int64 > testTvm()
 
     t.start();
 
-    auto buffer = t::variant::Serialize( vm );
+    auto buffer = t::variant::Serialize< std::endian::big >( vm );
 
     auto ser = t.stop();
 
@@ -491,6 +491,8 @@ constexpr int testTree()
     return *ptr;
 }
 
+#include "byteswap.h"
+
 int main()
 {
     /*constexpr auto init  = get_seed_constexpr();
@@ -620,6 +622,19 @@ int main()
 
     std::cout << "Serialization took an average of " << ser / NumLoops << "uS\n";
     std::cout << "Deserialization took an average of " << deser / NumLoops << "uS\n";
+
+    {
+        constexpr int16 val = 0xf00d;
+        constexpr auto val2 = t::byteswap( val );
+        static_assert( val2 == 0x0df0 );
+        static_assert( t::byteswap( val2 ) == val );
+
+        constexpr int64 _val = 0xf00ddeadf00ddead;
+        constexpr auto _val2 = t::byteswap( _val );
+        static_assert( _val2 == 0xadde0df0adde0df0 );
+        static_assert( t::byteswap( _val2 ) == _val );
+    }
+    
 
     return 0;
 }
