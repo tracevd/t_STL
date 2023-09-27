@@ -149,8 +149,6 @@ namespace t
 				if ( swapbytes )
 					numel = byteswap( numel );
 
-				std::cout << "Found numel: " << numel << '\n';
-
 				bufferOffset += sizeof( uint64 );
 
 				Map out_vm;
@@ -163,8 +161,6 @@ namespace t
 
 					Type type = static_cast< Type >( buffer[ bufferOffset ] );
 					bufferOffset += sizeof( Type );
-
-					std::cout << key << ": " << typeToString( type ) << '\n';
 
 					switch ( type )
 					{
