@@ -68,7 +68,7 @@ t::pair< int64, int64 > testTvm()
 
     t.start();
 
-    auto buffer = t::variant::Serialize< t::endianness::big >( vm );
+    auto buffer = t::variant::Serialize< t::endianness::native >( vm );
 
     auto ser = t.stop();
 
