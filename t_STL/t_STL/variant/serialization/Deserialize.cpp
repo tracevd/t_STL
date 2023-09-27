@@ -30,32 +30,29 @@ namespace t
 		{
 			if constexpr ( std::is_same_v< T, Buffer< String > > )
 			{
-				Buffer< String > vec;
-				vec.reserve( numel );
+				Buffer< String > vec( numel );
 
-				for ( ; numel > 0; --numel )
+				for ( uint64 i = 0; i < numel; ++i )
 				{
-					vec.pushBack( DeserializeString( buffer, bufferOffset, swapbytes ) );
+					vec[ i ] = DeserializeString( buffer, bufferOffset, swapbytes );
 				}
 
 				return Value( std::move( vec ) );
 			}
 			else
 			{
-				T vec;
-				vec.reserve( numel );
+				T vec( numel );
 
-				auto reinterp_buffer = reinterpret_cast<const T::ValueType*>(&buffer[bufferOffset]);
+				auto reinterp_buffer = reinterpret_cast< const T::ValueType* >( &buffer[ bufferOffset ] );
 
-				for ( auto numel_ = numel; numel_ > 0; --numel_ )
+				for ( uint64 i = 0; i < numel; ++i )
 				{
-					auto val = *reinterp_buffer;
+					auto val = reinterp_buffer[ i ];
 
 					if ( swapbytes )
 						val = byteswap( val );
 
-					vec.pushBack( val );
-					++reinterp_buffer;
+					vec[ i ] = val;
 				}
 
 				bufferOffset += sizeof( typename T::ValueType ) * numel;
