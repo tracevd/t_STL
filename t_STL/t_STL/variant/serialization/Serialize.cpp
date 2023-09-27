@@ -119,7 +119,6 @@ namespace t
 			void SerializePrimitiveValue( BufferType& buffer, T data )
 			{
 				auto constexpr type = templateToVariantType< T >();
-				static_assert( type != VOID, "Invalid Type attempting to be serialized" );
 				AddToBuffer< e >( buffer, static_cast< uint8 >( type ) );
 				AddToBuffer< e >( buffer, data );
 			}

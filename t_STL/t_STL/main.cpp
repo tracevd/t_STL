@@ -70,7 +70,7 @@ t::pair< int64, int64 > testTvm()
 
     t.start();
 
-    auto buffer = t::variant::Serialize< t::endianness::not_native >( vm );
+    auto buffer = t::variant::Serialize< t::endianness::native >( vm );
 
     auto ser = t.stop();
 
@@ -80,15 +80,8 @@ t::pair< int64, int64 > testTvm()
 
     auto deser = t.stop();
 
-    std::cout << "Finished Deserialization\n";
-
-    std::cout << "Original size: " << vm.size() << '\n';
-    std::cout << "New size: " << vm_2.size() << '\n';
-
     if ( vm_2 != vm )
         exit( -69 );
-
-    std::cout << "Maps were equivalent\n";
 
     return { ser, deser };
 }
