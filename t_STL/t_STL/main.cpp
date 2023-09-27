@@ -609,7 +609,7 @@ int main()
     auto ser = int64( 0 );
     auto deser = int64( 0 );
 
-    constexpr auto NumLoops = 1000;
+    constexpr auto NumLoops = 10000;
 
     for ( auto i = 0; i < NumLoops; ++i )
     {
