@@ -1,8 +1,8 @@
 #include <iostream>
 
 #include "t.h"
-#include "variant/serialize/Serialize.h"
-#include "variant/deserialize/Deserialize.h"
+#include "variant/serialization/Serialize.h"
+#include "variant/serialization/Deserialize.h"
 #include "Timer.h"
 #include "HashSet.h"
 
@@ -634,7 +634,12 @@ int main()
         static_assert( _val2 == int64(0xadde0df0adde0df0) );
         static_assert( t::byteswap( _val2 ) == _val );
     }
+
+    std::cout << "---------------------------\n";
     
+    std::cout << (int) std::endian::native << '\n';
+    std::cout << "Little: " << (int) std::endian::little << '\n';
+    std::cout << "Big:    " << (int) std::endian::big << '\n';
 
     return 0;
 }

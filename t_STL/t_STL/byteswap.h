@@ -11,18 +11,18 @@ namespace t
 
 	constexpr uint16 byteswap( uint16 data )
 	{
-		return (data >> 8 & 0xff) | (data & 0xff) << 8;
+		return ((data >> 8) & 0xff) | ((data & 0xff) << 8);
 	}
 
 	constexpr uint32 byteswap( uint32 data )
 	{
-		return (data >> 24 & 0xff) | (data >> 16 & 0xff) << 8 | (data >> 8 & 0xff) << 16 | (data & 0xff) << 24;
+		return ((data >> 24) & 0xff) | (((data >> 16) & 0xff) << 8) | (((data >> 8) & 0xff) << 16) | ((data & 0xff) << 24);
 	}
 
 	constexpr uint64 byteswap( uint64 data )
 	{
-		return (data >> 56 & 0xff) | (data >> 48 & 0xff) << 8 | (data >> 40 & 0xff) << 16 | (data >> 32 & 0xff) << 24 |
-			(data >> 24 & 0xff) << 32 | (data >> 16 & 0xff) << 40 | (data >> 8 & 0xff) << 48 | (data & 0xff) << 56;
+		return ((data >> 56) & 0xff) | (((data >> 48) & 0xff) << 8) | (((data >> 40) & 0xff) << 16) | (((data >> 32) & 0xff) << 24) |
+			(((data >> 24) & 0xff) << 32) | (((data >> 16) & 0xff) << 40) | (((data >> 8) & 0xff) << 48) | ((data & 0xff) << 56);
 	}
 
 	constexpr int8 byteswap( int8 data )
@@ -32,7 +32,7 @@ namespace t
 
 	constexpr int16 byteswap( int16 data )
 	{
-		return (data >> 8 & 0xff) | (data & 0xff) << 8;
+		return (data >> 8 & 0xff) | ((data & 0xff) << 8);
 	}
 
 	constexpr int32 byteswap( int32 data )
@@ -51,9 +51,9 @@ namespace t
 	{
 		T result;
 		size_t n = sizeof( T );
-		unsigned char* p = (unsigned char*) &value;
+		unsigned char* p = (uint8*) &value;
 		for ( size_t i = 0; i < n; ++i )
-			((unsigned char*) &result)[i] = p[n - 1 - i];
+			((unsigned char*) &result)[ i ] = p[ n - 1 - i ];
 		return result;
 	}
 
@@ -61,7 +61,7 @@ namespace t
 	{
 		float result;
 		constexpr auto n = sizeof( float );
-		unsigned char* p = (unsigned char*) &data;
+		unsigned char* p = (uint8*) &data;
 		for ( uint64 i = 0; i < n; ++i )
 			( (uint8*) &result )[ i ] = p[ n - 1 - i ];
 		return result;
