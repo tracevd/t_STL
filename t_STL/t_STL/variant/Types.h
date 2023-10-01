@@ -26,6 +26,8 @@ namespace t
     {
         class Map;
 
+        constexpr uint8 ARRAY = 0x10;
+
         enum Type : uint8
         {
             VOID,
@@ -34,18 +36,17 @@ namespace t
             FLOAT, DOUBLE,
             STRING,
             MAP,
-            LIST = 0x10,
-            INT8_ARRAY = INT8 | LIST,
-            INT16_ARRAY = INT16 | LIST,
-            INT32_ARRAY = INT32 | LIST,
-            INT64_ARRAY = INT64 | LIST,
-            UINT8_ARRAY = UINT8 | LIST,
-            UINT16_ARRAY = UINT16 | LIST,
-            UINT32_ARRAY = UINT32 | LIST,
-            UINT64_ARRAY = UINT64 | LIST,
-            FLOAT_ARRAY = FLOAT | LIST,
-            DOUBLE_ARRAY = DOUBLE | LIST,
-            STRING_ARRAY = STRING | LIST
+            INT8_ARRAY = INT8 | ARRAY,
+            INT16_ARRAY = INT16 | ARRAY,
+            INT32_ARRAY = INT32 | ARRAY,
+            INT64_ARRAY = INT64 | ARRAY,
+            UINT8_ARRAY = UINT8 | ARRAY,
+            UINT16_ARRAY = UINT16 | ARRAY,
+            UINT32_ARRAY = UINT32 | ARRAY,
+            UINT64_ARRAY = UINT64 | ARRAY,
+            FLOAT_ARRAY = FLOAT | ARRAY,
+            DOUBLE_ARRAY = DOUBLE | ARRAY,
+            STRING_ARRAY = STRING | ARRAY
         };
 
         #include "ValueTypeDefines.h"
