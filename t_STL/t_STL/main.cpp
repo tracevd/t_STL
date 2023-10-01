@@ -28,6 +28,42 @@ using t::String;
 using t::DynamicArray;
 using t::variant::Value;
 
+constexpr int testVm()
+{
+    Map vm;
+
+    vm["string"] = "hello";
+    vm["uint8"] = uint8( 1 );
+    vm["uint16"] = uint16( 2 );
+    vm["uint32"] = uint32( 3 );
+    vm["uint64"] = uint64( 4 );
+    vm["int8"] = int8( 5 );
+    vm["int16"] = int16( 6 );
+    vm["int32"] = int32( 7 );
+    vm["int64"] = int64( 8 );
+    vm["float"] = float( 9.0 );
+    vm["double"] = double( 10.0 );
+    vm["u8 vector"] = DynamicArray< uint8 >{ 1, 2, 3, 4, 5 };
+    vm["u16 vector"] = DynamicArray< uint16 >{ 6, 7, 8, 9, 10 };
+    vm["u32 vector"] = DynamicArray< uint32 >{ 11, 12, 13, 14 };
+    vm["u64 vector"] = DynamicArray< uint64 >{ 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
+    vm["i8 vector"] = DynamicArray< int8 >{ 1, 2, 3, 4, 5 };
+    vm["i16 vector"] = DynamicArray< int16 >{ 6, 7, 8, 9, 10 };
+    vm["i32 vector"] = DynamicArray< int32 >{ 11, 12, 13, 14 };
+    vm["i64 vector"] = DynamicArray< int64 >{ 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
+    vm["str vector"] = DynamicArray< String >{ "hey", "blahblah", "broke" };
+    vm["float vector"] = DynamicArray< float >{ 1.f, 2.f, 3.f, 4.5f, 5.f, 7.69420f };
+    vm["double vector"] = DynamicArray< double >{ 25, 26, 27, 28, 29, 30, 31 };
+    Map map;
+    map.insert( { String( "test" ), Value( "value" ) } );
+    map.insert( { String( "test2" ), Value( "value2" ) } );
+    vm["vm"] = std::move( map );
+
+    auto vm2 = vm;
+
+    return 3;
+}
+
 t::pair< int64, int64 > testTvm()
 {
     Map vm;
@@ -579,6 +615,8 @@ int main()
 
     std::cout << (int) type << '\n';
     std::cout << (int) type2 << '\n';
+
+    constexpr int asofns = testVm(); (void) asofns;
 
     return 0;
 }

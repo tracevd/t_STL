@@ -555,7 +555,8 @@ namespace t
             constexpr Hash( Hash&& other ):
                 m_buckets( std::move( other.m_buckets ) ) {}
 
-            constexpr Hash( Hash const& other )
+            constexpr Hash( Hash const& other ):
+                m_buckets( 8 )
             {
                 for ( auto it = other.cbegin(); it != other.cend(); ++it )
                 {

@@ -206,7 +206,7 @@ namespace t
 				rhs.m_refCount = nullptr;
 			}
 
-			void operator=( ValueType* alloc )
+			constexpr void operator=( ValueType* alloc )
 			{
 				DestroyData();
 
