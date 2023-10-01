@@ -103,8 +103,13 @@ namespace t
     class TreeIterator
     {
     private:
+#ifdef _MSC_VER
+        using NodeType = typename Tree::NodeType;
+        using ValueType = typename NodeType::ValueType;
+#else
         using NodeType = Tree::NodeType;
         using ValueType = NodeType::ValueType;
+#endif
     public:
         TreeIterator() = delete;
 
@@ -169,8 +174,13 @@ namespace t
     class TreeConstIterator
     {
     private:
+#ifdef _MSC_VER
+        using NodeType = typename const Tree::NodeType;
+        using ValueType = typename const NodeType::ValueType;
+#else
         using NodeType = const Tree::NodeType;
         using ValueType = const NodeType::ValueType;
+#endif
     public:
         TreeConstIterator() = delete;
 
