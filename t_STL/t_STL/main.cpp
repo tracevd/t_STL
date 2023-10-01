@@ -567,8 +567,6 @@ int main()
 
     auto int_8 = int8( 123 );
 
-    using x = t::type::decay< const uint8& >;
-
     auto val2 = tt::Value( int_8 );
     auto val3 = tt::Value( uint8( 123 ) );
     //auto val4 = tt::Value( uint64( 456 ) );

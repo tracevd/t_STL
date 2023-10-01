@@ -35,17 +35,17 @@ namespace t
             STRING,
             MAP,
             LIST = 0x10,
-            INT8_LIST = INT8 | LIST,
-            INT16_LIST = INT16 | LIST,
-            INT32_LIST = INT32 | LIST,
-            INT64_LIST = INT64 | LIST,
-            UINT8_LIST = UINT8 | LIST,
-            UINT16_LIST = UINT16 | LIST,
-            UINT32_LIST = UINT32 | LIST,
-            UINT64_LIST = UINT64 | LIST,
-            FLOAT_LIST = FLOAT | LIST,
-            DOUBLE_LIST = DOUBLE | LIST,
-            STRING_LIST = STRING | LIST
+            INT8_ARRAY = INT8 | LIST,
+            INT16_ARRAY = INT16 | LIST,
+            INT32_ARRAY = INT32 | LIST,
+            INT64_ARRAY = INT64 | LIST,
+            UINT8_ARRAY = UINT8 | LIST,
+            UINT16_ARRAY = UINT16 | LIST,
+            UINT32_ARRAY = UINT32 | LIST,
+            UINT64_ARRAY = UINT64 | LIST,
+            FLOAT_ARRAY = FLOAT | LIST,
+            DOUBLE_ARRAY = DOUBLE | LIST,
+            STRING_ARRAY = STRING | LIST
         };
 
         #include "ValueTypeDefines.h"
@@ -88,27 +88,27 @@ namespace t
                 return "String";
             case MAP:
                 return "Map";
-            case INT8_LIST:
+            case INT8_ARRAY:
                 return "int8[]";
-            case INT16_LIST:
+            case INT16_ARRAY:
                 return "int16[]";
-            case INT32_LIST:
+            case INT32_ARRAY:
                 return "int32[]";
-            case INT64_LIST:
+            case INT64_ARRAY:
                 return "int64[]";
-            case UINT8_LIST:
+            case UINT8_ARRAY:
                 return "uint8[]";
-            case UINT16_LIST:
+            case UINT16_ARRAY:
                 return "uint16[]";
-            case UINT32_LIST:
+            case UINT32_ARRAY:
                 return "uint32[]";
-            case UINT64_LIST:
+            case UINT64_ARRAY:
                 return "uint64[]";
-            case FLOAT_LIST:
+            case FLOAT_ARRAY:
                 return "float[]";
-            case DOUBLE_LIST:
+            case DOUBLE_ARRAY:
                 return "double[]";
-            case STRING_LIST:
+            case STRING_ARRAY:
                 return "String[]";
             default:
                 return "void";

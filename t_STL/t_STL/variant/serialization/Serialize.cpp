@@ -199,27 +199,27 @@ namespace t
 					return SerializeComplexValue< e >( buffer, val.As< String const& >() );
 				case Type::MAP:
 					return SerializeComplexValue< e >( buffer, val.As< Map const& >() );
-				case Type::INT8_LIST:
+				case Type::INT8_ARRAY:
 					return SerializeListValue< e >( buffer, val.As< DynamicArray< int8 > const& >() );
-				case Type::INT16_LIST:
+				case Type::INT16_ARRAY:
 					return SerializeListValue< e >( buffer, val.As< DynamicArray< int16 > const& >() );
-				case Type::INT32_LIST:
+				case Type::INT32_ARRAY:
 					return SerializeListValue< e >( buffer, val.As< DynamicArray< int32 > const& >() );
-				case Type::INT64_LIST:
+				case Type::INT64_ARRAY:
 					return SerializeListValue< e >( buffer, val.As< DynamicArray< int64 > const& >() );
-				case Type::UINT8_LIST:
+				case Type::UINT8_ARRAY:
 					return SerializeListValue< e >( buffer, val.As< DynamicArray< uint8 > const& >() );
-				case Type::UINT16_LIST:
+				case Type::UINT16_ARRAY:
 					return SerializeListValue< e >( buffer, val.As< DynamicArray< uint16 > const& >() );
-				case Type::UINT32_LIST:
+				case Type::UINT32_ARRAY:
 					return SerializeListValue< e >( buffer, val.As< DynamicArray< uint32 > const& >() );
-				case Type::UINT64_LIST:
+				case Type::UINT64_ARRAY:
 					return SerializeListValue< e >( buffer, val.As< DynamicArray< uint64 > const& >() );
-				case Type::FLOAT_LIST:
+				case Type::FLOAT_ARRAY:
 					return SerializeListValue< e >( buffer, val.As< DynamicArray< float > const& >() );
-				case Type::DOUBLE_LIST:
+				case Type::DOUBLE_ARRAY:
 					return SerializeListValue< e >( buffer, val.As< DynamicArray< double > const& >() );
-				case Type::STRING_LIST:
+				case Type::STRING_ARRAY:
 					return SerializeComplexValue< e >( buffer, val.As< DynamicArray< String > const& >() );
 				}
 				assert( false );

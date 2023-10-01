@@ -256,12 +256,52 @@ namespace t
 			{
 			case Type::VOID:
 				return true;
-			case Type::UINT8:
-				return As< uint8 >() == rhs.As< uint8 >();
 			case Type::INT8:
 				return As< int8 >() == rhs.As< int8 >();
+			case Type::INT16:
+				return As< int16 >() == rhs.As< int16 >();
+			case Type::INT32:
+				return As< int32 >() == rhs.As< int32 >();
+			case Type::INT64:
+				return As< int64 >() == rhs.As< int64 >();
+			case Type::UINT8:
+				return As< uint8 >() == rhs.As< uint8 >();
+			case Type::UINT16:
+				return As< uint16 >() == rhs.As< uint16 >();
+			case Type::UINT32:
+				return As< uint32 >() == rhs.As< uint32 >();
+			case Type::UINT64:
+				return As< uint64 >() == rhs.As< uint64 >();
+			case Type::FLOAT:
+				return As< float >() == rhs.As< float >();
+			case Type::DOUBLE:
+				return As< double >() == rhs.As< double >();
+			case Type::STRING:
+				return As< String const& >() == As< String const& >();
 			case Type::MAP:
 				return As< Map const& >() == rhs.As< Map const& >();
+			case Type::INT8_ARRAY:
+				return As< DynamicArray< int8 > const& >() == rhs.As< DynamicArray< int8 > const& >();
+			case Type::INT16_ARRAY:
+				return As< DynamicArray< int16 > const& >() == rhs.As< DynamicArray< int16 > const& >();
+			case Type::INT32_ARRAY:
+				return As< DynamicArray< int32 > const& >() == rhs.As< DynamicArray< int32 > const& >();
+			case Type::INT64_ARRAY:
+				return As< DynamicArray< int64 > const& >() == rhs.As< DynamicArray< int64 > const& >();
+			case Type::UINT8_ARRAY:
+				return As< DynamicArray< uint8 > const& >() == rhs.As< DynamicArray< uint8 > const& >();
+			case Type::UINT16_ARRAY:
+				return As< DynamicArray< uint16 > const& >() == rhs.As< DynamicArray< uint16 > const& >();
+			case Type::UINT32_ARRAY:
+				return As< DynamicArray< uint32 > const& >() == rhs.As< DynamicArray< uint32 > const& >();
+			case Type::UINT64_ARRAY:
+				return As< DynamicArray< uint64 > const& >() == rhs.As< DynamicArray< uint64 > const& >();
+			case Type::FLOAT_ARRAY:
+				return As< DynamicArray< float > const& >() == rhs.As< DynamicArray< float > const& >();
+			case Type::DOUBLE_ARRAY:
+				return As< DynamicArray< double > const& >() == rhs.As< DynamicArray< double > const& >();
+			case Type::STRING_ARRAY:
+				return As< DynamicArray< String > const& >() == As< DynamicArray< String > const& >();
 			}
 		}
 

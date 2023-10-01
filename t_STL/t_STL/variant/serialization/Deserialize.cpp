@@ -201,37 +201,37 @@ namespace t
 					case MAP:
 						DeserializeAndInsertMap( out_vm, std::move( key ), buffer, bufferSize, bufferOffset, swapbytes );
 						continue;
-					case INT8_LIST:
+					case INT8_ARRAY:
 						DeserializeAndInsertList< DynamicArray< int8 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
-					case INT16_LIST:
+					case INT16_ARRAY:
 						DeserializeAndInsertList< DynamicArray< int16 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
-					case INT32_LIST:
+					case INT32_ARRAY:
 						DeserializeAndInsertList< DynamicArray< int32 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
-					case INT64_LIST:
+					case INT64_ARRAY:
 						DeserializeAndInsertList< DynamicArray< int64 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
-					case UINT8_LIST:
+					case UINT8_ARRAY:
 						DeserializeAndInsertList< DynamicArray< uint8 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
-					case UINT16_LIST:
+					case UINT16_ARRAY:
 						DeserializeAndInsertList< DynamicArray< uint16 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
-					case UINT32_LIST:
+					case UINT32_ARRAY:
 						DeserializeAndInsertList< DynamicArray< uint32 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
-					case UINT64_LIST:
+					case UINT64_ARRAY:
 						DeserializeAndInsertList< DynamicArray< uint64 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
-					case FLOAT_LIST:
+					case FLOAT_ARRAY:
 						DeserializeAndInsertList< DynamicArray< float > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
-					case DOUBLE_LIST:
+					case DOUBLE_ARRAY:
 						DeserializeAndInsertList< DynamicArray< double > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
-					case STRING_LIST:
+					case STRING_ARRAY:
 						DeserializeAndInsertList< DynamicArray< String > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					}

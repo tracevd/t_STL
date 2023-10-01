@@ -61,14 +61,14 @@ DefineType( float, FLOAT, "float" ) \
 DefineType( double, DOUBLE, "double" ) \
 DefineType( String, STRING, "String" ) \
 DefineType( ::t::variant::Map, MAP, "Map" ) \
-DefineType( DynamicArray< int8 >, INT8_LIST, "i8[]" ) \
-DefineType( DynamicArray< int16 >, INT16_LIST, "i16[]" ) \
-DefineType( DynamicArray< int32 >, INT32_LIST, "i32[]" ) \
-DefineType( DynamicArray< int64 >, INT64_LIST, "i64[]" ) \
-DefineType( DynamicArray< uint8 >, UINT8_LIST, "u8[]" ) \
-DefineType( DynamicArray< uint16 >, UINT16_LIST, "u16[]" ) \
-DefineType( DynamicArray< uint32 >, UINT32_LIST, "u32[]" ) \
-DefineType( DynamicArray< uint64 >, UINT64_LIST, "u64[]" ) \
-DefineType( DynamicArray< float >, FLOAT_LIST, "float[]" ) \
-DefineType( DynamicArray< double >, DOUBLE_LIST, "double[]" ) \
-DefineType( DynamicArray< String >, STRING_LIST, "String[]" )
+DefineType( DynamicArray< int8 >, INT8_ARRAY, "i8[]" ) \
+DefineType( DynamicArray< int16 >, INT16_ARRAY, "i16[]" ) \
+DefineType( DynamicArray< int32 >, INT32_ARRAY, "i32[]" ) \
+DefineType( DynamicArray< int64 >, INT64_ARRAY, "i64[]" ) \
+DefineType( DynamicArray< uint8 >, UINT8_ARRAY, "u8[]" ) \
+DefineType( DynamicArray< uint16 >, UINT16_ARRAY, "u16[]" ) \
+DefineType( DynamicArray< uint32 >, UINT32_ARRAY, "u32[]" ) \
+DefineType( DynamicArray< uint64 >, UINT64_ARRAY, "u64[]" ) \
+DefineType( DynamicArray< float >, FLOAT_ARRAY, "float[]" ) \
+DefineType( DynamicArray< double >, DOUBLE_ARRAY, "double[]" ) \
+DefineType( DynamicArray< String >, STRING_ARRAY, "String[]" )
