@@ -87,15 +87,6 @@ namespace t
 				return *this;
 			}
 
-			template< uint64 N >
-			constexpr Value& operator=( const char(&str)[ N ] )
-			{
-				auto val = String( str );
-				m_ptr = new Derived< String >( move( val ) );
-				m_type = templateToVariantType< String >();
-				return *this;
-			}
-
 			constexpr Value& operator=( const char* str )
 			{
 				m_ptr = new Derived< String >( str );
