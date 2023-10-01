@@ -170,7 +170,7 @@ namespace t
 					*m_refCount += 1;
 			}
 
-			constexpr SharedPtrBase( SharedPtrBase&& ptr ):
+			constexpr SharedPtrBase( SharedPtrBase&& ptr ) noexcept:
 				m_data( ptr.m_data ),
 				m_refCount( ptr.m_refCount )
 			{
@@ -192,7 +192,7 @@ namespace t
 					*m_refCount += 1;
 			}
 			
-			constexpr void operator=( SharedPtrBase&& rhs )
+			constexpr void operator=( SharedPtrBase&& rhs ) noexcept
 			{
 				if ( this == &rhs )
 					return;

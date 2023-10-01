@@ -244,6 +244,11 @@ namespace t
 				throw std::runtime_error( msg.c_str() );
 			}
 
+			if ( m_ptr.isShared() )
+			{
+				*this = Value( static_cast< Derived< type::decay< T > > >( m_ptr.get() )->m_data );
+			}
+
 			return static_cast< Derived< type::decay< T > >* >( m_ptr.get() )->m_data;
 		}
 
