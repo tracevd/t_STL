@@ -174,7 +174,7 @@ namespace t
     public:
         TreeConstIterator() = delete;
 
-        constexpr TreeConstIterator( TreeIterator it ):
+        constexpr TreeConstIterator( TreeIterator< Tree > it ):
             m_node( it.m_node ) {}
 
         constexpr explicit TreeConstIterator( NodeType* node )
