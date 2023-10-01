@@ -181,7 +181,7 @@ namespace t
              * @brief Finds a value. Returns nullptr if not found.
              */
             template< class U >
-            constexpr const T* find( U const& val ) const
+            constexpr T* find( U const& val ) const
             {
                 const Node_t* n = &m_data;
                 uint8 index = 0;

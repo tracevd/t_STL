@@ -61,7 +61,7 @@ constexpr int testVm()
 
     auto vm2 = vm;
 
-    return 3;
+    return vm2.at("int32").As< int32 >();
 }
 
 t::pair< int64, int64 > testTvm()
@@ -487,8 +487,6 @@ constexpr int testTree()
     return *ptr;
 }
 
-#include "Test.h"
-
 int main()
 {
     /*StdHashVsTHash< 15 >();
@@ -573,50 +571,8 @@ int main()
 
     std::cout << s << ": " << strv << '\n';
 
-    namespace tt = t::test;
-
-    tt::Map map;
-
-    map.insert( {"hello", tt::Value( uint8(123) ) } );
-    map.insert( {"blah", tt::Value( int8(32) ) } );
-
-    tt::Value val = tt::Value( std::move( map ) );
-
-    auto& m = val.As< tt::Map const& >();
-
-    for ( auto const& [ key, value ] : m )
-    {
-        std::cout << "Key: " << key << '\n';
-        std::cout << "Value: ";
-        switch ( value.getType() )
-        {
-        case tt::Type::INT8:
-            std::cout << (int) value.As< int8 >() << '\n';
-            break;
-        case tt::Type::UINT8:
-            std::cout << (int) value.As< uint8 >() << '\n';
-            break;
-        default:
-            std::cout << "Not a easy type\n";
-        }
-    }
-
-    auto int_8 = int8( 123 );
-
-    auto val2 = tt::Value( int_8 );
-    auto val3 = tt::Value( uint8( 123 ) );
-    //auto val4 = tt::Value( uint64( 456 ) );
-
-    auto type = val.getType();
-
-    val = int8(69);
-
-    auto type2 = val.getType();
-
-    std::cout << (int) type << '\n';
-    std::cout << (int) type2 << '\n';
-
     constexpr int asofns = testVm(); (void) asofns;
+    std::cout << asofns << '\n';
 
     return 0;
 }

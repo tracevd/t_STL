@@ -15,11 +15,9 @@ namespace t
 		class Base
 		{
 		public:
-			constexpr virtual ~Base() = 0;
+			constexpr virtual ~Base() = default;
 			constexpr virtual SharedPtr< Base > clone() const = 0;
 		};
-
-		constexpr Base::~Base() {};
 
 		template< class T >
 		class Derived : public Base
@@ -31,7 +29,7 @@ namespace t
 			constexpr Derived( T const& data ) :
 				m_data( data ) {}
 
-			constexpr virtual ~Derived() override = default;
+			constexpr virtual ~Derived() final override = default;
 
 			constexpr virtual SharedPtr< Base > clone() const final override
 			{
