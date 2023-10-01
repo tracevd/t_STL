@@ -117,7 +117,8 @@ namespace t
 			constexpr T As() const;
 
 			template< class T, class = type::enable_if<
-				type::is_lvalue_reference< T > > >
+				type::is_lvalue_reference< T >
+			    && !type::is_const< type::remove_reference< T > > > >
 			constexpr T As();
 
 			constexpr bool operator==( Value const& ) const;
@@ -244,7 +245,7 @@ namespace t
 
 			if ( m_ptr.isShared() )
 			{
-				*this = Value( static_cast< Derived< type::decay< T > > >( m_ptr.get() )->m_data );
+				*this = Value( static_cast< Derived< type::decay< T > >* >( m_ptr.get() )->m_data );
 			}
 
 			return static_cast< Derived< type::decay< T > >* >( m_ptr.get() )->m_data;

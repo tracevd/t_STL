@@ -61,6 +61,16 @@ constexpr int testVm()
 
     auto vm2 = vm;
 
+    if ( &vm2.at("int32").As< int32 const& >() != &vm.at("int32").As< int32 const& >() )
+        throw std::runtime_error("wornfwr");
+
+    if ( &vm2.at("int32").As< int32& >() == &vm.at("int32").As< int32 const& >() )
+        throw std::runtime_error("wofnwv");
+
+    if ( &vm2.at("int32").As< int32& >() != &vm2.at("int32").As< int32& >() )
+        throw std::runtime_error("3ougnrw");
+
+
     return vm2.at("int32").As< int32 >();
 }
 
