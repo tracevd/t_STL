@@ -158,7 +158,7 @@ namespace t
 		};
 
 		template<>
-		constexpr SharedPtr< Base > Derived< Map >::Clone() const final
+		constexpr SharedPtr< Base > Derived< Map >::Clone() const
 		{
 			return SharedPtr< Base >( new Derived< Map >( m_data.Clone() ) );
 		}
