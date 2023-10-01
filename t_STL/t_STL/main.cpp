@@ -580,14 +580,5 @@ int main()
     std::cout << (int) type << '\n';
     std::cout << (int) type2 << '\n';
 
-    t::HashMap< String, String > strMap;
-
-    strMap.insert( { generateRandomString(), generateRandomString() } );
-
-    for ( const auto& [key, value] : strMap )
-    {
-        std::cout << key << ": " << value << '\n';
-    }
-
     return 0;
 }

@@ -28,7 +28,7 @@ namespace t
 
         constexpr uint8 ARRAY = 0x10;
 
-        enum Type : uint8
+        enum class Type : uint8
         {
             VOID,
             INT8, INT16, INT32, INT64,
@@ -63,53 +63,53 @@ namespace t
         {
             switch ( type )
             {
-            case VOID:
+            case Type::VOID:
                 return "void";
-            case INT8:
+            case Type::INT8:
                 return "int8";
-            case INT16:
+            case Type::INT16:
                 return "int16";
-            case INT32:
+            case Type::INT32:
                 return "int32";
-            case INT64:
+            case Type::INT64:
                 return "int64";
-            case UINT8:
+            case Type::UINT8:
                 return "uint8";
-            case UINT16:
+            case Type::UINT16:
                 return "uint16";
-            case UINT32:
+            case Type::UINT32:
                 return "uint32";
-            case UINT64:
+            case Type::UINT64:
                 return "uint64";
-            case FLOAT:
+            case Type::FLOAT:
                 return "float";
-            case DOUBLE:
+            case Type::DOUBLE:
                 return "double";
-            case STRING:
+            case Type::STRING:
                 return "String";
-            case MAP:
+            case Type::MAP:
                 return "Map";
-            case INT8_ARRAY:
+            case Type::INT8_ARRAY:
                 return "int8[]";
-            case INT16_ARRAY:
+            case Type::INT16_ARRAY:
                 return "int16[]";
-            case INT32_ARRAY:
+            case Type::INT32_ARRAY:
                 return "int32[]";
-            case INT64_ARRAY:
+            case Type::INT64_ARRAY:
                 return "int64[]";
-            case UINT8_ARRAY:
+            case Type::UINT8_ARRAY:
                 return "uint8[]";
-            case UINT16_ARRAY:
+            case Type::UINT16_ARRAY:
                 return "uint16[]";
-            case UINT32_ARRAY:
+            case Type::UINT32_ARRAY:
                 return "uint32[]";
-            case UINT64_ARRAY:
+            case Type::UINT64_ARRAY:
                 return "uint64[]";
-            case FLOAT_ARRAY:
+            case Type::FLOAT_ARRAY:
                 return "float[]";
-            case DOUBLE_ARRAY:
+            case Type::DOUBLE_ARRAY:
                 return "double[]";
-            case STRING_ARRAY:
+            case Type::STRING_ARRAY:
                 return "String[]";
             default:
                 return "void";

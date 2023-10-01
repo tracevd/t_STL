@@ -43,32 +43,32 @@ struct TypeToT< type_ > \
 template< typename U > \
 struct TtoType \
 { \
-    static constexpr t::variant::Type type = VOID; \
+    static constexpr t::variant::Type type = Type::VOID; \
     static constexpr const char* string    = "void"; \
 }; \
 template< Type t > \
 struct TypeToT; \
 \
-DefineType( int8, INT8, "i8" ) \
-DefineType( int16, INT16, "i16" ) \
-DefineType( int32, INT32, "i32" ) \
-DefineType( int64, INT64, "i64" ) \
-DefineType( uint8, UINT8, "u8" ) \
-DefineType( uint16, UINT16, "u16" ) \
-DefineType( uint32, UINT32, "u32" ) \
-DefineType( uint64, UINT64, "u64" ) \
-DefineType( float, FLOAT, "float" ) \
-DefineType( double, DOUBLE, "double" ) \
-DefineType( String, STRING, "String" ) \
-DefineType( ::t::variant::Map, MAP, "Map" ) \
-DefineType( DynamicArray< int8 >, INT8_ARRAY, "i8[]" ) \
-DefineType( DynamicArray< int16 >, INT16_ARRAY, "i16[]" ) \
-DefineType( DynamicArray< int32 >, INT32_ARRAY, "i32[]" ) \
-DefineType( DynamicArray< int64 >, INT64_ARRAY, "i64[]" ) \
-DefineType( DynamicArray< uint8 >, UINT8_ARRAY, "u8[]" ) \
-DefineType( DynamicArray< uint16 >, UINT16_ARRAY, "u16[]" ) \
-DefineType( DynamicArray< uint32 >, UINT32_ARRAY, "u32[]" ) \
-DefineType( DynamicArray< uint64 >, UINT64_ARRAY, "u64[]" ) \
-DefineType( DynamicArray< float >, FLOAT_ARRAY, "float[]" ) \
-DefineType( DynamicArray< double >, DOUBLE_ARRAY, "double[]" ) \
-DefineType( DynamicArray< String >, STRING_ARRAY, "String[]" )
+DefineType( int8, Type::INT8, "i8" ) \
+DefineType( int16, Type::INT16, "i16" ) \
+DefineType( int32, Type::INT32, "i32" ) \
+DefineType( int64, Type::INT64, "i64" ) \
+DefineType( uint8, Type::UINT8, "u8" ) \
+DefineType( uint16, Type::UINT16, "u16" ) \
+DefineType( uint32, Type::UINT32, "u32" ) \
+DefineType( uint64, Type::UINT64, "u64" ) \
+DefineType( float, Type::FLOAT, "float" ) \
+DefineType( double, Type::DOUBLE, "double" ) \
+DefineType( String, Type::STRING, "String" ) \
+DefineType( ::t::variant::Map, Type::MAP, "Map" ) \
+DefineType( DynamicArray< int8 >, Type::INT8_ARRAY, "i8[]" ) \
+DefineType( DynamicArray< int16 >, Type::INT16_ARRAY, "i16[]" ) \
+DefineType( DynamicArray< int32 >, Type::INT32_ARRAY, "i32[]" ) \
+DefineType( DynamicArray< int64 >, Type::INT64_ARRAY, "i64[]" ) \
+DefineType( DynamicArray< uint8 >, Type::UINT8_ARRAY, "u8[]" ) \
+DefineType( DynamicArray< uint16 >, Type::UINT16_ARRAY, "u16[]" ) \
+DefineType( DynamicArray< uint32 >, Type::UINT32_ARRAY, "u32[]" ) \
+DefineType( DynamicArray< uint64 >, Type::UINT64_ARRAY, "u64[]" ) \
+DefineType( DynamicArray< float >, Type::FLOAT_ARRAY, "float[]" ) \
+DefineType( DynamicArray< double >, Type::DOUBLE_ARRAY, "double[]" ) \
+DefineType( DynamicArray< String >, Type::STRING_ARRAY, "String[]" )
