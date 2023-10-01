@@ -3,7 +3,7 @@
 #include "../Memory.h"
 #include "variant.h"
 #include "../String.h"
-#include "../Buffer.h"
+#include "../DynamicArray.h"
 
 #include "ValueImpl.h"
 

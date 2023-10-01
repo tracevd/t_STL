@@ -1,16 +1,71 @@
 #pragma once
 
-#include "../Type.h"
-#include "../HashMap.h"
+#include <unordered_map>
 
-#include "Types.h"
-
+#include "Memory.h"
+#include "String.h"
 
 namespace t
 {
-	namespace variant
+	namespace test
 	{
 		class Map;
+
+		enum class Type : uint8
+		{
+			VOID = 0,
+			UINT8,
+			INT8,
+			MAP
+		};
+
+		template< class T >
+		struct TypeInfo
+		{
+			constexpr static auto str = "void";
+			constexpr static Type type = Type::VOID;
+		};
+
+#define type_info( t, enum_ ) \
+		template<> \
+		struct TypeInfo< t > \
+		{ \
+			constexpr static auto str = #t; \
+			constexpr static Type type = enum_; \
+		}
+
+		type_info( uint8, Type::UINT8 );
+		type_info( int8, Type::INT8 );
+		type_info( Map, Type::MAP );
+
+		template< class T >
+		constexpr Type templateToType()
+		{
+			return TypeInfo< T >::type;
+		}
+
+		template< class T >
+		constexpr const char* templateToString()
+		{
+			return TypeInfo< T >::str;
+		}
+
+		constexpr const char* typeToString( Type type )
+		{
+			switch ( type )
+			{
+			case Type::VOID:
+				return TypeInfo< void >::str;
+			case Type::UINT8:
+				return TypeInfo< uint8 >::str;
+			case Type::INT8:
+				return TypeInfo< int8 >::str;
+			case Type::MAP:
+				return TypeInfo< Map >::str;
+			default:
+				return TypeInfo< void >::str;
+			}
+		}
 
 		class Base
 		{
@@ -28,7 +83,7 @@ namespace t
 			constexpr Derived( T&& data ):
 				m_data( std::move( data ) ) {}
 
-			constexpr Derived( T const& data ) :
+			constexpr Derived( T const& data ):
 				m_data( data ) {}
 
 			constexpr virtual ~Derived() override = default;
@@ -57,10 +112,6 @@ namespace t
 				m_ptr( other.m_ptr ),
 				m_type( other.m_type ) {}
 
-			constexpr Value( const char* str ):
-				m_ptr( new Derived< String >( str ) ),
-				m_type( templateToVariantType< String >() ) {}
-
 			template< class T >
 			constexpr explicit Value( T&& );
 
@@ -84,13 +135,6 @@ namespace t
 			{
 				m_ptr = rhs.m_ptr;
 				m_type = rhs.m_type;
-				return *this;
-			}
-
-			constexpr Value& operator=( const char* str )
-			{
-				m_ptr = new Derived< String >( str );
-				m_type = templateToVariantType< String >();
 				return *this;
 			}
 
@@ -124,58 +168,31 @@ namespace t
 
 			constexpr bool operator==( Value const& ) const;
 
-			constexpr bool operator!=( Value const& rhs ) const { return !(*this == rhs); }
+			constexpr bool operator!=( Value const& rhs ) const { return !( *this == rhs ); }
 		private:
 			SharedPtr< Base > m_ptr;
 			Type m_type = Type::VOID;
 		};
 
-		class Map : public HashMap< String, Value >
+		class Map : public std::unordered_map< String, Value >
 		{
-		public:
-			/*constexpr Value& operator[]( String const& key )
-			{
-				return m_data[ key ];
-			}
 
-			constexpr Value& operator[]( String&& key )
-			{
-				return m_data[ std::move( key ) ];
-			}
-
-			constexpr void insert( hashmap::pair< const String, Value >&& pair )
-			{
-				m_data.insert( std::move( pair ) );
-			}
-
-			constexpr uint64 size() const { return m_data.size(); }
-
-			constexpr auto begin() { return m_data.begin(); }
-			constexpr auto end() { return m_data.end(); }
-
-			constexpr auto cbegin() const { return m_data.cbegin(); }
-			constexpr auto cend() const { return m_data.cend(); }*/
-
-			constexpr bool operator==( Map const& rhs ) const;
-			
-		/*public:
-			HashMap< String, Value > m_data;*/
 		};
 
 		template< class T >
 		constexpr Value::Value( T&& data ):
 			m_ptr( new Derived< T >( std::move( data ) ) ),
-			m_type( templateToVariantType< T >() )
+			m_type( templateToType< T >() )
 		{
-			static_assert( templateToVariantType< T >() != Type::VOID );
+			static_assert( templateToType< T >() != Type::VOID );
 		}
 
 		template< class T >
 		constexpr Value::Value( T const& data ):
 			m_ptr( new Derived< T >( data ) ),
-			m_type( templateToVariantType< T >() )
+			m_type( templateToType< T >() )
 		{
-			static_assert( templateToVariantType< T >() != Type::VOID );
+			static_assert( templateToType< T >() != Type::VOID );
 		}
 
 		template< class T >
@@ -209,9 +226,9 @@ namespace t
 		constexpr T Value::As() const
 		{
 			if ( m_type == Type::VOID || !m_ptr ) [[unlikely]]
-				throw std::runtime_error( "Accessing data of void value!" );
+				throw std::runtime_error("Accessing data of void value!");
 
-			auto constexpr type = templateToVariantType< type::decay< T > >();
+			auto constexpr type = templateToType< type::decay< T > >();
 
 			if ( m_type != type ) [[unlikely]]
 			{
@@ -232,7 +249,7 @@ namespace t
 			if ( m_type == Type::VOID || !m_ptr ) [[unlikely]]
 				throw std::runtime_error( "Accessing data of void value!" );
 
-			auto constexpr type = templateToVariantType< type::decay< T > >();
+			auto constexpr type = templateToType< type::decay< T > >();
 
 			if ( m_type != type ) [[unlikely]]
 			{
@@ -244,14 +261,14 @@ namespace t
 				throw std::runtime_error( msg.c_str() );
 			}
 
-			return static_cast< Derived< type::decay< T > >* >( m_ptr.get() )->m_data;
+			return static_cast<Derived< type::decay< T > >*>(m_ptr.get())->m_data;
 		}
 
 		constexpr bool Value::operator==( Value const& rhs ) const
 		{
 			if ( m_type != rhs.m_type )
 				return false;
-
+			
 			switch ( m_type )
 			{
 			case Type::VOID:
@@ -263,20 +280,6 @@ namespace t
 			case Type::MAP:
 				return As< Map const& >() == rhs.As< Map const& >();
 			}
-		}
-
-		constexpr bool Map::operator==( Map const& rhs ) const
-		{
-			if ( size() != rhs.size() )
-				return false;
-
-			for ( const auto& [key, value] : *this )
-			{
-				if ( rhs.find( key ) == nullptr )
-					return false;
-			}
-
-			return true;
 		}
 	}
 }

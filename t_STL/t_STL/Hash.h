@@ -2,7 +2,7 @@
 
 #include <assert.h>
 #include "Type.h"
-#include "Buffer.h"
+#include "DynamicArray.h"
 #include "Memory.h"
 #include "Array.h"
 #include "Tuple.h"
@@ -28,6 +28,24 @@ namespace t
                 m_validIndexes( 1 )
             {
                 m_data[ 0 ] = UniquePtr< T >( std::move( val ) );
+            }
+
+            constexpr HashNode& operator=( HashNode const& rhs )
+            {
+                m_validIndexes = rhs.m_validIndexes;
+                for ( uint8 i = 0; i < 8; ++i )
+                {
+                    if ( rhs.m_data[ i ] )
+                        m_data[ i ] = UniquePtr< T >( *rhs.m_data[ i ] );
+                }
+
+                if ( rhs.m_next )
+                {
+                    m_next = new HashNode();
+                    *m_next = *rhs.m_next;
+                }
+
+                return *this;
             }
 
             constexpr ~HashNode() = default;
@@ -79,6 +97,14 @@ namespace t
             using Node_t = HashNode< T >;
         public:
             constexpr MultiValueLinkedList() = default;
+
+            MultiValueLinkedList& operator=( MultiValueLinkedList const& rhs )
+            {
+                m_size = rhs.m_size;
+                m_data = rhs.m_data;
+
+                return *this;
+            }
 
             constexpr ~MultiValueLinkedList()
             {
@@ -200,15 +226,15 @@ namespace t
                 {
                     for ( uint8 i = 0; i < INVALID_INDEX; ++i )
                     {
-                        if ( (n->m_validIndex >> i) & 1 )
+                        if ( (n->m_validIndexes >> i) & 1 )
                         {
-                            if ( *n->m_data[i] == val )
+                            if ( *n->m_data[ i ] == val )
                                 return { n, i, true };
                         }
-                        else if ( tuple_.template get< 0 >() == INVALID_INDEX )
+                        else if ( std::get< 1 >( tuple_ ) == INVALID_INDEX )
                         {
-                            tuple_.template get< 0 >() = n;
-                            tuple_.template get< 1 >() = i;
+                            std::get< 0 >( tuple_ ) = n;
+                            std::get< 1 >( tuple_ ) = i;
                         }
                     }
                     if ( n->m_next != nullptr )
@@ -216,9 +242,9 @@ namespace t
                         n = n->m_next;
                         continue;
                     }
-                    if ( tuple_.template get< 1 >() != INVALID_INDEX )
+                    if ( std::get< 1 >( tuple_ ) != INVALID_INDEX )
                     {
-                        tuple_.template get< 0 >()->m_validIndex ^= 1 << tuple_.template get< 1 >();
+                        std::get< 0 >( tuple_ )->m_validIndexes ^= 1 << std::get< 1 >( tuple_ );
                         ++m_size;
                         return tuple_;
                     }
@@ -244,10 +270,10 @@ namespace t
                             if ( *n->m_data[ i ] == val )
                                 return { n, i, true };
                         }
-                        else if ( tuple_.template get< 1 >() == INVALID_INDEX )
+                        else if ( std::get< 1 >( tuple_ ) == INVALID_INDEX )
                         {
-                            tuple_.template get< 0 >() = n;
-                            tuple_.template get< 1 >() = i;
+                            std::get< 0 >( tuple_ ) = n;
+                            std::get< 1 >( tuple_ ) = i;
                         }
                     }
                     if ( n->m_next != nullptr )
@@ -255,11 +281,11 @@ namespace t
                         n = n->m_next;
                         continue;
                     }
-                    if ( tuple_.template get< 1 >() != INVALID_INDEX )
+                    if ( std::get< 1 >( tuple_ ) != INVALID_INDEX )
                     {
-                        auto ptr = tuple_.template get< 0 >();
-                        ptr->m_data[ tuple_.template get< 1 >() ] = UniquePtr< T >( T( std::move( val ) ) );
-                        ptr->m_validIndexes ^= 1 << tuple_.template get< 1 >();
+                        auto ptr = std::get< 0 >( tuple_ );
+                        ptr->m_data[ std::get< 1 >( tuple_ ) ] = UniquePtr< T >( T( std::move( val ) ) );
+                        ptr->m_validIndexes ^= 1 << std::get< 1 >( tuple_ );
                         ++m_size;
                         return tuple_;
                     }
@@ -268,7 +294,7 @@ namespace t
                     return { n->m_next, 0, false };
                 }
 
-                assert( tuple_.template get< 0 >() != nullptr );
+                assert( std::get< 0 >( tuple_ ) != nullptr );
 
                 return tuple_;
             }
@@ -518,13 +544,28 @@ namespace t
             using ValueType = T;
             using NodeType = details::HashNode< T >;
             using BucketType = details::MultiValueLinkedList< T >;
-            using BucketListType = Buffer< BucketType >;
+            using BucketListType = DynamicArray< BucketType >;
 
             using Iterator = HashIterator< Hash< T > >;
             using ConstIterator = HashConstIterator< Hash< T > >;
         public:
             constexpr Hash():
                 m_buckets( 8 ) {}
+
+            constexpr Hash( Hash&& other ):
+                m_buckets( std::move( other.m_buckets ) ) {}
+
+            constexpr Hash( Hash const& other )
+            {
+                for ( auto it = other.cbegin(); it != other.cend(); ++it )
+                {
+                    auto hash_ = hash( *it );
+
+                    m_buckets[ hash_ ].insert_unchecked( *it );
+                }
+            }
+
+            constexpr Hash& operator=( Hash const& ) = delete;
 
             constexpr Iterator begin()
             {
@@ -652,7 +693,7 @@ namespace t
                 return size_;
             }
 
-            static uint64 fast_mod( uint64 val, uint64 mod )
+            constexpr static uint64 fast_mod( uint64 val, uint64 mod )
             {
                 //return val % mod;
                 return val & (mod - 1);
@@ -672,13 +713,13 @@ namespace t
                 m_buckets = std::move( newdata );
             }
 
-            uint64 hash( ValueType const& val ) const
+            constexpr uint64 hash( ValueType const& val ) const
             {
                 return fast_mod( t::hasher< type::remove_const< ValueType > >::hash( val ), m_buckets.size() );
             }
 
             template< class U >
-            uint64 hash( U const& val ) const
+            constexpr uint64 hash( U const& val ) const
             {
                 return fast_mod( t::hasher< U >::hash( val ), m_buckets.size() );
             }

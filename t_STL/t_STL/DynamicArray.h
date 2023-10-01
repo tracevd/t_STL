@@ -1,48 +1,50 @@
 #pragma once
 
+#include <stdexcept>
+
 #include "Tint.h"
 
 namespace t
 {
-	template< class Buffer >
-	class BufferConstIterator;
+	template< class DynamicArray >
+	class DynamicArrayConstIterator;
 
-	template< typename Buffer >
-	class BufferIterator
+	template< typename DynamicArray >
+	class DynamicArrayIterator
 	{
 	public:
-		using ValueType = Buffer::ValueType;
+		using ValueType = DynamicArray::ValueType;
 	public:
-		BufferIterator() = delete;
+		DynamicArrayIterator() = delete;
 
-		constexpr explicit BufferIterator( ValueType* ptr ):
+		constexpr explicit DynamicArrayIterator( ValueType* ptr ):
 			m_ptr( ptr ) {}
 
-		constexpr BufferIterator& operator++()
+		constexpr DynamicArrayIterator& operator++()
 		{
 			m_ptr++;
 			return *this;
 		}
-		constexpr BufferIterator operator++(int)
+		constexpr DynamicArrayIterator operator++(int)
 		{
-			BufferIterator it = *this;
+			DynamicArrayIterator it = *this;
 			++(*this);
 			return it;
 		}
-		constexpr BufferIterator& operator--()
+		constexpr DynamicArrayIterator& operator--()
 		{
 			m_ptr--;
 			return *this;
 		}
-		constexpr BufferIterator operator--( int )
+		constexpr DynamicArrayIterator operator--( int )
 		{
-			BufferIterator it = *this;
+			DynamicArrayIterator it = *this;
 			--(*this);
 			return it;
 		}
-		constexpr BufferIterator operator+( uint64 offset )
+		constexpr DynamicArrayIterator operator+( uint64 offset )
 		{
-			return BufferIterator( m_ptr + offset );
+			return DynamicArrayIterator( m_ptr + offset );
 		}
 		constexpr ValueType* operator->()
 		{
@@ -52,11 +54,11 @@ namespace t
 		{
 			return *m_ptr;
 		}
-		constexpr bool operator==( const BufferIterator& other ) const
+		constexpr bool operator==( const DynamicArrayIterator& other ) const
 		{
 			return m_ptr == other.m_ptr;
 		}
-		constexpr bool operator!=( const BufferIterator& other ) const
+		constexpr bool operator!=( const DynamicArrayIterator& other ) const
 		{
 			return !( *this == other );
 		}
@@ -70,46 +72,46 @@ namespace t
 		}
 	private:
 		ValueType* m_ptr;
-		friend BufferConstIterator< Buffer >;
+		friend DynamicArrayConstIterator< DynamicArray >;
 	};
 
-	template< typename Buffer >
-	class BufferConstIterator
+	template< typename DynamicArray >
+	class DynamicArrayConstIterator
 	{
 	public:
-		using ValueType = typename Buffer::ValueType;
+		using ValueType = typename DynamicArray::ValueType;
 		using PointerType = ValueType const*;
 		using ReferenceType = ValueType const&;
 	private:
 		PointerType m_ptr;
 	public:
-		BufferConstIterator() = delete;
+		DynamicArrayConstIterator() = delete;
 
-		constexpr explicit BufferConstIterator( PointerType ptr ):
+		constexpr explicit DynamicArrayConstIterator( PointerType ptr ):
 			m_ptr( ptr ) {}
 
-		constexpr BufferConstIterator( BufferIterator< Buffer > it ):
+		constexpr DynamicArrayConstIterator( DynamicArrayIterator< DynamicArray > it ):
 			m_ptr( it.m_ptr ) {}
 
-		constexpr BufferConstIterator& operator++()
+		constexpr DynamicArrayConstIterator& operator++()
 		{
 			m_ptr++;
 			return *this;
 		}
-		constexpr BufferConstIterator operator++( int )
+		constexpr DynamicArrayConstIterator operator++( int )
 		{
-			BufferConstIterator it = *this;
+			DynamicArrayConstIterator it = *this;
 			++(*this);
 			return it;
 		}
-		constexpr BufferConstIterator& operator--()
+		constexpr DynamicArrayConstIterator& operator--()
 		{
 			m_ptr--;
 			return *this;
 		}
-		constexpr BufferConstIterator operator--( int )
+		constexpr DynamicArrayConstIterator operator--( int )
 		{
-			BufferConstIterator it = *this;
+			DynamicArrayConstIterator it = *this;
 			--(*this);
 			return it;
 		}
@@ -121,11 +123,11 @@ namespace t
 		{
 			return *m_ptr;
 		}
-		constexpr bool operator==( const BufferConstIterator& other ) const
+		constexpr bool operator==( const DynamicArrayConstIterator& other ) const
 		{
 			return m_ptr == other.m_ptr;
 		}
-		constexpr bool operator!=( const BufferConstIterator& other ) const
+		constexpr bool operator!=( const DynamicArrayConstIterator& other ) const
 		{
 			return !(*this == other);
 		}
@@ -140,21 +142,21 @@ namespace t
 	};
 
 	template< typename T >
-	class Buffer
+	class DynamicArray
 	{
 	public:
 		using ValueType = T;
-		using Iterator = BufferIterator< Buffer< T > >;
-		using Const_Iterator = BufferConstIterator< Buffer< T > >;
+		using Iterator = DynamicArrayIterator< DynamicArray< T > >;
+		using Const_Iterator = DynamicArrayConstIterator< DynamicArray< T > >;
 	public:
-		constexpr Buffer() = default;
+		constexpr DynamicArray() = default;
 
-		constexpr explicit Buffer( uint64 size ):
+		constexpr explicit DynamicArray( uint64 size ):
 			m_data( new T[ size ] ),
 			m_size( size ),
 			m_capacity( size ) {}
 
-		constexpr Buffer( Buffer const& list ):
+		constexpr DynamicArray( DynamicArray const& list ):
 			m_size( list.m_size ),
 			m_capacity( list.m_capacity )
 		{
@@ -164,7 +166,7 @@ namespace t
 				m_data[ i ] = list[ i ];
 		}
 
-		constexpr Buffer( Buffer&& list ) noexcept:
+		constexpr DynamicArray( DynamicArray&& list ) noexcept:
 			m_data( list.m_data ),
 			m_size( list.m_size ),
 			m_capacity( list.m_capacity )
@@ -174,7 +176,7 @@ namespace t
 			list.m_data = nullptr;
 		}
 
-		constexpr Buffer( std::initializer_list< T >&& list ):
+		constexpr DynamicArray( std::initializer_list< T >&& list ):
 			m_data( new T[ list.size() ] ),
 			m_size( list.size() ),
 			m_capacity( list.size() )
@@ -187,7 +189,7 @@ namespace t
 			}
 		}
 
-		constexpr ~Buffer()
+		constexpr ~DynamicArray()
 		{
 			delete[] m_data;
 			m_data = nullptr;
@@ -195,7 +197,7 @@ namespace t
 			m_capacity = 0;
 		}
 
-		constexpr Buffer& operator=( Buffer const& list )
+		constexpr DynamicArray& operator=( DynamicArray const& list )
 		{
 			if ( this == &list )
 				return *this;
@@ -209,7 +211,7 @@ namespace t
 			return *this;
 		}
 
-		constexpr Buffer& operator=( Buffer&& list )
+		constexpr DynamicArray& operator=( DynamicArray&& list )
 		{
 			if ( this == &list )
 				return *this;
@@ -224,7 +226,7 @@ namespace t
 			return *this;
 		}
 
-		constexpr bool operator==( Buffer const& rhs ) const
+		constexpr bool operator==( DynamicArray const& rhs ) const
 		{
 			if ( m_size != rhs.m_size )
 				return false;
@@ -284,7 +286,7 @@ namespace t
 		constexpr T& pop()
 		{
 			if ( m_size == 0 )
-				throw std::runtime_error("Empty Buffer!");
+				throw std::runtime_error("Empty DynamicArray!");
 			return m_data[ --m_size ];
 		}
 

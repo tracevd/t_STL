@@ -17,7 +17,7 @@
 
 #define DefineNormalAndList( template, T ) \
 DefineTemplate( template, T ) \
-DefineTemplate( template, Buffer< T > )
+DefineTemplate( template, DynamicArray< T > )
 
 #define DefineAll( template ) \
 DefineNormalAndList( template, int8 ) \

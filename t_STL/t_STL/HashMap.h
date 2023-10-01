@@ -17,6 +17,8 @@ namespace t
             constexpr pair( T const& key, T const& val ):
                 first( key ),
                 second( val ) {}
+            constexpr pair( T const& key ):
+                first( key ) {}
 
             pair()                         = delete;
             pair( pair&& )                 = default;
@@ -40,6 +42,15 @@ namespace t
     }
 
     template< class T, class U >
+    struct hasher< hashmap::pair< T, U > >
+    {
+        static constexpr uint64 hash( hashmap::pair< T, U > const& p )
+        {
+            return hasher< type::remove_const< T > >::hash( p.first );
+        }
+    };
+
+    template< class T, class U >
     struct HashMap
     {
     public:
@@ -52,30 +63,23 @@ namespace t
     public:
         constexpr HashMap() = default;
 
-        constexpr Iterator begin()
-        {
-            return m_data.begin();
-        }
+        constexpr Iterator begin() { return m_data.begin(); }
 
-        constexpr Iterator end()
-        {
-            return m_data.end();
-        }
+        constexpr Iterator end() { return m_data.end(); }
 
-        constexpr ConstIterator cbegin() const
-        {
-            return m_data.cbegin();
-        }
+        constexpr ConstIterator cbegin() const { return m_data.cbegin(); }
+        constexpr ConstIterator cend() const { return m_data.cend(); }
 
-        constexpr ConstIterator cend() const
-        {
-            return m_data.cend();
-        }
+        constexpr ConstIterator begin() const { return cbegin(); }
+        constexpr ConstIterator end() const { return cend(); }
 
         constexpr const U* find( T const& key ) const
         {
             auto hash_ = m_data.hash( key );
-            return m_data.m_buckets.find( key );
+            auto ptr = m_data.m_buckets[ hash_ ].find( key );
+            if ( ptr )
+                return &ptr->second;
+            return nullptr;
         }
 
         constexpr U& at( T const& key )

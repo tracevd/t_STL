@@ -54,22 +54,22 @@ namespace t
 		};
 	}
 
-	template< class Buffer >
+	template< class LinkedList >
 	class LinkedListConstIterator;
 
-	template< class Buffer >
+	template< class LinkedList >
 	class LinkedListIterator
 	{
 	public:
 #ifdef _MSC_VER
-		using ValueType = typename Buffer::ValueType;
+		using ValueType = typename LinkedList::ValueType;
 #else
-		using ValueType = Buffer::ValueType;
+		using ValueType = LinkedList::ValueType;
 #endif
 	private:
 		using NodeType = details::LinkedListNode< ValueType >;
 	public:
-		constexpr LinkedListIterator( NodeType* node ):
+		constexpr explicit LinkedListIterator( NodeType* node ):
 			m_node( node ) {}
 
 		LinkedListIterator() = delete;
@@ -102,29 +102,29 @@ namespace t
 
 	private:
 		NodeType* m_node;
-		friend LinkedListConstIterator< Buffer >;
+		friend LinkedListConstIterator< LinkedList >;
 	};
 
-	template< class Buffer >
+	template< class LinkedList >
 	class LinkedListConstIterator
 	{
 	public:
 #ifdef _MSC_VER
-		using ValueType = typename const Buffer::ValueType;
+		using ValueType = typename const LinkedList::ValueType;
 	private:
-		using InnerValueType = typename Buffer::ValueType;
+		using InnerValueType = typename LinkedList::ValueType;
 #else
-		using ValueType = const Buffer::ValueType;
+		using ValueType = const LinkedList::ValueType;
 	private:
-		using InnerValueType = Buffer::ValueType;
+		using InnerValueType = LinkedList::ValueType;
 #endif
 	private:
 		using NodeType = details::LinkedListNode< InnerValueType >;
 	public:
-		constexpr LinkedListConstIterator( NodeType* node ):
+		constexpr explicit LinkedListConstIterator( NodeType* node ):
 			m_node( node ) {}
 
-		constexpr LinkedListConstIterator( LinkedListIterator< Buffer > it ):
+		constexpr LinkedListConstIterator( LinkedListIterator< LinkedList > it ):
 			m_node( it.m_node ) {}
 
 		LinkedListConstIterator() = delete;
@@ -438,26 +438,26 @@ namespace t
 	};
 }
 
-template< class Buffer >
-constexpr bool operator==( t::LinkedListIterator< Buffer > lhs, t::LinkedListConstIterator< Buffer > rhs )
+template< class LinkedList >
+constexpr bool operator==( t::LinkedListIterator< LinkedList > lhs, t::LinkedListConstIterator< LinkedList > rhs )
 {
 	return lhs.operator->() == rhs.operator->();
 }
 
-template< class Buffer >
-constexpr bool operator!=( t::LinkedListIterator< Buffer > lhs, t::LinkedListConstIterator< Buffer > rhs )
+template< class LinkedList >
+constexpr bool operator!=( t::LinkedListIterator< LinkedList > lhs, t::LinkedListConstIterator< LinkedList > rhs )
 {
 	return lhs.operator->() != rhs.operator->();
 }
 
-template< class Buffer >
-constexpr bool operator==( t::LinkedListConstIterator< Buffer > lhs, t::LinkedListIterator< Buffer > rhs )
+template< class LinkedList >
+constexpr bool operator==( t::LinkedListConstIterator< LinkedList > lhs, t::LinkedListIterator< LinkedList > rhs )
 {
 	return lhs.operator->() == rhs.operator->();
 }
 
-template< class Buffer >
-constexpr bool operator!=( t::LinkedListConstIterator< Buffer > lhs, t::LinkedListIterator< Buffer > rhs )
+template< class LinkedList >
+constexpr bool operator!=( t::LinkedListConstIterator< LinkedList > lhs, t::LinkedListIterator< LinkedList > rhs )
 {
 	return lhs.operator->() != rhs.operator->();
 }

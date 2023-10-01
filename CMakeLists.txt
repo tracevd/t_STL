@@ -7,6 +7,12 @@ set( CMAKE_CXX_STANDARD_REQUIRED True )
 
 file( GLOB_RECURSE SRC "*.h" "*.cpp" )
 
+list ( REMOVE_ITEM SRC "t_STL/t_STL/variant/Map.cpp" )
+list ( REMOVE_ITEM SRC "t_STL/t_STL/variant/Map.h" )
+list ( REMOVE_ITEM SRC "t_STL/t_STL/variant/Value.cpp" )
+list ( REMOVE_ITEM SRC "t_STL/t_STL/variant/Value.h" )
+list ( REMOVE_ITEM SRC "t_STL/t_STL/variant/Types.cpp" )
+
 list( REMOVE_ITEM SRC "t_STL/t_STL/main.cpp" )
 
 add_library( t_STL ${SRC} )

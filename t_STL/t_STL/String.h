@@ -4,11 +4,12 @@
 
 #include "Tint.h"
 #include "Lib.h"
-#include "Buffer.h"
+#include "DynamicArray.h"
 
 namespace t
 {
-	class StringView;
+	template< class CharTy, class SizeTy >
+	class GenericStringView;
 
 	template< class CharTy, class SizeTy >
 	class GenericString;
@@ -229,7 +230,7 @@ namespace t
 		}
 
 		template< uint64 N >
-		constexpr GenericString( CharTy const ( &str )[ N ] )
+		constexpr GenericString( char const ( &str )[ N ] )
 		{
 			*this = GenericString( str, static_cast< SizeTy >( N-1 ) );
 		}
@@ -339,7 +340,7 @@ namespace t
 			return GenericString( m_data + start, end - start );
 		}
 
-		constexpr StringView substrv( SizeTy start, SizeTy end = npos ) const;
+		constexpr GenericStringView< CharTy, SizeTy > substrv( SizeTy start, SizeTy end = npos ) const;
 
 		constexpr void replace( CharTy from, CharTy to )
 		{
@@ -417,12 +418,12 @@ namespace t
 			return npos;
 		}
 
-		constexpr Buffer< GenericString > split( CharTy c ) const
+		constexpr DynamicArray< GenericString > split( CharTy c ) const
 		{
 			if ( m_data == nullptr )
 				return {};
 
-			Buffer< SizeTy > indexes;
+			DynamicArray< SizeTy > indexes;
 
 			for ( SizeTy i = 0; i < m_size; ++i )
 			{
@@ -435,7 +436,7 @@ namespace t
 
 			indexes.pushBack( m_size );
 
-			Buffer< GenericString > strings( indexes.size() );
+			DynamicArray< GenericString > strings( indexes.size() );
 
 			auto stringptr = strings.data();
 
@@ -669,44 +670,69 @@ namespace t
 
 	using String = GenericString< char, uint64 >;
 
-	class StringView
+	template< class CharTy, class SizeTy >
+	class GenericStringView
 	{
 	public:
-		StringView() = delete;
+		static constexpr auto npos = t::limit< SizeTy >::max;
+	public:
+		using CharType = CharTy;
+		using SizeType = SizeTy;
+	public:
+		GenericStringView() = delete;
 
-		template< uint64 n >
-		constexpr StringView( char const ( &str )[ n ] ):
+		template< SizeTy n >
+		constexpr GenericStringView( char const ( &str )[ n ] ):
 			m_data( str ),
 			m_size( n - 1 ) {}
 		
-		constexpr StringView( const char* str, uint64 length ):
+		constexpr GenericStringView( const CharTy* str, SizeTy length ):
 			m_data( str ),
 			m_size( length ) {}
 
-		constexpr StringView( String const& str ):
+		template< class Size >
+		constexpr GenericStringView( GenericString< CharTy, Size > const& str ):
 			m_data( str.c_str() ),
 			m_size( str.size() ) {}
 
-		constexpr const char* data() const { return m_data; }
-		constexpr uint64 size() const { return m_size; }
+		constexpr const CharTy* data() const { return m_data; }
+		constexpr SizeTy size() const { return m_size; }
 
-		constexpr char operator[]( uint64 index ) const
+		constexpr GenericStringView substrv( SizeTy begin, SizeTy end = npos ) const
+		{
+			if ( end <= begin )
+				throw std::runtime_error( "End cannot be less than or equal to start!" );
+
+			auto const size_ = m_size;
+
+			if ( size_ == 0 )
+				throw std::runtime_error( "Empty string!" );
+
+			if ( end > size_ )
+				end = size_;
+
+			return GenericStringView( m_data + begin, end - begin );
+		}
+
+		constexpr char operator[]( SizeTy index ) const
 		{
 			return m_data[ index ];
 		}
 
-		friend std::ostream& operator<<( std::ostream& os, StringView const& str )
+		friend std::ostream& operator<<( std::ostream& os, GenericStringView const& str )
 		{
 			return os << str.data();
 		}
 
 	private:
-		const char* const m_data;
+		const CharTy* const m_data;
 		const uint64 m_size;
 	};
 
+	using StringView = GenericStringView< char, uint64 >;
+
 	template< class CharTy, class SizeTy >
-	constexpr StringView GenericString< CharTy, SizeTy >::substrv( SizeTy start, SizeTy end ) const
+	constexpr GenericStringView< CharTy, SizeTy > GenericString< CharTy, SizeTy >::substrv( SizeTy start, SizeTy end ) const
 	{
 		if ( end <= start )
 			throw std::runtime_error( "End cannot be less than or equal to start!" );
@@ -719,7 +745,7 @@ namespace t
 		if ( end > size_ )
 			end = size_;
 
-		return StringView( m_data + start, end - start );
+		return GenericStringView( m_data + start, end - start );
 	}
 }
 

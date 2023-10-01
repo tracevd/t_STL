@@ -8,7 +8,7 @@
 namespace t
 {
     template< typename T >
-    class Buffer;
+    class DynamicArray;
 
     template< typename T >
     struct is_vector
@@ -17,7 +17,7 @@ namespace t
     };
 
     template< typename T >
-    struct is_vector< Buffer< T > >
+    struct is_vector< DynamicArray< T > >
     {
         static constexpr bool value = true;
     };
@@ -58,7 +58,62 @@ namespace t
             return TtoType< T >::type;
         }
 
-        const char* typeToString( Type type );
+        constexpr const char* typeToString( Type type )
+        {
+            switch ( type )
+            {
+            case VOID:
+                return "void";
+            case INT8:
+                return "int8";
+            case INT16:
+                return "int16";
+            case INT32:
+                return "int32";
+            case INT64:
+                return "int64";
+            case UINT8:
+                return "uint8";
+            case UINT16:
+                return "uint16";
+            case UINT32:
+                return "uint32";
+            case UINT64:
+                return "uint64";
+            case FLOAT:
+                return "float";
+            case DOUBLE:
+                return "double";
+            case STRING:
+                return "String";
+            case MAP:
+                return "Map";
+            case INT8_LIST:
+                return "int8[]";
+            case INT16_LIST:
+                return "int16[]";
+            case INT32_LIST:
+                return "int32[]";
+            case INT64_LIST:
+                return "int64[]";
+            case UINT8_LIST:
+                return "uint8[]";
+            case UINT16_LIST:
+                return "uint16[]";
+            case UINT32_LIST:
+                return "uint32[]";
+            case UINT64_LIST:
+                return "uint64[]";
+            case FLOAT_LIST:
+                return "float[]";
+            case DOUBLE_LIST:
+                return "double[]";
+            case STRING_LIST:
+                return "String[]";
+            default:
+                return "void";
+            }
+        }
 
         template< typename T >
         constexpr const char* templateToString()

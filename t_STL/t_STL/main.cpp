@@ -1,4 +1,5 @@
 #include <iostream>
+#include <unordered_map>
 
 #include "t.h"
 #include "variant/serialization/Serialize.h"
@@ -24,7 +25,7 @@ void printHexStr( uint64 val )
 using std::chrono::microseconds;
 using t::variant::Map;
 using t::String;
-using t::Buffer;
+using t::DynamicArray;
 using t::variant::Value;
 
 t::pair< int64, int64 > testTvm()
@@ -42,23 +43,23 @@ t::pair< int64, int64 > testTvm()
     vm["int64"] = int64( 8 );
     vm["float"] = float( 9.0 );
     vm["double"] = double( 10.0 );
-    vm["u8 vector"] = Buffer< uint8 >{ 1, 2, 3, 4, 5 };
-    vm["u16 vector"] = Buffer< uint16 >{ 6, 7, 8, 9, 10 };
-    vm["u32 vector"] = Buffer< uint32 >{ 11, 12, 13, 14 };
-    vm["u64 vector"] = Buffer< uint64 >{ 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
-    vm["i8 vector"] = Buffer< int8 >{ 1, 2, 3, 4, 5 };
-    vm["i16 vector"] = Buffer< int16 >{ 6, 7, 8, 9, 10 };
-    vm["i32 vector"] = Buffer< int32 >{ 11, 12, 13, 14 };
-    vm["i64 vector"] = Buffer< int64 >{ 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
-    vm["str vector"] = Buffer< String >{ "hey", "blahblah", "broke" };
-    vm["float vector"] = Buffer< float >{ 1.f, 2.f, 3.f, 4.5f, 5.f, 7.69420f };
-    vm["double vector"] = Buffer< double >{ 25, 26, 27, 28, 29, 30, 31 };
+    vm["u8 vector"] = DynamicArray< uint8 >{ 1, 2, 3, 4, 5 };
+    vm["u16 vector"] = DynamicArray< uint16 >{ 6, 7, 8, 9, 10 };
+    vm["u32 vector"] = DynamicArray< uint32 >{ 11, 12, 13, 14 };
+    vm["u64 vector"] = DynamicArray< uint64 >{ 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
+    vm["i8 vector"] = DynamicArray< int8 >{ 1, 2, 3, 4, 5 };
+    vm["i16 vector"] = DynamicArray< int16 >{ 6, 7, 8, 9, 10 };
+    vm["i32 vector"] = DynamicArray< int32 >{ 11, 12, 13, 14 };
+    vm["i64 vector"] = DynamicArray< int64 >{ 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
+    vm["str vector"] = DynamicArray< String >{ "hey", "blahblah", "broke" };
+    vm["float vector"] = DynamicArray< float >{ 1.f, 2.f, 3.f, 4.5f, 5.f, 7.69420f };
+    vm["double vector"] = DynamicArray< double >{ 25, 26, 27, 28, 29, 30, 31 };
     Map map;
     map.insert( { String( "test" ), Value( "value" ) } );
     map.insert( { String( "test2" ), Value( "value2" ) } );
     vm["vm"] = std::move( map );
 
-    /*Buffer< int32 > buff( 9000 );
+    /*DynamicArray< int32 > buff( 9000 );
     for ( auto i = -4500; i < 4500; ++i )
         buff[ i + 4500 ] = i;
 
@@ -110,7 +111,7 @@ String generateRandomString()
 }
 
 template< class hash, uint64 NumKeys >
-void ShowHashValues( Buffer< String > const& keys )
+void ShowHashValues( DynamicArray< String > const& keys )
 {
     t::HashSet< uint64 > hashes;
 
@@ -151,7 +152,7 @@ void ShowHashValues( Buffer< String > const& keys )
 }
 
 template< class hash, uint64 NumKeys >
-int64 InsertAndTimeStuff( Buffer< String > const& keys )
+int64 InsertAndTimeStuff( DynamicArray< String > const& keys )
 {
     Timer< microseconds > timer;
 
@@ -177,11 +178,11 @@ void HashMapVsUnorderedMap()
 {
     constexpr uint64 numLoops = 5000;
 
-    Buffer< int64 > times( numLoops );
+    DynamicArray< int64 > times( numLoops );
 
     for ( uint64 i = 0; i < numLoops; ++i )
     {
-        Buffer< String > keys( numLoops );
+        DynamicArray< String > keys( numLoops );
 
         for ( uint64 i = 0; i < NumKeys; ++i )
             keys[ i ] = generateRandomString();
@@ -277,7 +278,7 @@ constexpr static auto normal_distribution( T min, T max )
 template< uint64 NumKeys >
 void StdHashVsTHash()
 {
-    Buffer< String > keys( 150 );
+    DynamicArray< String > keys( 150 );
     for ( uint64 i = 0; i < keys.size(); ++i )
         keys[ i ] = generateRandomString();
 
@@ -450,6 +451,8 @@ constexpr int testTree()
     return *ptr;
 }
 
+#include "Test.h"
+
 int main()
 {
     /*StdHashVsTHash< 15 >();
@@ -513,18 +516,80 @@ int main()
     std::cout << "Little:    " << (int) t::endianness::little << '\n';
     std::cout << "Big:       " << (int) t::endianness::big << '\n';
 
-    String x;
+    {
+        String x;
 
-    Timer< microseconds > t_;
+        Timer< microseconds > t_;
 
-    t_.start();
+        t_.start();
 
-    for ( uint64 i = 0; i < 5000; ++i )
-        x += "This is cool. ";
+        for ( uint64 i = 0; i < 5000; ++i )
+            x += "This is cool. ";
 
-    auto time = t_.stop();
+        auto time = t_.stop();
 
-    std::cout << "Took " << time << "uS\n";
+        std::cout << "Took " << time << "uS\n";
+    }
+
+    auto s = String("hello whatup");
+
+    auto strv = s.substrv( s.indexOf(' ') + 1 );
+
+    std::cout << s << ": " << strv << '\n';
+
+    namespace tt = t::test;
+
+    tt::Map map;
+
+    map.insert( {"hello", tt::Value( uint8(123) ) } );
+    map.insert( {"blah", tt::Value( int8(32) ) } );
+
+    tt::Value val = tt::Value( std::move( map ) );
+
+    auto& m = val.As< tt::Map const& >();
+
+    for ( auto const& [ key, value ] : m )
+    {
+        std::cout << "Key: " << key << '\n';
+        std::cout << "Value: ";
+        switch ( value.getType() )
+        {
+        case tt::Type::INT8:
+            std::cout << (int) value.As< int8 >() << '\n';
+            break;
+        case tt::Type::UINT8:
+            std::cout << (int) value.As< uint8 >() << '\n';
+            break;
+        default:
+            std::cout << "Not a easy type\n";
+        }
+    }
+
+    auto int_8 = int8( 123 );
+
+    using x = t::type::decay< const uint8& >;
+
+    auto val2 = tt::Value( int_8 );
+    auto val3 = tt::Value( uint8( 123 ) );
+    //auto val4 = tt::Value( uint64( 456 ) );
+
+    auto type = val.getType();
+
+    val = int8(69);
+
+    auto type2 = val.getType();
+
+    std::cout << (int) type << '\n';
+    std::cout << (int) type2 << '\n';
+
+    t::HashMap< String, String > strMap;
+
+    strMap.insert( { generateRandomString(), generateRandomString() } );
+
+    for ( const auto& [key, value] : strMap )
+    {
+        std::cout << key << ": " << value << '\n';
+    }
 
     return 0;
 }

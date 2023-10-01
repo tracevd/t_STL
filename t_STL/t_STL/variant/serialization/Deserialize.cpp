@@ -8,7 +8,7 @@ namespace t
 	namespace variant
 	{
 		template< typename T >
-		T ReadValueFromBuffer( const uint8* buffer, bool swapbytes )
+		T ReadValueFromDynamicArray( const uint8* buffer, bool swapbytes )
 		{
 			auto const val = *reinterpret_cast< const T* >( buffer );
 			if ( swapbytes )
@@ -18,7 +18,7 @@ namespace t
 
 		String DeserializeString( const uint8* buffer, uint64& bufferOffset, bool swapbytes )
 		{
-			auto length = ReadValueFromBuffer< uint16 >( &buffer[ bufferOffset ], swapbytes );
+			auto length = ReadValueFromDynamicArray< uint16 >( &buffer[ bufferOffset ], swapbytes );
 			bufferOffset += sizeof( length );
 			auto str = String( reinterpret_cast< const char* >( &buffer[ bufferOffset ] ), length );
 			bufferOffset += length;
@@ -28,9 +28,9 @@ namespace t
 		template< typename T >
 		Value DeserializeList( const uint8* buffer, uint64& bufferOffset, uint64 numel, const bool swapbytes )
 		{
-			if constexpr ( std::is_same_v< T, Buffer< String > > )
+			if constexpr ( std::is_same_v< T, DynamicArray< String > > )
 			{
-				Buffer< String > vec( numel );
+				DynamicArray< String > vec( numel );
 
 				for ( uint64 i = 0; i < numel; ++i )
 				{
@@ -66,7 +66,7 @@ namespace t
 		{
 			if constexpr ( std::is_same_v< T, String > )
 			{
-				auto length = ReadValueFromBuffer< uint16 >( &buffer[ bufferOffset ], swapbytes );
+				auto length = ReadValueFromDynamicArray< uint16 >( &buffer[ bufferOffset ], swapbytes );
 				bufferOffset += sizeof( length );
 				auto str = String( reinterpret_cast<const char*>( &buffer[ bufferOffset ] ), length );
 				bufferOffset += length;
@@ -74,7 +74,7 @@ namespace t
 			}
 			else
 			{
-				auto val = ReadValueFromBuffer< T >( &buffer[bufferOffset], swapbytes );
+				auto val = ReadValueFromDynamicArray< T >( &buffer[bufferOffset], swapbytes );
 				bufferOffset += sizeof( val );
 				return Value( val );
 			}
@@ -121,7 +121,7 @@ namespace t
 			template< typename T >
 			void DeserializeAndInsertList( Map& map, String&& key, const uint8* buffer, uint64& bufferOffset, bool swapbytes )
 			{
-				auto numel = ReadValueFromBuffer< uint64 >( &buffer[ bufferOffset ], swapbytes );
+				auto numel = ReadValueFromDynamicArray< uint64 >( &buffer[ bufferOffset ], swapbytes );
 				bufferOffset += sizeof( uint64 );
 				map.insert( { std::move( key ), DeserializeList< T >( buffer, bufferOffset, numel, swapbytes ) } );
 			}
@@ -152,8 +152,6 @@ namespace t
 				bufferOffset += sizeof( uint64 );
 
 				Map out_vm;
-
-				out_vm.reserve( numel );
 
 				for ( uint64 numel_found = 0; numel_found < numel; ++numel_found )
 				{
@@ -204,37 +202,37 @@ namespace t
 						DeserializeAndInsertMap( out_vm, std::move( key ), buffer, bufferSize, bufferOffset, swapbytes );
 						continue;
 					case INT8_LIST:
-						DeserializeAndInsertList< Buffer< int8 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertList< DynamicArray< int8 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case INT16_LIST:
-						DeserializeAndInsertList< Buffer< int16 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertList< DynamicArray< int16 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case INT32_LIST:
-						DeserializeAndInsertList< Buffer< int32 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertList< DynamicArray< int32 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case INT64_LIST:
-						DeserializeAndInsertList< Buffer< int64 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertList< DynamicArray< int64 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case UINT8_LIST:
-						DeserializeAndInsertList< Buffer< uint8 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertList< DynamicArray< uint8 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case UINT16_LIST:
-						DeserializeAndInsertList< Buffer< uint16 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertList< DynamicArray< uint16 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case UINT32_LIST:
-						DeserializeAndInsertList< Buffer< uint32 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertList< DynamicArray< uint32 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case UINT64_LIST:
-						DeserializeAndInsertList< Buffer< uint64 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertList< DynamicArray< uint64 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case FLOAT_LIST:
-						DeserializeAndInsertList< Buffer< float > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertList< DynamicArray< float > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case DOUBLE_LIST:
-						DeserializeAndInsertList< Buffer< double > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertList< DynamicArray< double > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case STRING_LIST:
-						DeserializeAndInsertList< Buffer< String > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertList< DynamicArray< String > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					}
 					assert( false );
@@ -268,7 +266,7 @@ namespace t
 			return bitstream_v1::Deserialize( buffer, bufferSize, offset );
 		}
 
-		Map Deserialize( BufferType const& buffer )
+		Map Deserialize( DynamicArray< uint8 > const& buffer )
 		{
 			return Deserialize( buffer.data(), buffer.size() );
 		}
