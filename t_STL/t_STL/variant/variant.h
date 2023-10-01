@@ -16,13 +16,15 @@ namespace t
 		{
 		public:
 			constexpr virtual ~Base() = default;
-			constexpr virtual SharedPtr< Base > clone() const = 0;
+			constexpr virtual SharedPtr< Base > Clone() const = 0;
 		};
 
 		template< class T >
 		class Derived : public Base
 		{
 		public:
+			Derived() = delete;
+
 			constexpr Derived( T&& data ):
 				m_data( std::move( data ) ) {}
 
@@ -31,7 +33,7 @@ namespace t
 
 			constexpr virtual ~Derived() final override = default;
 
-			constexpr virtual SharedPtr< Base > clone() const final override
+			constexpr virtual SharedPtr< Base > Clone() const final override
 			{
 				return SharedPtr< Base >( new Derived( m_data ) );
 			}
@@ -85,6 +87,15 @@ namespace t
 				return *this;
 			}
 
+			template< uint64 N >
+			constexpr Value& operator=( const char(&str)[ N ] )
+			{
+				auto val = String( str );
+				m_ptr = new Derived< String >( move( val ) );
+				m_type = templateToVariantType< String >();
+				return *this;
+			}
+
 			constexpr Value& operator=( const char* str )
 			{
 				m_ptr = new Derived< String >( str );
@@ -101,29 +112,29 @@ namespace t
 			template< class T >
 			constexpr Value& operator=( T& );
 
-			constexpr Value clone() const
+			constexpr Value Clone() const
 			{
 				Value val;
 				if ( m_ptr )
-					val.m_ptr = m_ptr->clone();
+					val.m_ptr = m_ptr->Clone();
 				return val;
 			}
 
-			constexpr Type getType() const { return m_type; }
+			[[nodiscard]] constexpr Type getType() const { return m_type; }
 
 			template< class T, class = type::enable_if<
 				type::is_same< T, type::decay< T > >
 				|| type::is_const< type::remove_reference< T > > > >
-			constexpr T As() const;
+			[[nodiscard]] constexpr T As() const;
 
 			template< class T, class = type::enable_if<
 				type::is_lvalue_reference< T >
 			    && !type::is_const< type::remove_reference< T > > > >
-			constexpr T As();
+			[[nodiscard]] constexpr T As();
 
-			constexpr bool operator==( Value const& ) const;
+			[[nodiscard]] constexpr bool operator==( Value const& ) const;
 
-			constexpr bool operator!=( Value const& rhs ) const { return !(*this == rhs); }
+			[[nodiscard]] constexpr bool operator!=( Value const& rhs ) const { return !(*this == rhs); }
 		private:
 			SharedPtr< Base > m_ptr;
 			Type m_type = Type::VOID;
@@ -132,34 +143,25 @@ namespace t
 		class Map : public HashMap< String, Value >
 		{
 		public:
-			/*constexpr Value& operator[]( String const& key )
+			constexpr Map Clone() const
 			{
-				return m_data[ key ];
+				Map copy;
+
+				for ( const auto& [key, value] : *this )
+				{
+					copy.insert( { key, value.Clone() } );
+				}
+
+				return copy;
 			}
-
-			constexpr Value& operator[]( String&& key )
-			{
-				return m_data[ std::move( key ) ];
-			}
-
-			constexpr void insert( hashmap::pair< const String, Value >&& pair )
-			{
-				m_data.insert( std::move( pair ) );
-			}
-
-			constexpr uint64 size() const { return m_data.size(); }
-
-			constexpr auto begin() { return m_data.begin(); }
-			constexpr auto end() { return m_data.end(); }
-
-			constexpr auto cbegin() const { return m_data.cbegin(); }
-			constexpr auto cend() const { return m_data.cend(); }*/
-
 			constexpr bool operator==( Map const& rhs ) const;
-			
-		/*public:
-			HashMap< String, Value > m_data;*/
 		};
+
+		template<>
+		constexpr virtual SharedPtr< Base > Derived< Map >::Clone() const final override
+		{
+			return SharedPtr< Base >( new Derived< Map >( m_data.Clone() ) );
+		}
 
 		template< class T >
 		constexpr Value::Value( T&& data ):

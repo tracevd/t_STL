@@ -343,6 +343,9 @@ namespace t
 		{
 			return Iterator( m_data + m_size );
 		}
+
+		constexpr auto begin() const { return cbegin(); }
+		constexpr auto end() const { return cend(); }
 	private:
 		constexpr void realloc()
 		{

@@ -9,13 +9,19 @@ namespace t
         template< class T, class U >
         struct pair
         {
-            constexpr pair( T&& val ):
-                first( std::move( val ) ) {}
+            constexpr pair( T&& key ):
+                first( std::move( key ) ) {}
             constexpr pair( T&& key, U&& val ):
                 first( std::move( key ) ),
                 second( std::move( val ) ) {}
-            constexpr pair( T const& key, T const& val ):
+            constexpr pair( T const& key, U const& val ):
                 first( key ),
+                second( val ) {}
+            constexpr pair( T const& key, U&& val ):
+                first( key ),
+                second( move( val ) ) {}
+            constexpr pair( T&& key, U const& val ):
+                first( move( key ) ),
                 second( val ) {}
             constexpr pair( T const& key ):
                 first( key ) {}

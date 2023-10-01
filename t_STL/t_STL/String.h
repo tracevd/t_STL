@@ -318,11 +318,15 @@ namespace t
 		constexpr CharTy const* cend() const { return m_data + m_size; }
 		constexpr CharTy* begin() { return m_data; }
 		constexpr CharTy* end() { return m_data + m_size; }
+		constexpr CharTy const* begin() const { return cbegin(); }
+		constexpr CharTy const* end() const { return cend(); }
 
 		constexpr auto crbegin() const { return ConstReverseIterator( m_data + m_size - 1 ); }
 		constexpr auto crend() const { return ConstReverseIterator( m_data - 1 ); }
 		constexpr auto rbegin() { return ReverseIterator( m_data + m_size - 1 ); }
 		constexpr auto rend() { return ReverseIterator( m_data - 1 ); }
+		constexpr auto rbegin() const { return crbegin(); }
+		constexpr auto rend() const { return crend(); }
 
 		constexpr GenericString substr( SizeTy start, SizeTy end = npos ) const
 		{

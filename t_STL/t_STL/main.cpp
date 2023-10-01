@@ -130,6 +130,10 @@ t::pair< int64, int64 > testTvm()
     if ( vm_2 != vm )
         exit( -69 );
 
+    auto val = Value( t::move( vm_2 ) );
+
+    auto val2 = val.Clone();
+
     return { ser, deser };
 }
 
@@ -147,13 +151,13 @@ String generateRandomString()
     std::random_device rd;
     std::mt19937 generator( rd() );
 
-    std::shuffle( x.data(), x.data() + x.size(), generator );
+    std::shuffle( x.begin(), x.end(), generator );
 
     std::random_device dev;
     std::mt19937 rng( dev() );
     std::uniform_int_distribution< std::mt19937::result_type > dist( 4, 32 );
 
-    return x.substr( 0, dist(rng) );
+    return x.substr( 0, dist( rng ) );
 }
 
 template< class hash, uint64 NumKeys >
@@ -495,6 +499,17 @@ constexpr int testTree()
     }
 
     return *ptr;
+}
+
+constexpr int testArrayIterator( DynamicArray< int > const& arr )
+{
+    for ( auto const& i : arr )
+    {
+        if ( i == 123 )
+            return i;
+    }
+
+    return 456;
 }
 
 int main()

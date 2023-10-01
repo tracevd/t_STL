@@ -10,6 +10,9 @@ namespace t
     template< class T >
     class TreeIterator;
 
+    template< class T >
+    class TreeConstIterator;
+
     namespace details
     {
         template< class T >
@@ -92,6 +95,7 @@ namespace t
             TreeNode* m_parent = nullptr;
             friend Tree< T >;
             friend TreeIterator< Tree< T > >;
+            friend TreeConstIterator< Tree< T > >;
         };
     }
 
@@ -158,6 +162,75 @@ namespace t
         }
     private:
         NodeType* m_node = nullptr;
+        friend TreeConstIterator< Tree >;
+    };
+
+    template< class Tree >
+    class TreeConstIterator
+    {
+    private:
+        using NodeType = const Tree::NodeType;
+        using ValueType = const NodeType::ValueType;
+    public:
+        TreeConstIterator() = delete;
+
+        constexpr TreeConstIterator( TreeIterator it ):
+            m_node( it.m_node ) {}
+
+        constexpr explicit TreeConstIterator( NodeType* node )
+        {
+            if ( node == nullptr )
+                return;
+
+            while ( node->m_left != nullptr )
+                node = node->m_left;
+
+            m_node = node;
+        }
+
+        constexpr TreeConstIterator& operator++()
+        {
+            if ( m_node->m_right )
+            {
+                m_node = m_node->m_right;
+
+                while ( m_node->m_left )
+                    m_node = m_node->m_left;
+            }
+            else
+            {
+                auto parent = m_node->m_parent;
+
+                while ( parent && parent->m_data < m_node->m_data )
+                    parent = parent->m_parent;
+
+                m_node = parent;
+            }
+
+            return *this;
+        }
+
+        constexpr ValueType& operator*()
+        {
+            return m_node->m_data;
+        }
+
+        constexpr ValueType* operator->()
+        {
+            return &m_node->m_data;
+        }
+
+        constexpr bool operator==( TreeConstIterator const& rhs ) const
+        {
+            return m_node == rhs.m_node;
+        }
+
+        constexpr bool operator!=( TreeConstIterator const& rhs ) const
+        {
+            return m_node != rhs.m_node;
+        }
+    private:
+        NodeType* m_node = nullptr;
     };
 
     template< class T >
@@ -167,6 +240,7 @@ namespace t
         using NodeType = details::TreeNode< T >;
     public:
         using Iterator = TreeIterator< Tree >;
+        using ConstIterator = TreeConstIterator< Tree >;
     public:
         constexpr Tree() = default;
 
@@ -175,15 +249,14 @@ namespace t
             DestroyTree( m_data );
         }
 
-        constexpr auto begin()
-        {
-            return Iterator( m_data );
-        }
+        constexpr auto begin() { return Iterator( m_data ); }
+        constexpr auto end() { return Iterator( nullptr ); }
 
-        constexpr auto end() const
-        {
-            return Iterator( nullptr );
-        }
+        constexpr auto cbegin() { return ConstIterator( m_data ); }
+        constexpr auto cend() { return ConstIterator( nullptr ); }
+
+        constexpr auto begin() const { return cbegin(); }
+        constexpr auto end() const { return cend(); }
 
         template< class U >
         constexpr void insert( U&& data )

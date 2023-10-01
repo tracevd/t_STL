@@ -60,6 +60,9 @@ namespace t
 
 		constexpr T* begin() { return m_data; }
 		constexpr T* end()   { return m_data + Size; }
+
+		constexpr const T* begin() const { return cbegin(); }
+		constexpr const T* end() const { return cend(); }
 	private:
 		T m_data[ Size ];
 	};

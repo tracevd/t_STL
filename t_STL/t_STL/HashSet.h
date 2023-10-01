@@ -26,6 +26,9 @@ namespace t
 			return m_data.cend();
 		}
 
+		constexpr auto begin() const { return cbegin(); }
+		constexpr auto end() const { return cend(); }
+
 		constexpr ValueType& at( ValueType const& val ) const
 		{
 			return m_data.at( val );

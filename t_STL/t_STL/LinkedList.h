@@ -208,6 +208,9 @@ namespace t
 			return ConstIterator( nullptr );
 		}
 
+		constexpr auto begin() const { return cbegin(); }
+		constexpr auto end() const { return cend(); }
+
 		constexpr uint64 size() const { return m_size; }
 
 		constexpr T& pushBack( T&& data )
