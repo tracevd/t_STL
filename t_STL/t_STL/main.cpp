@@ -635,6 +635,8 @@ constexpr int blah()
 
 int main()
 {
+    std::cout << "main\n";
+
     constexpr auto blah_ = blah();
     (void) blah_;
 
@@ -642,7 +644,7 @@ int main()
 
     Map map;
 
-    map.insert({ t::String("hello"), Value(123) });
+    map.insert({ t::String("hello"), Value(0) });
     map.insert({ t::String("goodbye1"), Value("hello") });
     map.insert({ t::String("goodbye2"), map.at("goodbye1") });
 
