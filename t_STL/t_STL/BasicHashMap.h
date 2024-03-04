@@ -62,7 +62,7 @@ namespace t
 			constexpr __BasicHashPair( PairType pair, uint64 ):
 				BaseType( move( pair ) ) {}
 
-			constexpr uint64 hash() const { return t::hasher::hash( this->pair().first ); }
+			constexpr uint64 hash() const { return t::hasher< decltype( this->pair().first ) >::hash(this->pair().first); }
 		};
 
 		template< class T, class U >
