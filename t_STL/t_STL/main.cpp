@@ -568,9 +568,9 @@ void coolSort( DynamicArray< uint8 >& arr )
         if ( *min >= *max )
             continue;
 
-        if ( max - arr.data() == i )
+        if ( static_cast< uint64 >( max - arr.data() ) == i )
         {
-            if ( min - arr.data() != size - i - 1 )
+            if ( static_cast< uint64 >( min - arr.data() ) != size - i - 1 )
                 t::swap( *max, arr[ size - i - 1 ] );
             t::swap( *min, arr[ i ] );
         }
@@ -636,6 +636,7 @@ constexpr int blah()
 int main()
 {
     constexpr auto blah_ = blah();
+    (void) blah_;
 
     using namespace t::variant;
 
