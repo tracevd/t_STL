@@ -12,34 +12,37 @@ namespace t
 	{
 		class Map;
 
-		class Base
+		namespace details
 		{
-		public:
-			constexpr virtual ~Base() = default;
-			constexpr virtual SharedPtr< Base > Clone() const = 0;
-		};
-
-		template< class T >
-		class Derived : public Base
-		{
-		public:
-			Derived() = delete;
-
-			constexpr Derived( T&& data ):
-				m_data( std::move( data ) ) {}
-
-			constexpr Derived( T const& data ) :
-				m_data( data ) {}
-
-			constexpr virtual ~Derived() final override = default;
-
-			constexpr virtual SharedPtr< Base > Clone() const final override
+			class Base
 			{
-				return SharedPtr< Base >( new Derived( m_data ) );
-			}
+			public:
+				constexpr virtual ~Base() = default;
+				constexpr virtual SharedPtr< Base > Clone() const = 0;
+			};
 
-			T m_data;
-		};
+			template< class T >
+			class Derived : public Base
+			{
+			public:
+				Derived() = delete;
+
+				constexpr Derived( T&& data ):
+					m_data( std::move( data ) ) {}
+
+				constexpr Derived( T const& data ) :
+					m_data( data ) {}
+
+				constexpr virtual ~Derived() final override = default;
+
+				constexpr virtual SharedPtr< Base > Clone() const final override
+				{
+					return SharedPtr< Base >( new Derived( m_data ) );
+				}
+
+				T m_data;
+			};
+		}
 
 		class Value
 		{
@@ -58,11 +61,11 @@ namespace t
 				m_type( other.m_type ) {}
 
 			constexpr Value( const char* str ):
-				m_ptr( new Derived< String >( str ) ),
+				m_ptr( new details::Derived< String >( str ) ),
 				m_type( templateToVariantType< String >() ) {}
 
 			template< class T >
-			constexpr explicit Value( T&& );
+			constexpr explicit Value( T&& ) noexcept;
 
 			template< class T >
 			constexpr explicit Value( T const& );
@@ -89,13 +92,13 @@ namespace t
 
 			constexpr Value& operator=( const char* str )
 			{
-				m_ptr = new Derived< String >( str );
+				m_ptr = new details::Derived< String >( str );
 				m_type = templateToVariantType< String >();
 				return *this;
 			}
 
 			template< class T >
-			constexpr Value& operator=( T&& );
+			constexpr Value& operator=( T&& ) noexcept;
 
 			template< class T >
 			constexpr Value& operator=( T const& );
@@ -113,6 +116,12 @@ namespace t
 
 			[[nodiscard]] constexpr Type getType() const { return m_type; }
 
+			template< class T >
+			[[nodiscard]] constexpr bool Is() const noexcept
+			{
+				return m_type == templateToVariantType< type::decay< T > >();
+			}
+
 			template< class T, class = type::enable_if<
 				type::is_same< T, type::decay< T > >
 				|| type::is_const< type::remove_reference< T > > > >
@@ -127,7 +136,7 @@ namespace t
 
 			[[nodiscard]] constexpr bool operator!=( Value const& rhs ) const { return !(*this == rhs); }
 		private:
-			SharedPtr< Base > m_ptr;
+			SharedPtr< details::Base > m_ptr;
 			Type m_type = Type::VOID;
 		};
 
@@ -149,14 +158,14 @@ namespace t
 		};
 
 		template<>
-		constexpr SharedPtr< Base > Derived< Map >::Clone() const
+		constexpr SharedPtr< details::Base > details::Derived< Map >::Clone() const
 		{
 			return SharedPtr< Base >( new Derived< Map >( m_data.Clone() ) );
 		}
 
 		template< class T >
-		constexpr Value::Value( T&& data ):
-			m_ptr( new Derived< T >( std::move( data ) ) ),
+		constexpr Value::Value( T&& data ) noexcept:
+			m_ptr( new details::Derived< T >( std::move( data ) ) ),
 			m_type( templateToVariantType< T >() )
 		{
 			static_assert( templateToVariantType< T >() != Type::VOID );
@@ -164,7 +173,7 @@ namespace t
 
 		template< class T >
 		constexpr Value::Value( T const& data ):
-			m_ptr( new Derived< T >( data ) ),
+			m_ptr( new details::Derived< T >( data ) ),
 			m_type( templateToVariantType< T >() )
 		{
 			static_assert( templateToVariantType< T >() != Type::VOID );
@@ -177,7 +186,7 @@ namespace t
 		}
 
 		template< class T >
-		constexpr Value& Value::operator=( T&& data )
+		constexpr Value& Value::operator=( T&& data ) noexcept
 		{
 			*this = Value( std::move( data ) );
 			return *this;
@@ -215,7 +224,7 @@ namespace t
 				throw std::runtime_error( msg.c_str() );
 			}
 
-			return static_cast< Derived< type::decay< T > >* >( m_ptr.get() )->m_data;
+			return static_cast< details::Derived< type::decay< T > >* >( m_ptr.get() )->m_data;
 		}
 
 		template< class T, class >
@@ -238,10 +247,10 @@ namespace t
 
 			if ( m_ptr.isShared() )
 			{
-				*this = Value( static_cast< Derived< type::decay< T > >* >( m_ptr.get() )->m_data );
+				*this = Value( static_cast< details::Derived< type::decay< T > >* >( m_ptr.get() )->m_data );
 			}
 
-			return static_cast< Derived< type::decay< T > >* >( m_ptr.get() )->m_data;
+			return static_cast< details::Derived< type::decay< T > >* >( m_ptr.get() )->m_data;
 		}
 
 		constexpr bool Value::operator==( Value const& rhs ) const

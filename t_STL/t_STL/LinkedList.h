@@ -198,12 +198,12 @@ namespace t
 			return Iterator( nullptr );
 		}
 
-		constexpr auto cbegin()
+		constexpr auto cbegin() const
 		{
 			return ConstIterator( m_head );
 		}
 
-		constexpr auto cend()
+		constexpr auto cend() const
 		{
 			return ConstIterator( nullptr );
 		}
@@ -271,7 +271,8 @@ namespace t
 			return pushFront( std::move( cpy ) );
 		}
 
-		constexpr Iterator find( T const& data )
+		template< class U >
+		constexpr Iterator find( U const& data )
 		{
 			if ( m_head == nullptr )
 				return end();
@@ -288,7 +289,8 @@ namespace t
 			return end();
 		}
 
-		constexpr ConstIterator find( T const& data ) const
+		template< class U >
+		constexpr ConstIterator find( U const& data ) const
 		{
 			if ( m_head == nullptr )
 				return cend();
@@ -305,17 +307,18 @@ namespace t
 			return cend();
 		}
 
-		constexpr void remove( T const& data )
+		template< class U >
+		constexpr bool remove( U const& data )
 		{
 			if ( m_head == nullptr )
-				return;
+				return false;
 
-			if ( m_size == 1 )
+			if ( m_size == 1 && m_head->data == data )
 			{
 				delete m_head;
 				m_head = m_tail = nullptr;
 				--m_size;
-				return;
+				return true;
 			}
 
 			auto it = m_head;
@@ -348,18 +351,26 @@ namespace t
 					it = it->next;
 					delete cpy;
 					--m_size;
+					return true;
 				}
 				else
 				{
 					it = it->next;
 				}
 			}
+
+			return false;
 		}
 
-		constexpr void remove( ConstIterator where )
+		constexpr bool remove( Iterator where )
+		{
+			return remove( ConstIterator( where ) );
+		}
+
+		constexpr bool remove( ConstIterator where )
 		{
 			if ( m_head == nullptr || where == cend() )
-				return;
+				return false;
 
 			auto it = m_head;
 
@@ -387,11 +398,14 @@ namespace t
 					}
 					delete it;
 					it = nullptr;
-					return;
+					--m_size;
+					return true;
 				}
 
 				it = it->next;
 			}
+
+			return false;
 		}
 
 		constexpr ValueType& back()

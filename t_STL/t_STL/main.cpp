@@ -7,6 +7,8 @@
 #include "Timer.h"
 #include "HashSet.h"
 
+#include "BasicHashMap.h"
+
 #include <random>
 
 template< typename T >
@@ -134,6 +136,11 @@ t::pair< int64, int64 > testTvm()
 
     auto val2 = val.Clone();
 
+    auto val3 = Value();
+
+    if ( !val3.Is< void >() )
+        throw std::runtime_error("slfgf");
+
     return { ser, deser };
 }
 
@@ -158,6 +165,16 @@ String generateRandomString()
     std::uniform_int_distribution< std::mt19937::result_type > dist( 4, 32 );
 
     return x.substr( 0, dist( rng ) );
+}
+
+template< class T >
+T generateRandom()
+{
+    std::random_device dev;
+    std::mt19937 rng( dev() );
+    std::uniform_int_distribution< T > dist;
+
+    return dist( rng );
 }
 
 template< class hash, uint64 NumKeys >
@@ -512,92 +529,139 @@ constexpr int testArrayIterator( DynamicArray< int > const& arr )
     return 456;
 }
 
+struct MinMax
+{
+    uint8* min = 0;
+    uint8* max = 0;
+};
+
+uint64 numOps = 0;
+
+MinMax findMinAndMax( uint8* begin, uint8* const end )
+{
+    uint8* min = begin;
+    uint8* max = begin;
+
+    ++begin;
+
+    for ( ; begin <= end; ++begin )
+    {
+        ++numOps;
+        if ( *min > *begin )
+            min = begin;
+        else if ( *max < *begin )
+            max = begin;
+    }
+
+    return { min, max };
+}
+
+void coolSort( DynamicArray< uint8 >& arr )
+{
+    auto const size = arr.size();
+    for ( uint64 i = 0; i < size / 2; ++i )
+    {
+        if ( i == size - i - 1 )
+            break;
+        auto [ min, max ] = findMinAndMax( arr.data() + i, arr.data() + size - i - 1 );
+
+        if ( *min >= *max )
+            continue;
+
+        if ( max - arr.data() == i )
+        {
+            if ( min - arr.data() != size - i - 1 )
+                t::swap( *max, arr[ size - i - 1 ] );
+            t::swap( *min, arr[ i ] );
+        }
+        else
+        {
+            t::swap( *min, arr[ i ] );
+            t::swap( *max, arr[ size - i - 1 ] );
+        }
+    }
+}
+
+template< uint64 CountSize, class T >
+void countSort( T* arr, uint64 numel, uint64 shift )
+{
+    t::HeapArray< T > output( numel );
+
+    uint64 i = 0;
+    constinit uint64 count[ CountSize ] = { 0 };
+
+    for ( i = 0; i < numel; ++i )
+        ++count[ ( arr[ i ] >> shift ) % CountSize ];
+
+    for ( i = 1; i < CountSize; ++i )
+        count[ i ] += count[ i - 1 ];
+
+    for ( i = numel; i > 0; --i ) {
+        output[ count [ ( arr[ i - 1 ] >> shift ) % CountSize ] - 1 ] = arr[ i - 1 ];
+        --count[ ( arr[ i - 1 ] >> shift ) % CountSize ];
+    }
+
+    for ( i = 0; i < numel; ++i )
+        arr[ i ] = output[ i ];
+}
+
+template< uint64 BitsAtOnce = 4, class T >
+void radixSort( T* data, uint64 numel )
+{
+    constexpr uint64 NumBuckets = 0x1 << BitsAtOnce;
+    static_assert( BitsAtOnce != 0 );
+
+    constexpr double Temp = sizeof( T ) * 8.0 / static_cast< double >( BitsAtOnce );
+    constexpr uint64 NumLoops = static_cast< uint64 >( Temp ) == Temp ? Temp : static_cast< uint64 >( Temp ) + 1;
+
+    for ( uint64 i = 0; i < NumLoops; ++i )
+    {
+        countSort< NumBuckets >( data, numel, i * BitsAtOnce );
+    }
+}
+
+#include "Optional.h"
+
+constexpr int blah()
+{
+    auto i = Optional< int >();
+
+    auto const& b = 123;
+
+    auto& v = i.valueOr( b );
+
+    return v;
+}
+
 int main()
 {
-    /*StdHashVsTHash< 15 >();
-    StdHashVsTHash< 20 >();
-    StdHashVsTHash< 35 >();
-    StdHashVsTHash< 50 >();
-    StdHashVsTHash< 65 >();*/
+    constexpr auto blah_ = blah();
 
-    /*HashMapVsUnorderedMap<  10 >();
-    HashMapVsUnorderedMap<  20 >();
-    HashMapVsUnorderedMap<  40 >();
-    HashMapVsUnorderedMap<  60 >();
-    HashMapVsUnorderedMap<  80 >();
-    HashMapVsUnorderedMap< 100 >();
-    HashMapVsUnorderedMap< 120 >();*/
+    using namespace t::variant;
 
-    printSizeOf< String >();
-    printSizeOf< t::GenericString< char, uint32 > >();
+    Map map;
 
-    constexpr auto a = TestSharedPtr();    (void) a;
-    constexpr auto b = TestUniquePtr();    (void) b;
-    constexpr auto c = TestImmSharedPtr(); (void) c;
-    constexpr auto d = TestFastString();   (void) d;
-    constexpr auto e = TestLinkedList();   (void) e;
+    map.insert({ t::String("hello"), Value(123) });
+    map.insert({ t::String("goodbye1"), Value("hello") });
+    map.insert({ t::String("goodbye2"), map.at("goodbye1") });
 
-    std::cout << "---------------\n";
+    auto& hello = map.at("hello").As< int32& >();
 
-    constexpr int aoasnf = testTree(); (void) aoasnf;
+    auto& constGoodbye1 = map.at("goodbye1").As< t::String const& >();
+    auto& constGoodbye2 = map.at("goodbye2").As< t::String const& >();
 
-    auto ser = int64( 0 );
-    auto deser = int64( 0 );
-
-    constexpr auto NumLoops = 10000;
-
-    for ( auto i = 0; i < NumLoops; ++i )
+    if ( &constGoodbye1 != &constGoodbye2 )
     {
-        auto [ _ser, _deser ] = testTvm();
-        ser += _ser;
-        deser += _deser;
+        return -1;
     }
 
-    std::cout << "Serialization took an average of " << ser / NumLoops << "uS\n";
-    std::cout << "Deserialization took an average of " << deser / NumLoops << "uS\n";
+    auto& goodbye1 = map.at("goodbye1").As< t::String& >();
+    auto& goodbye2 = map.at("goodbye2").As< t::String& >();
 
+    if ( &goodbye1 == &goodbye2 )
     {
-        constexpr int16 val = int16(0xf00d);
-        constexpr auto val2 = t::byteswap( val );
-        static_assert( val2 == 0x0df0 );
-        static_assert( t::byteswap( val2 ) == val );
-
-        constexpr int64 _val = int64(0xf00ddeadf00ddead);
-        constexpr auto _val2 = t::byteswap( _val );
-        static_assert( _val2 == int64(0xadde0df0adde0df0) );
-        static_assert( t::byteswap( _val2 ) == _val );
+        return -2;
     }
 
-    std::cout << "---------------------------\n";
-    
-    std::cout << "Native:    " << (int) t::endianness::native << '\n';
-    std::cout << "NotNative: " << (int) t::endianness::not_native << '\n';
-    std::cout << "Little:    " << (int) t::endianness::little << '\n';
-    std::cout << "Big:       " << (int) t::endianness::big << '\n';
-
-    {
-        String x;
-
-        Timer< microseconds > t_;
-
-        t_.start();
-
-        for ( uint64 i = 0; i < 5000; ++i )
-            x += "This is cool. ";
-
-        auto time = t_.stop();
-
-        std::cout << "Took " << time << "uS\n";
-    }
-
-    auto s = String("hello whatup");
-
-    auto strv = s.substrv( s.indexOf(' ') + 1 );
-
-    std::cout << s << ": " << strv << '\n';
-
-    constexpr int asofns = testVm(); (void) asofns;
-    std::cout << asofns << '\n';
-
-    return 0;
+    return hello;
 }

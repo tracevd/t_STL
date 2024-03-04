@@ -64,7 +64,7 @@ namespace t
 		constexpr const T* begin() const { return cbegin(); }
 		constexpr const T* end() const { return cend(); }
 	private:
-		T m_data[ Size ];
+		T m_data[ Size ] = {};
 	};
 
 }
