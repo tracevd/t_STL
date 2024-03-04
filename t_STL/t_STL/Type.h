@@ -21,13 +21,6 @@ namespace t
         template< class... T >
         struct any_of;
 
-        template<>
-        struct any_of<>
-        {
-            using MyType = void;
-            using BaseType = void;
-        };
-
         template< class T, class... U >
         struct any_of< T, U... > : any_of< U... >
         {
@@ -161,6 +154,13 @@ namespace t
             uint8, uint16, uint32, uint64,
             float, double >;
     };
+
+    template<>
+    struct type::any_of<>
+    {
+        using MyType = void;
+        using BaseType = void;
+    };
     
     template< typename T >
     inline constexpr T&& move( T& val )
@@ -273,7 +273,7 @@ namespace t
     {
         constexpr static inline uint64 hash( float val )
         {
-            return uint64( static_cast< int64 >( val ) );
+            return uint64( std::bit_cast< int32 >( val ) );
         }
     };
 
@@ -282,7 +282,7 @@ namespace t
     {
         constexpr static inline uint64 hash( double val )
         {
-            return uint64( static_cast< int64 >( val ) );
+            return uint64( std::bit_cast< int64 >( val ) );
         }
     };
 };
