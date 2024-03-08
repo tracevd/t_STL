@@ -554,6 +554,8 @@ namespace t
 			return *this;
 		}
 
+		constexpr GenericString& operator+=( GenericStringView< CharTy, SizeTy > strv );
+
 		constexpr bool operator==( GenericString const& rhs ) const
 		{
 			if ( this == &rhs )
@@ -750,6 +752,23 @@ namespace t
 			end = size_;
 
 		return GenericStringView( m_data + start, end - start );
+	}
+
+	template< class CharTy, class SizeTy >
+	constexpr GenericString< CharTy, SizeTy >& GenericString< CharTy, SizeTy >::operator+=( GenericStringView< CharTy, SizeTy > strv )
+	{
+		if ( m_size + strv.size() > m_capacity )
+		{
+			if ( m_size + strv.size() < m_capacity * 2 )
+				reallocate();
+			else
+				reallocate( m_size + strv.size() );
+		}
+
+		strcpy( &m_data[m_size], strv.data(), strv.size());
+		m_size += strv.size();
+		m_data[m_size] = '\0';
+		return *this;
 	}
 }
 

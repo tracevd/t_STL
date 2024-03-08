@@ -26,7 +26,10 @@ namespace t
     {
         class Map;
 
-        constexpr uint8 ARRAY = 0x10;
+        namespace details
+        {
+            constexpr uint8 ARRAY = 0x10;
+        }
 
         enum class Type : uint8
         {
@@ -36,30 +39,41 @@ namespace t
             FLOAT, DOUBLE,
             STRING,
             MAP,
-            INT8_ARRAY = INT8 | ARRAY,
-            INT16_ARRAY = INT16 | ARRAY,
-            INT32_ARRAY = INT32 | ARRAY,
-            INT64_ARRAY = INT64 | ARRAY,
-            UINT8_ARRAY = UINT8 | ARRAY,
-            UINT16_ARRAY = UINT16 | ARRAY,
-            UINT32_ARRAY = UINT32 | ARRAY,
-            UINT64_ARRAY = UINT64 | ARRAY,
-            FLOAT_ARRAY = FLOAT | ARRAY,
-            DOUBLE_ARRAY = DOUBLE | ARRAY,
-            STRING_ARRAY = STRING | ARRAY
+            INT8_ARRAY = INT8 | details::ARRAY,
+            INT16_ARRAY = INT16 | details::ARRAY,
+            INT32_ARRAY = INT32 | details::ARRAY,
+            INT64_ARRAY = INT64 | details::ARRAY,
+            UINT8_ARRAY = UINT8 | details::ARRAY,
+            UINT16_ARRAY = UINT16 | details::ARRAY,
+            UINT32_ARRAY = UINT32 | details::ARRAY,
+            UINT64_ARRAY = UINT64 | details::ARRAY,
+            FLOAT_ARRAY = FLOAT | details::ARRAY,
+            DOUBLE_ARRAY = DOUBLE | details::ARRAY,
+            STRING_ARRAY = STRING | details::ARRAY
         };
 
         #include "ValueTypeDefines.h"
 
-        TtoTypeDef
-
-        template< typename T >
-        constexpr Type templateToVariantType()
+        namespace details
         {
-            return TtoType< T >::type;
+            TtoTypeDef
+
+            template< typename T >
+            constexpr Type templateToVariantType()
+            {
+                return TtoType< T >::type;
+            }
+
+            template< typename T >
+            constexpr StringView templateToString()
+            {
+                return TtoType< T >::string;
+            }
         }
 
-        constexpr const char* typeToString( Type type )
+        
+
+        constexpr StringView typeToString( Type type )
         {
             switch ( type )
             {
@@ -114,12 +128,6 @@ namespace t
             default:
                 return "void";
             }
-        }
-
-        template< typename T >
-        constexpr const char* templateToString()
-        {
-            return TtoType< T >::string;
         }
     }
 }

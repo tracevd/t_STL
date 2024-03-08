@@ -118,7 +118,7 @@ namespace t
 			template< endianness e, typename T >
 			void SerializePrimitiveValue( DynamicArray< uint8 >& buffer, T data )
 			{
-				auto constexpr type = templateToVariantType< T >();
+				auto constexpr type = details::templateToVariantType< T >();
 				AddToBuffer< e >( buffer, static_cast< uint8 >( type ) );
 				AddToBuffer< e >( buffer, data );
 			}
@@ -126,7 +126,7 @@ namespace t
 			template< endianness e, typename T >
 			void SerializeArrayValue( DynamicArray< uint8 >& buffer, DynamicArray< T > const& data )
 			{
-				AddToBuffer< e >( buffer, static_cast< uint8 >( templateToVariantType< DynamicArray< T > >() ) );
+				AddToBuffer< e >( buffer, static_cast< uint8 >( details::templateToVariantType< DynamicArray< T > >() ) );
 				AddToBuffer< e >( buffer, uint64( data.size() ) );
 
 				for ( uint64 i = 0; i < data.size(); ++i )
@@ -138,21 +138,21 @@ namespace t
 			template< endianness e >
 			void SerializeComplexValue( DynamicArray< uint8 >& buffer, String const& data )
 			{
-				AddToBuffer< e >( buffer, static_cast< uint8 >( templateToVariantType< String >() ) );
+				AddToBuffer< e >( buffer, static_cast< uint8 >( details::templateToVariantType< String >() ) );
 				Serialize< e >( buffer, data );
 			}
 
 			template< endianness e >
 			void SerializeComplexValue( DynamicArray< uint8 >& buffer, Map const& data )
 			{
-				AddToBuffer< e >( buffer, static_cast< uint8 >( templateToVariantType< Map >() ) );
+				AddToBuffer< e >( buffer, static_cast< uint8 >( details::templateToVariantType< Map >() ) );
 				Serialize< e >( buffer, data );
 			}
 
 			template< endianness e >
 			void SerializeComplexValue( DynamicArray< uint8 >& buffer, DynamicArray< String > const& data )
 			{
-				AddToBuffer< e >( buffer, static_cast< uint8 >( templateToVariantType< DynamicArray< String > >() ) );
+				AddToBuffer< e >( buffer, static_cast< uint8 >( details::templateToVariantType< DynamicArray< String > >() ) );
 				AddToBuffer< e >( buffer, uint64( data.size() ) );
 				for ( uint64 i = 0; i < data.size(); ++i )
 				{

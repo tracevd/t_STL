@@ -62,7 +62,7 @@ namespace t
 
 			constexpr Value( const char* str ):
 				m_ptr( new details::Derived< String >( str ) ),
-				m_type( templateToVariantType< String >() ) {}
+				m_type( details::templateToVariantType< String >() ) {}
 
 			template< class T >
 			constexpr explicit Value( T&& ) noexcept;
@@ -93,7 +93,7 @@ namespace t
 			constexpr Value& operator=( const char* str )
 			{
 				m_ptr = new details::Derived< String >( str );
-				m_type = templateToVariantType< String >();
+				m_type = details::templateToVariantType< String >();
 				return *this;
 			}
 
@@ -111,6 +111,7 @@ namespace t
 				Value val;
 				if ( m_ptr )
 					val.m_ptr = m_ptr->Clone();
+				val.m_type = m_type;
 				return val;
 			}
 
@@ -119,7 +120,8 @@ namespace t
 			template< class T >
 			[[nodiscard]] constexpr bool Is() const noexcept
 			{
-				return m_type == templateToVariantType< type::decay< T > >();
+				constexpr auto typeOfT = details::templateToVariantType< type::decay< T > >();
+				return m_type == typeOfT;
 			}
 
 			template< class T, class = type::enable_if<
@@ -166,17 +168,17 @@ namespace t
 		template< class T >
 		constexpr Value::Value( T&& data ) noexcept:
 			m_ptr( new details::Derived< T >( std::move( data ) ) ),
-			m_type( templateToVariantType< T >() )
+			m_type( details::templateToVariantType< T >() )
 		{
-			static_assert( templateToVariantType< T >() != Type::VOID );
+			static_assert( details::templateToVariantType< T >() != Type::VOID );
 		}
 
 		template< class T >
 		constexpr Value::Value( T const& data ):
 			m_ptr( new details::Derived< T >( data ) ),
-			m_type( templateToVariantType< T >() )
+			m_type( details::templateToVariantType< T >() )
 		{
-			static_assert( templateToVariantType< T >() != Type::VOID );
+			static_assert( details::templateToVariantType< T >() != Type::VOID );
 		}
 
 		template< class T >
@@ -212,14 +214,14 @@ namespace t
 			if ( m_type == Type::VOID || !m_ptr ) [[unlikely]]
 				throw std::runtime_error( "Accessing data of void value!" );
 
-			auto constexpr type = templateToVariantType< type::decay< T > >();
+			auto constexpr type = details::templateToVariantType< type::decay< T > >();
 
 			if ( m_type != type ) [[unlikely]]
 			{
 				String msg = "Type did not match!\nFound: ";
 				msg += typeToString( m_type );
 				msg += ", but ";
-				msg += templateToString< type::decay< T > >();
+				msg += details::templateToString< type::decay< T > >();
 				msg += " was requested";
 				throw std::runtime_error( msg.c_str() );
 			}
@@ -233,14 +235,14 @@ namespace t
 			if ( m_type == Type::VOID || !m_ptr ) [[unlikely]]
 				throw std::runtime_error( "Accessing data of void value!" );
 
-			auto constexpr type = templateToVariantType< type::decay< T > >();
+			auto constexpr type = details::templateToVariantType< type::decay< T > >();
 
 			if ( m_type != type ) [[unlikely]]
 			{
 				String msg = "Type did not match!\nFound: ";
 				msg += typeToString( m_type );
 				msg += ", but ";
-				msg += templateToString< type::decay< T > >();
+				msg += details::templateToString< type::decay< T > >();
 				msg += " was requested";
 				throw std::runtime_error( msg.c_str() );
 			}

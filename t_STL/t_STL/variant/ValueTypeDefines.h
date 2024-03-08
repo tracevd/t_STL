@@ -31,7 +31,7 @@ template<> \
 struct TtoType< T > \
 { \
     static constexpr t::variant::Type type = type_; \
-    static constexpr const char* string    = str; \
+    static constexpr t::StringView string  = str; \
 }; \
 template<> \
 struct TypeToT< type_ > \
@@ -44,7 +44,7 @@ template< typename U > \
 struct TtoType \
 { \
     static constexpr t::variant::Type type = Type::VOID; \
-    static constexpr const char* string    = "void"; \
+    static constexpr auto string = StringView("void"); \
 }; \
 template< Type t > \
 struct TypeToT; \
