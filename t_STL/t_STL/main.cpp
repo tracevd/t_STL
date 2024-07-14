@@ -13,6 +13,16 @@
 
 #include <random>
 
+#include "Optional.h"
+
+#include "Fraction.h"
+
+#include "Any.h"
+#include "Variant.h"
+#include <variant>
+
+#include "Tree.h"
+
 template< typename T >
 void printSizeOf()
 {
@@ -178,8 +188,6 @@ double generateRandom< double >()
     return std::bit_cast< double >( rand );
 }
 
-#include "Tree.h"
-
 template< uint64 CountSize, class T >
 void countSort( T* arr, uint64 numel, uint64 shift )
 {
@@ -218,18 +226,6 @@ void radixSort( T* data, uint64 numel )
     }
 }
 
-#include "Optional.h"
-
-#include "Fraction.h"
-
-#include "Any.h"
-#include "Variant.h"
-#include <variant>
-
-#include "json/Value.h"
-#include "json/Decode.h"
-#include "json/Encode.h"
-
 struct Yapper
 {
     Yapper() { std::cout << "Yapper created\n"; }
@@ -247,7 +243,7 @@ int main()
     std::uniform_int_distribution< std::mt19937::result_type > length_dist( 1000, 2000 );
     std::uniform_int_distribution< std::mt19937::result_type > num_dist;
 
-    auto qsWasFaster = 0;
+    auto tsWasFaster = 0;
     auto ssWasFaster = 0;
 
     constexpr auto numTries = 100;
@@ -273,11 +269,11 @@ int main()
 
         t::sort( arr.data(), arr.data() + arr.size(), comparator );
 
-        auto const qsElapsed = t.stop();
+        auto const tsElapsed = t.stop();
 
         std::cout << "------------------------\n";
         std::cout << "Elements: " << length << '\n';
-        std::cout << "quickSort: " << qsElapsed << "nS\n";
+        std::cout << "t::sort: " << tsElapsed << "nS\n";
 
         t.start();
 
@@ -292,13 +288,13 @@ int main()
             std::cout << "Oh no\n";
         }
 
-        if ( ssElapsed > qsElapsed )
-            ++qsWasFaster;
-        else if ( qsElapsed > ssElapsed )
+        if ( ssElapsed > tsElapsed )
+            ++tsWasFaster;
+        else if ( tsElapsed > ssElapsed )
             ++ssWasFaster;
     }
 
-    auto const percentQs  = static_cast< double >( qsWasFaster ) / static_cast< double >( numTries ) * 100;
+    auto const percentQs  = static_cast< double >( tsWasFaster ) / static_cast< double >( numTries ) * 100;
     auto const percentSs  = static_cast< double >( ssWasFaster ) / static_cast< double >( numTries ) * 100;
     auto const percentTie = 100.0 - percentQs - percentSs;
 
