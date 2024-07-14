@@ -12,7 +12,7 @@ add_library( t_STL ${SRC} )
 file( GLOB_RECURSE CPPS "*.cpp" )
 
 # testing binary
-add_executable( cpp_test CPPS )
+add_executable( cpp_test ${CPPS} )
 target_link_libraries( cpp_test PRIVATE t_STL )
 
 if ( MSVC )
