@@ -504,9 +504,6 @@ namespace t
 
 		constexpr bool operator==( GenericString const& rhs ) const
 		{
-			if ( this == &rhs )
-				return true;
-
 			if ( m_size != rhs.m_size )
 				return false;
 
