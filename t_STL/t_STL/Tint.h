@@ -1,5 +1,7 @@
 #pragma once
 
+#include <numeric>
+
 using int8   = signed char;
 using int16  = signed short;
 using int32  = signed int;
@@ -8,8 +10,6 @@ using uint8  = unsigned char;
 using uint16 = unsigned short;
 using uint32 = unsigned int;
 using uint64 = unsigned long long;
-
-#include <numeric>
 
 namespace t
 {
@@ -89,7 +89,7 @@ namespace t
 	};
 }
 
-static_assert( sizeof( int8 )   == 1, "Invalid type size!" );
+static_assert( sizeof( int8 )   == 1, "Invalid type size!");
 static_assert( sizeof( int16 )  == 2, "Invalid type size!");
 static_assert( sizeof( int32 )  == 4, "Invalid type size!");
 static_assert( sizeof( int64 )  == 8, "Invalid type size!");

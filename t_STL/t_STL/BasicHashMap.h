@@ -1,6 +1,7 @@
 #include "Tint.h"
 #include "Pair.h"
 #include "Type.h"
+#include "Error.h"
 
 #include "HeapArray.h"
 #include "LinkedList.h"
@@ -138,7 +139,7 @@ namespace t
 			auto it = bucket.find( key );
 
 			if ( it == bucket.end() )
-				throw std::runtime_error("Could not find key!");
+				throw Error( "Could not find key!", 1 );
 
 			return it->value();
 		}

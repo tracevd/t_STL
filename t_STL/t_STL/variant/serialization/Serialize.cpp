@@ -5,19 +5,20 @@
 #include <cassert>
 
 #include "../../endianness.h"
+#include "../../Error.h"
 
 namespace t
 {
 	namespace variant
 	{
 		template< endianness >
-		void AddToBuffer( DynamicArray< uint8 >& buffer, uint8 data )
+		void AddToBuffer( Array< uint8 >& buffer, uint8 data )
 		{
 			buffer.pushBack( data );
 		}
 
 		template< endianness e >
-		void AddToBuffer( DynamicArray< uint8 >& buffer, uint16 data )
+		void AddToBuffer( Array< uint8 >& buffer, uint16 data )
 		{
 			if constexpr ( e != endianness::native )
 				data = byteswap( data );
@@ -26,7 +27,7 @@ namespace t
 			buffer.pushBack( ptr[ 1 ] );
 		}
 		template< endianness e >
-		void AddToBuffer( DynamicArray< uint8 >& buffer, uint32 data )
+		void AddToBuffer( Array< uint8 >& buffer, uint32 data )
 		{
 			if constexpr ( e != endianness::native )
 				data = byteswap( data );
@@ -37,7 +38,7 @@ namespace t
 			buffer.pushBack( ptr[ 3 ] );
 		}
 		template< endianness e >
-		void AddToBuffer( DynamicArray< uint8 >& buffer, uint64 data )
+		void AddToBuffer( Array< uint8 >& buffer, uint64 data )
 		{
 			if constexpr ( e != endianness::native )
 				data = byteswap( data );
@@ -53,43 +54,43 @@ namespace t
 		}
 
 		template< endianness e >
-		void AddToBuffer( DynamicArray< uint8 >& buffer, int8 data )
+		void AddToBuffer( Array< uint8 >& buffer, int8 data )
 		{
 			AddToBuffer< e >( buffer, *reinterpret_cast< uint8* >( &data ) );
 		}
 
 		template< endianness e >
-		void AddToBuffer( DynamicArray< uint8 >& buffer, int16 data )
+		void AddToBuffer( Array< uint8 >& buffer, int16 data )
 		{
 			AddToBuffer< e >( buffer, *reinterpret_cast< uint16* >( &data ) );
 		}
 
 		template< endianness e >
-		void AddToBuffer( DynamicArray< uint8 >& buffer, int32 data )
+		void AddToBuffer( Array< uint8 >& buffer, int32 data )
 		{
 			AddToBuffer< e >( buffer, *reinterpret_cast< uint32* >( &data ) );
 		}
 
 		template< endianness e >
-		void AddToBuffer( DynamicArray< uint8 >& buffer, int64 data )
+		void AddToBuffer( Array< uint8 >& buffer, int64 data )
 		{
 			AddToBuffer< e >( buffer, *reinterpret_cast< uint64* >( &data ) );
 		}
 
 		template< endianness e >
-		void AddToBuffer( DynamicArray< uint8 >& buffer, float data )
+		void AddToBuffer( Array< uint8 >& buffer, float data )
 		{
 			AddToBuffer< e >( buffer, *reinterpret_cast< uint32* >( &data ) );
 		}
 
 		template< endianness e >
-		void AddToBuffer( DynamicArray< uint8 >& buffer, double data )
+		void AddToBuffer( Array< uint8 >& buffer, double data )
 		{
 			AddToBuffer< e >( buffer, *reinterpret_cast< uint64* >( &data ) );
 		}
 
 		template< endianness e, typename T >
-		void AddToBuffer( DynamicArray< uint8 >& buffer, DynamicArray< T > const& data )
+		void AddToBuffer( Array< uint8 >& buffer, Array< T > const& data )
 		{
 			for ( uint64 i = 0; i < data.size(); ++i )
 			{
@@ -100,12 +101,17 @@ namespace t
 		inline namespace bitstream_v1
 		{
 			template< endianness >
-			void Serialize( DynamicArray< uint8 >& buffer, Map const& map );
+			void Serialize( Array< uint8 >& buffer, Map const& map );
 
 			template< endianness e >
-			void Serialize( DynamicArray< uint8 >& buffer, String const& str )
+			void Serialize( Array< uint8 >& buffer, String const& str )
 			{
-				AddToBuffer< e >( buffer, static_cast< uint16 >( str.size() ) );
+				auto const size = str.size();
+				if ( size > limit< uint32 >::max )
+				{
+					throw Error( "Strings lengths must fit into a 32-bit number", 1 );
+				}
+				AddToBuffer< e >( buffer, static_cast< uint32 >( size ) );
 				for ( uint64 i = 0; i < str.size(); ++i )
 				{
 					AddToBuffer< e >( buffer, *reinterpret_cast< uint8 const* >( &str[ i ] ) );
@@ -113,10 +119,10 @@ namespace t
 			}
 
 			template< endianness, typename T >
-			void SerializeComplexValue( DynamicArray< uint8 >& buffer, T const& data );
+			void SerializeComplexValue( Array< uint8 >& buffer, T const& data );
 
 			template< endianness e, typename T >
-			void SerializePrimitiveValue( DynamicArray< uint8 >& buffer, T data )
+			void SerializePrimitiveValue( Array< uint8 >& buffer, T data )
 			{
 				auto constexpr type = details::templateToVariantType< T >();
 				AddToBuffer< e >( buffer, static_cast< uint8 >( type ) );
@@ -124,9 +130,9 @@ namespace t
 			}
 
 			template< endianness e, typename T >
-			void SerializeArrayValue( DynamicArray< uint8 >& buffer, DynamicArray< T > const& data )
+			void SerializeArrayValue( Array< uint8 >& buffer, Array< T > const& data )
 			{
-				AddToBuffer< e >( buffer, static_cast< uint8 >( details::templateToVariantType< DynamicArray< T > >() ) );
+				AddToBuffer< e >( buffer, static_cast< uint8 >( details::templateToVariantType< Array< T > >() ) );
 				AddToBuffer< e >( buffer, uint64( data.size() ) );
 
 				for ( uint64 i = 0; i < data.size(); ++i )
@@ -136,23 +142,23 @@ namespace t
 			}
 
 			template< endianness e >
-			void SerializeComplexValue( DynamicArray< uint8 >& buffer, String const& data )
+			void SerializeComplexValue( Array< uint8 >& buffer, String const& data )
 			{
 				AddToBuffer< e >( buffer, static_cast< uint8 >( details::templateToVariantType< String >() ) );
 				Serialize< e >( buffer, data );
 			}
 
 			template< endianness e >
-			void SerializeComplexValue( DynamicArray< uint8 >& buffer, Map const& data )
+			void SerializeComplexValue( Array< uint8 >& buffer, Map const& data )
 			{
 				AddToBuffer< e >( buffer, static_cast< uint8 >( details::templateToVariantType< Map >() ) );
 				Serialize< e >( buffer, data );
 			}
 
 			template< endianness e >
-			void SerializeComplexValue( DynamicArray< uint8 >& buffer, DynamicArray< String > const& data )
+			void SerializeComplexValue( Array< uint8 >& buffer, Array< String > const& data )
 			{
-				AddToBuffer< e >( buffer, static_cast< uint8 >( details::templateToVariantType< DynamicArray< String > >() ) );
+				AddToBuffer< e >( buffer, static_cast< uint8 >( details::templateToVariantType< Array< String > >() ) );
 				AddToBuffer< e >( buffer, uint64( data.size() ) );
 				for ( uint64 i = 0; i < data.size(); ++i )
 				{
@@ -161,13 +167,13 @@ namespace t
 			}
 
 			template< endianness e >
-			void SerializeEmptyValue( DynamicArray< uint8 >& buffer )
+			void SerializeEmptyValue( Array< uint8 >& buffer )
 			{
 				AddToBuffer< e >( buffer, static_cast< uint8 >( Type::VOID ) );
 			}
 
 			template< endianness e >
-			void SerializeValue( DynamicArray< uint8 >& buffer, Value const& val )
+			void SerializeValue( Array< uint8 >& buffer, Value const& val )
 			{
 				const auto type = val.getType();
 
@@ -200,33 +206,33 @@ namespace t
 				case Type::MAP:
 					return SerializeComplexValue< e >( buffer, val.As< Map const& >() );
 				case Type::INT8_ARRAY:
-					return SerializeArrayValue< e >( buffer, val.As< DynamicArray< int8 > const& >() );
+					return SerializeArrayValue< e >( buffer, val.As< Array< int8 > const& >() );
 				case Type::INT16_ARRAY:
-					return SerializeArrayValue< e >( buffer, val.As< DynamicArray< int16 > const& >() );
+					return SerializeArrayValue< e >( buffer, val.As< Array< int16 > const& >() );
 				case Type::INT32_ARRAY:
-					return SerializeArrayValue< e >( buffer, val.As< DynamicArray< int32 > const& >() );
+					return SerializeArrayValue< e >( buffer, val.As< Array< int32 > const& >() );
 				case Type::INT64_ARRAY:
-					return SerializeArrayValue< e >( buffer, val.As< DynamicArray< int64 > const& >() );
+					return SerializeArrayValue< e >( buffer, val.As< Array< int64 > const& >() );
 				case Type::UINT8_ARRAY:
-					return SerializeArrayValue< e >( buffer, val.As< DynamicArray< uint8 > const& >() );
+					return SerializeArrayValue< e >( buffer, val.As< Array< uint8 > const& >() );
 				case Type::UINT16_ARRAY:
-					return SerializeArrayValue< e >( buffer, val.As< DynamicArray< uint16 > const& >() );
+					return SerializeArrayValue< e >( buffer, val.As< Array< uint16 > const& >() );
 				case Type::UINT32_ARRAY:
-					return SerializeArrayValue< e >( buffer, val.As< DynamicArray< uint32 > const& >() );
+					return SerializeArrayValue< e >( buffer, val.As< Array< uint32 > const& >() );
 				case Type::UINT64_ARRAY:
-					return SerializeArrayValue< e >( buffer, val.As< DynamicArray< uint64 > const& >() );
+					return SerializeArrayValue< e >( buffer, val.As< Array< uint64 > const& >() );
 				case Type::FLOAT_ARRAY:
-					return SerializeArrayValue< e >( buffer, val.As< DynamicArray< float > const& >() );
+					return SerializeArrayValue< e >( buffer, val.As< Array< float > const& >() );
 				case Type::DOUBLE_ARRAY:
-					return SerializeArrayValue< e >( buffer, val.As< DynamicArray< double > const& >() );
+					return SerializeArrayValue< e >( buffer, val.As< Array< double > const& >() );
 				case Type::STRING_ARRAY:
-					return SerializeComplexValue< e >( buffer, val.As< DynamicArray< String > const& >() );
+					return SerializeComplexValue< e >( buffer, val.As< Array< String > const& >() );
 				}
 				assert( false );
 			}
 
 			template< endianness e >
-			void Serialize( DynamicArray< uint8 >& buffer, Map const& map )
+			void Serialize( Array< uint8 >& buffer, Map const& map )
 			{
 				buffer.pushBack( 't' );
 				buffer.pushBack( 'v' );
@@ -244,21 +250,21 @@ namespace t
 			}
 
 			template< endianness e >
-			DynamicArray< uint8 > Serialize( Map const& map )
+			Array< uint8 > Serialize( Map const& map )
 			{
-				DynamicArray< uint8 > buffer;
+				Array< uint8 > buffer;
 
-				constexpr auto DefaultDynamicArrayLength = 160;
+				constexpr auto DefaultArrayLength = 160;
 
-				buffer.reserve( DefaultDynamicArrayLength );
+				buffer.reserve( DefaultArrayLength );
 
 				Serialize< e >( buffer, map );
 
 				return buffer;
 			}
 
-			template DynamicArray< uint8 > Serialize< endianness::little >( Map const& );
-			template DynamicArray< uint8 > Serialize< endianness::big >( Map const& );
+			template Array< uint8 > Serialize< endianness::little >( Map const& );
+			template Array< uint8 > Serialize< endianness::big >( Map const& );
 		}
 	}
 }

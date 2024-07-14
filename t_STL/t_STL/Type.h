@@ -3,11 +3,7 @@
 #include "Tint.h"
 
 #include <type_traits>
-
-#define TMPL_T template< class T >
-#define TMPL template<>
-#define INL_CONSTX_B inline constexpr bool
-#define INL_CONSTX_S_B inline constexpr static bool
+#include <bit>
 
 namespace t
 {
@@ -94,6 +90,30 @@ namespace t
         static constexpr bool is_function = std::is_function_v< T >;
 
         template< class T >
+        static constexpr bool is_arithmetic = std::is_arithmetic_v< T >;
+
+        template< class T >
+        static constexpr bool is_plain_type = true;
+
+        template< class T >
+        static constexpr bool is_plain_type< T& > = false;
+
+        template< class T >
+        static constexpr bool is_plain_type< T const > = false;
+
+        template< class T >
+        static constexpr bool is_plain_type< volatile T > = false;
+
+        template< class T >
+        static constexpr bool is_plain_type< T* > = false;
+
+        template< class T >
+        static constexpr bool is_plain_type< T[] > = false;
+
+        template< class T, uint64 N >
+        static constexpr bool is_plain_type< T[ N ] > = false;
+
+        template< class T >
         using remove_reference = std::remove_reference_t< T >;
 
         template< class T >
@@ -123,29 +143,95 @@ namespace t
         template< class T >
         using remove_volatile = std::remove_volatile_t< T >;
 
-        template< bool Cond, class T, class U >
-        using ternary = std::conditional_t< Cond, T, U >;
-    /*private:
-        template< class T >
-        struct plain_
-        {
-            using no_array = remove_array< T >;
-            using no_const = remove_const< no_array >;
-            using no_reference = remove_reference< no_const >;
-            using temp = remove_pointer< no_reference >;
-            using type = ternary<
-                            is_pointer< temp > || is_reference< temp > || is_const< temp > || is_array< temp >,
-                                plain_< temp >::type,
-                                temp >;
-        };
-    public:
-        TMPL_T using plain = plain_< T >::type;*/
-
         template< class T >
         using decay = std::decay_t< T >;
 
-        template< bool case_, class T = void >
-        using enable_if = std::enable_if_t< case_, T >;
+        template< bool Cond, class T, class U >
+        using ternary = std::conditional_t< Cond, T, U >;
+
+    private:
+        enum class Removable
+        {
+            NONE,
+            CONST,
+            VOLATILE,
+            REFERENCE,
+            ARRAY,
+            POINTER,
+        };
+        template< typename T >
+        static consteval Removable getRemovableType()
+        {
+            if constexpr ( type::is_reference< T > )
+            {
+                return Removable::REFERENCE;
+            }
+            if constexpr ( type::is_const< T > )
+            {
+                return Removable::CONST;
+            }
+            if constexpr ( type::is_pointer< T > )
+            {
+                return Removable::POINTER;
+            }
+            if constexpr ( type::is_array< T > )
+            {
+                return Removable::ARRAY;
+            }
+            if constexpr ( type::is_volatile< T > )
+            {
+                return Removable::VOLATILE;
+            }
+            return Removable::NONE;
+        }
+        template< class T, Removable r >
+        struct type_remover;
+
+        template< class T >
+        struct type_remover< T, Removable::NONE >
+        {
+            using type = T;
+        };
+
+        template< class T >
+        struct type_remover< T, Removable::CONST >
+        {
+            using temp = type::remove_const< T >;
+            using type = type_remover< temp, getRemovableType< temp >() >::type;
+        };
+
+        template< class T >
+        struct type_remover< T, Removable::REFERENCE >
+        {
+            using temp = type::remove_reference< T >;
+            using type = type_remover< temp, getRemovableType< temp >() >::type;
+        };
+
+        template< class T >
+        struct type_remover< T, Removable::POINTER >
+        {
+            using temp = type::remove_pointer< T >;
+            using type = type_remover< temp, getRemovableType< temp >() >::type;
+        };
+
+        template< class T >
+        struct type_remover< T, Removable::ARRAY >
+        {
+            using temp = type::remove_array< T >;
+            using type = type_remover< temp, getRemovableType< temp >() >::type;
+        };
+
+        template< class T >
+        struct type_remover< T, Removable::VOLATILE >
+        {
+            using temp = type::remove_volatile< T >;
+            using type = type_remover< temp, getRemovableType< temp >() >::type;
+        };
+
+    public:
+
+        template< class T >
+        using plain = type_remover< T, getRemovableType< T >() >::type;
 
         template< class T >
         static constexpr bool is_expensive_hash = is_none_of< T,
@@ -153,6 +239,9 @@ namespace t
             int8,  int16,  int32,  int64,
             uint8, uint16, uint32, uint64,
             float, double >;
+
+        template< bool Cond, class T = void >
+        using enable_if = std::enable_if< Cond, T >::type;
     };
 
     template<>
@@ -161,28 +250,6 @@ namespace t
         using MyType = void;
         using BaseType = void;
     };
-    
-    template< typename T >
-    inline constexpr T&& move( T& val )
-    {
-        return static_cast< T&& >(val);
-    }
-    
-    template< typename T >
-    inline constexpr T&& forward( T&& val )
-    {
-        if constexpr ( type::is_lvalue_reference< T > )
-            return static_cast< T& >( val );
-        return static_cast< T&& >( val );
-    }
-
-    template< typename T >
-    inline constexpr T&& forward( T& val )
-    {
-        if constexpr ( type::is_lvalue_reference< T > )
-            return static_cast< T& >( val );
-        return static_cast< T&& >( val );
-    }
 
     template< class T >
     struct hasher;
@@ -273,7 +340,7 @@ namespace t
     {
         constexpr static inline uint64 hash( float val )
         {
-            return uint64( std::bit_cast< int32 >( val ) );
+            return uint64( ::std::bit_cast< int32 >( val ) );
         }
     };
 
@@ -282,14 +349,7 @@ namespace t
     {
         constexpr static inline uint64 hash( double val )
         {
-            return uint64( std::bit_cast< int64 >( val ) );
+            return uint64( ::std::bit_cast< int64 >( val ) );
         }
     };
-};
-
-auto constexpr y = t::type::is_expensive_hash< char >;
-
-#undef TMPL
-#undef TMPL_T
-#undef INL_CONSTX_S_B
-#undef INL_CONSTX_B
+}

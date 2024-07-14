@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Tint.h"
-#include "Exception.h"
+#include "Error.h"
 
 namespace t
 {
@@ -14,26 +14,26 @@ namespace t
 	public:
 		BufferView() = delete;
 
-		BufferView( T* data, SizeTy numel ):
+		BufferView( T* data, SizeTy numel ) noexcept:
 			m_data( data ),
 			m_size( numel ) {}
 
-		BufferView( BufferView const& buf ):
+		BufferView( BufferView const& buf ) noexcept:
 			m_data( buf.m_data ),
 			m_size( buf.m_size ) {}
 
-		BufferView( BufferView&& buf ):
+		BufferView( BufferView&& buf ) noexcept:
 			m_data( buf.m_data ),
 			m_size( buf.m_size ) {}
 
-		BufferView& operator=( BufferView const& buf )
+		BufferView& operator=( BufferView const& buf ) noexcept
 		{
 			m_data = buf.m_data;
 			m_size = buf.m_size;
 			return *this;
 		}
 
-		BufferView& operator=( BufferView&& buf )
+		BufferView& operator=( BufferView&& buf ) noexcept
 		{
 			m_data = buf.m_data;
 			m_size = buf.m_size;
@@ -52,23 +52,23 @@ namespace t
 		auto& at( SizeTy index )
 		{
 			if ( index >= m_size )
-				throw Error("Index exceeds size!");
+				throw Error( "Index exceeds size!", 1 );
 			return operator[]( index );
 		}
 
 		auto& at( SizeTy index ) const
 		{
 			if ( index >= m_size )
-				throw Error("Index exceeds size!");
+				throw Error( "Index exceeds size!", 1 );
 			return operator[]( index );
 		}
 
-		T* begin() { return m_data; }
-		T* end() { return m_data + m_size; }
-		T const* cbegin() const { return m_data; }
-		T const* cend() const { return m_data + m_size; }
-		auto begin() const { return cbegin(); }
-		auto end() const { return cend(); }
+		T* begin() noexcept { return m_data; }
+		T* end() noexcept { return m_data + m_size; }
+		T const* cbegin() const noexcept { return m_data; }
+		T const* cend() const noexcept { return m_data + m_size; }
+		auto begin() const noexcept { return cbegin(); }
+		auto end() const noexcept { return cend(); }
 	private:
 		T* m_data;
 		SizeTy m_size;

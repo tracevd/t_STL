@@ -2,6 +2,7 @@
 #include "Deserialize.h"
 
 #include "../../endianness.h"
+#include "../../Error.h"
 
 namespace t
 {
@@ -10,7 +11,14 @@ namespace t
 		template< typename T >
 		T ReadValueFromBuffer( const uint8* buffer, bool swapbytes )
 		{
-			auto const val = *reinterpret_cast< const T* >( buffer );
+			T val{};
+			uint8* valBuffer = static_cast< uint8* >( static_cast< void* >( &val ) );
+
+			for ( auto i = 0; i < sizeof( T ); ++i )
+			{
+				valBuffer[ i ] = buffer[ i ];
+			}
+
 			if ( swapbytes )
 				return byteswap( val );
 			return val;
@@ -18,7 +26,7 @@ namespace t
 
 		String DeserializeString( const uint8* buffer, uint64& bufferOffset, bool swapbytes )
 		{
-			auto length = ReadValueFromBuffer< uint16 >( &buffer[ bufferOffset ], swapbytes );
+			auto length = ReadValueFromBuffer< uint32 >( &buffer[ bufferOffset ], swapbytes );
 			bufferOffset += sizeof( length );
 			auto str = String( reinterpret_cast< const char* >( &buffer[ bufferOffset ] ), length );
 			bufferOffset += length;
@@ -28,9 +36,9 @@ namespace t
 		template< typename T >
 		Value DeserializeArray( const uint8* buffer, uint64& bufferOffset, uint64 numel, const bool swapbytes )
 		{
-			if constexpr ( std::is_same_v< T, DynamicArray< String > > )
+			if constexpr ( std::is_same_v< T, Array< String > > )
 			{
-				DynamicArray< String > vec( numel );
+				Array< String > vec( numel );
 
 				for ( uint64 i = 0; i < numel; ++i )
 				{
@@ -66,7 +74,7 @@ namespace t
 		{
 			if constexpr ( std::is_same_v< T, String > )
 			{
-				auto length = ReadValueFromBuffer< uint16 >( &buffer[ bufferOffset ], swapbytes );
+				auto length = ReadValueFromBuffer< uint32 >( &buffer[ bufferOffset ], swapbytes );
 				bufferOffset += sizeof( length );
 				auto str = String( reinterpret_cast<const char*>( &buffer[ bufferOffset ] ), length );
 				bufferOffset += length;
@@ -80,7 +88,7 @@ namespace t
 			}
 		}
 
-		Value DeserializeEmptyValue( const uint8* buffer, uint64& bufferOffset, const bool swapbytes )
+		Value DeserializeEmptyValue()
 		{
 			return Value();
 		}
@@ -90,12 +98,12 @@ namespace t
 			Map Deserialize( const uint8* buffer, uint64 bufferSize, uint64& bufferOffset );
 		}
 
-		void DeserializeAndInsertMap( Map& map, String&& key, const uint8* buffer, uint64 bufferSize, uint64& bufferOffset, const bool swapbytes )
+		void DeserializeAndInsertMap( Map& map, String&& key, const uint8* buffer, uint64 bufferSize, uint64& bufferOffset, const bool /*swapbytes*/)
 		{
 			//                "tvm<n>"     endianness         numel
 			if ( bufferSize < 4 + sizeof( uint16 ) + sizeof( uint64 ) )
 			{
-				throw std::runtime_error( "Invalid buffer length! Must be long enough for Header!" );
+				throw Error( "Invalid buffer length! Must be long enough for Header!", 1 );
 			}
 			const auto t = buffer[ bufferOffset ];
 			const auto v = buffer[ bufferOffset + 1 ];
@@ -103,13 +111,13 @@ namespace t
 
 			if ( t != 't' || v != 'v' || m != 'm' )
 			{
-				throw std::runtime_error( "Expected valid Header!" );
+				throw Error( "Expected valid Header!", 1 );
 			}
 
 			const auto version = buffer[ bufferOffset + 3 ];
 
 			if ( version != 1 )
-				throw std::runtime_error( "Invalid Map version!" );
+				throw Error( "Invalid Map version!", 1 );
 
 			bufferOffset += 4;
 
@@ -132,9 +140,9 @@ namespace t
 				map.insert( { std::move( key ), DeserializeValue< T >( buffer, bufferOffset, swapbytes ) } );
 			}
 
-			void DeserializeAndInsertEmptyValue( Map& map, String&& key, const uint8* buffer, uint64& bufferOffset, bool swapbytes )
+			void DeserializeAndInsertEmptyValue( Map& map, String&& key )
 			{
-				map.insert( { std::move( key ), DeserializeEmptyValue( buffer, bufferOffset, swapbytes ) } );
+				map.insert( { std::move( key ), DeserializeEmptyValue() } );
 			}
 
 			Map Deserialize( const uint8* buffer, uint64 bufferSize, uint64& bufferOffset )
@@ -163,7 +171,7 @@ namespace t
 					switch ( type )
 					{
 					case Type::VOID:
-						DeserializeAndInsertEmptyValue( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertEmptyValue( out_vm, std::move( key ) );
 						continue;
 					case Type::INT8:
 						DeserializeAndInsertValue< int8 >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
@@ -202,37 +210,37 @@ namespace t
 						DeserializeAndInsertMap( out_vm, std::move( key ), buffer, bufferSize, bufferOffset, swapbytes );
 						continue;
 					case Type::INT8_ARRAY:
-						DeserializeAndInsertArray< DynamicArray< int8 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertArray< Array< int8 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case Type::INT16_ARRAY:
-						DeserializeAndInsertArray< DynamicArray< int16 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertArray< Array< int16 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case Type::INT32_ARRAY:
-						DeserializeAndInsertArray< DynamicArray< int32 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertArray< Array< int32 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case Type::INT64_ARRAY:
-						DeserializeAndInsertArray< DynamicArray< int64 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertArray< Array< int64 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case Type::UINT8_ARRAY:
-						DeserializeAndInsertArray< DynamicArray< uint8 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertArray< Array< uint8 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case Type::UINT16_ARRAY:
-						DeserializeAndInsertArray< DynamicArray< uint16 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertArray< Array< uint16 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case Type::UINT32_ARRAY:
-						DeserializeAndInsertArray< DynamicArray< uint32 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertArray< Array< uint32 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case Type::UINT64_ARRAY:
-						DeserializeAndInsertArray< DynamicArray< uint64 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertArray< Array< uint64 > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case Type::FLOAT_ARRAY:
-						DeserializeAndInsertArray< DynamicArray< float > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertArray< Array< float > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case Type::DOUBLE_ARRAY:
-						DeserializeAndInsertArray< DynamicArray< double > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertArray< Array< double > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					case Type::STRING_ARRAY:
-						DeserializeAndInsertArray< DynamicArray< String > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
+						DeserializeAndInsertArray< Array< String > >( out_vm, std::move( key ), buffer, bufferOffset, swapbytes );
 						continue;
 					}
 					assert( false );
@@ -247,26 +255,26 @@ namespace t
 			//            "tvm<n>"    endianness         numel
 			if ( bufferSize < 4 + sizeof( uint16 ) + sizeof( uint64 ) )
 			{
-				throw std::runtime_error( "Invalid buffer length! Must be long enough for Header!" );
+				throw Error( "Invalid buffer length! Must be long enough for Header!", 1 );
 			}
 			const auto t = buffer[ 0 ];
 			const auto v = buffer[ 1 ];
 			const auto m = buffer[ 2 ];
 
 			if ( t != 't' || v != 'v' || m != 'm' )
-				throw std::runtime_error( "Expected valid Header!" );
+				throw Error( "Expected valid Header!", 1 );
 
 			const auto version = buffer[ 3 ];
 
 			if ( version != 1 )
-				throw std::runtime_error( "Invalid Map version!" );
+				throw Error( "Invalid Map version!", 1 );
 
 			uint64 offset = 4;
 
 			return bitstream_v1::Deserialize( buffer, bufferSize, offset );
 		}
 
-		Map Deserialize( DynamicArray< uint8 > const& buffer )
+		Map Deserialize( Array< uint8 > const& buffer )
 		{
 			return Deserialize( buffer.data(), buffer.size() );
 		}

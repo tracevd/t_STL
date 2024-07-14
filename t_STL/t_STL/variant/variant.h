@@ -2,6 +2,7 @@
 
 #include "../Type.h"
 #include "../HashMap.h"
+#include "../Memory.h"
 
 #include "Types.h"
 
@@ -50,7 +51,7 @@ namespace t
 			constexpr Value() = default;
 
 			constexpr Value( Value&& other ) noexcept:
-				m_ptr( std::move( other.m_ptr ) ),
+				m_ptr( move( other.m_ptr ) ),
 				m_type( other.m_type )
 			{
 				other.m_type = Type::VOID;
@@ -61,7 +62,7 @@ namespace t
 				m_type( other.m_type ) {}
 
 			constexpr Value( const char* str ):
-				m_ptr( new details::Derived< String >( str ) ),
+				m_ptr( new details::Derived< String >( String( str ) ) ),
 				m_type( details::templateToVariantType< String >() ) {}
 
 			template< class T >
@@ -79,7 +80,7 @@ namespace t
 			{
 				m_ptr = std::move( rhs.m_ptr );
 				m_type = rhs.m_type;
-				rhs.m_type = Type::VOID;
+				rhs.m_type = t::variant::Type::VOID;
 				return *this;
 			}
 
@@ -92,8 +93,8 @@ namespace t
 
 			constexpr Value& operator=( const char* str )
 			{
-				m_ptr = new details::Derived< String >( str );
-				m_type = details::templateToVariantType< String >();
+				m_ptr = new details::Derived< String >( String( str ) );
+				m_type = t::variant::details::templateToVariantType< String >();
 				return *this;
 			}
 
@@ -115,7 +116,7 @@ namespace t
 				return val;
 			}
 
-			[[nodiscard]] constexpr Type getType() const { return m_type; }
+			[[nodiscard]] constexpr auto getType() const { return m_type; }
 
 			template< class T >
 			[[nodiscard]] constexpr bool Is() const noexcept
@@ -212,7 +213,7 @@ namespace t
 		constexpr T Value::As() const
 		{
 			if ( m_type == Type::VOID || !m_ptr ) [[unlikely]]
-				throw std::runtime_error( "Accessing data of void value!" );
+				throw Error( "Accessing data of void value!", 1 );
 
 			auto constexpr type = details::templateToVariantType< type::decay< T > >();
 
@@ -223,7 +224,7 @@ namespace t
 				msg += ", but ";
 				msg += details::templateToString< type::decay< T > >();
 				msg += " was requested";
-				throw std::runtime_error( msg.c_str() );
+				throw Error( msg.c_str() );
 			}
 
 			return static_cast< details::Derived< type::decay< T > >* >( m_ptr.get() )->m_data;
@@ -233,7 +234,7 @@ namespace t
 		constexpr T Value::As()
 		{
 			if ( m_type == Type::VOID || !m_ptr ) [[unlikely]]
-				throw std::runtime_error( "Accessing data of void value!" );
+				throw Error( "Accessing data of void value!", 1 );
 
 			auto constexpr type = details::templateToVariantType< type::decay< T > >();
 
@@ -244,7 +245,7 @@ namespace t
 				msg += ", but ";
 				msg += details::templateToString< type::decay< T > >();
 				msg += " was requested";
-				throw std::runtime_error( msg.c_str() );
+				throw Error( msg.c_str() );
 			}
 
 			if ( m_ptr.isShared() )
@@ -289,27 +290,27 @@ namespace t
 			case Type::MAP:
 				return As< Map const& >() == rhs.As< Map const& >();
 			case Type::INT8_ARRAY:
-				return As< DynamicArray< int8 > const& >() == rhs.As< DynamicArray< int8 > const& >();
+				return As< Array< int8 > const& >() == rhs.As< Array< int8 > const& >();
 			case Type::INT16_ARRAY:
-				return As< DynamicArray< int16 > const& >() == rhs.As< DynamicArray< int16 > const& >();
+				return As< Array< int16 > const& >() == rhs.As< Array< int16 > const& >();
 			case Type::INT32_ARRAY:
-				return As< DynamicArray< int32 > const& >() == rhs.As< DynamicArray< int32 > const& >();
+				return As< Array< int32 > const& >() == rhs.As< Array< int32 > const& >();
 			case Type::INT64_ARRAY:
-				return As< DynamicArray< int64 > const& >() == rhs.As< DynamicArray< int64 > const& >();
+				return As< Array< int64 > const& >() == rhs.As< Array< int64 > const& >();
 			case Type::UINT8_ARRAY:
-				return As< DynamicArray< uint8 > const& >() == rhs.As< DynamicArray< uint8 > const& >();
+				return As< Array< uint8 > const& >() == rhs.As< Array< uint8 > const& >();
 			case Type::UINT16_ARRAY:
-				return As< DynamicArray< uint16 > const& >() == rhs.As< DynamicArray< uint16 > const& >();
+				return As< Array< uint16 > const& >() == rhs.As< Array< uint16 > const& >();
 			case Type::UINT32_ARRAY:
-				return As< DynamicArray< uint32 > const& >() == rhs.As< DynamicArray< uint32 > const& >();
+				return As< Array< uint32 > const& >() == rhs.As< Array< uint32 > const& >();
 			case Type::UINT64_ARRAY:
-				return As< DynamicArray< uint64 > const& >() == rhs.As< DynamicArray< uint64 > const& >();
+				return As< Array< uint64 > const& >() == rhs.As< Array< uint64 > const& >();
 			case Type::FLOAT_ARRAY:
-				return As< DynamicArray< float > const& >() == rhs.As< DynamicArray< float > const& >();
+				return As< Array< float > const& >() == rhs.As< Array< float > const& >();
 			case Type::DOUBLE_ARRAY:
-				return As< DynamicArray< double > const& >() == rhs.As< DynamicArray< double > const& >();
+				return As< Array< double > const& >() == rhs.As< Array< double > const& >();
 			case Type::STRING_ARRAY:
-				return As< DynamicArray< String > const& >() == As< DynamicArray< String > const& >();
+				return As< Array< String > const& >() == As< Array< String > const& >();
 			}
 		}
 

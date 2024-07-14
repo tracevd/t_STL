@@ -8,7 +8,7 @@
 namespace t
 {
     template< typename T >
-    class DynamicArray;
+    class Array;
 
     template< typename T >
     struct is_vector
@@ -17,7 +17,7 @@ namespace t
     };
 
     template< typename T >
-    struct is_vector< DynamicArray< T > >
+    struct is_vector< Array< T > >
     {
         static constexpr bool value = true;
     };

@@ -17,33 +17,33 @@ namespace t
 
 			LinkedListNode() = delete;
 
-			constexpr T& addNext( T&& data )
+			constexpr T& addNext( T&& _data )
 			{
 				auto oldNext = next;
-				next = new LinkedListNode( std::move( data ) );
+				next = new LinkedListNode( std::move( _data ) );
 				next->prev = this;
 				next->next = oldNext;
 				return next->data;
 			}
 
-			constexpr T& addNext( T const& data )
+			constexpr T& addNext( T const& _data )
 			{
-				auto cpy = data;
+				auto cpy = _data;
 				return addNext( std::move( cpy ) );
 			}
 
-			constexpr T& addPrev( T&& data )
+			constexpr T& addPrev( T&& _data )
 			{
 				auto oldPrev = prev;
-				prev = new LinkedListNode( std::move( data ) );
+				prev = new LinkedListNode( std::move( _data ) );
 				prev->next = this;
 				prev->prev = oldPrev;
 				return prev->data;
 			}
 
-			constexpr T& addPrev( T const& data )
+			constexpr T& addPrev( T const& _data )
 			{
-				auto cpy = data;
+				auto cpy = _data;
 				return addPrev( std::move( cpy ) );
 			}
 
@@ -212,6 +212,9 @@ namespace t
 		constexpr auto end() const { return cend(); }
 
 		constexpr uint64 size() const { return m_size; }
+
+		constexpr bool isEmpty() const { return m_size == 0; }
+		constexpr operator bool() const { return !isEmpty(); }
 
 		constexpr T& pushBack( T&& data )
 		{
@@ -411,7 +414,7 @@ namespace t
 		constexpr ValueType& back()
 		{
 			if ( m_head == nullptr )
-				throw std::runtime_error("Empty list!");
+				throw Error( "Empty list!", 1 );
 
 			return m_tail->data;
 		}
@@ -419,7 +422,7 @@ namespace t
 		constexpr ValueType const& back() const
 		{
 			if ( m_head == nullptr )
-				throw std::runtime_error("Empty list!");
+				throw Error( "Empty list!", 1 );
 
 			return m_tail->data;
 		}
@@ -427,7 +430,7 @@ namespace t
 		constexpr ValueType& front()
 		{
 			if ( m_head == nullptr )
-				throw std::runtime_error("Empty list!");
+				throw Error( "Empty list!", 1 );
 
 			return m_head->data;
 		}
@@ -435,7 +438,7 @@ namespace t
 		constexpr ValueType const& front() const
 		{
 			if ( m_head == nullptr )
-				throw std::runtime_error( "Empty list!" );
+				throw Error( "Empty list!", 1 );
 
 			return m_head->data;
 		}

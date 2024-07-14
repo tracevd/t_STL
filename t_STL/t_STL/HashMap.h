@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Hash.h"
+#include "utility.h"
 
 namespace t
 {
@@ -68,6 +69,22 @@ namespace t
         using Iterator = BaseType::Iterator;
     public:
         constexpr HashMap() = default;
+
+        constexpr HashMap( std::initializer_list< ValueType > const& list ):
+            m_data( list ) {}
+
+        constexpr HashMap& operator=( HashMap const& rhs )
+        {
+            if ( &rhs == this )
+                return *this;
+
+            for ( auto const& pair : rhs )
+            {
+                insert( pair );
+            }
+
+            return *this;
+        }
 
         constexpr Iterator begin() { return m_data.begin(); }
 
@@ -143,7 +160,7 @@ namespace t
             auto hash_ = m_data.hash( ptr->first );
 
             if ( m_data.m_buckets[ hash_ ].find( ptr->first ) )
-                throw std::runtime_error("Cannot overwrite value with insert!");
+                throw Error( "Cannot overwrite value with insert!", 1 );
             
             return *m_data.m_buckets[ hash_ ].insert_ptr_unchecked( std::move( ptr ) );
         }

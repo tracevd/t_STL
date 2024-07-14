@@ -16,6 +16,9 @@ namespace t
 	public:
 		HashSet() = default;
 
+		HashSet( std::initializer_list< ValueType > const& list ):
+			m_data( list ) {}
+
 		constexpr ConstIterator cbegin() const
 		{
 			return m_data.cbegin();
@@ -52,7 +55,7 @@ namespace t
             auto hash_ = m_data.hash( *ptr );
 
             if ( m_data.m_buckets[ hash_ ].find( *ptr ) )
-                throw std::runtime_error("Cannot overwrite value with insert!");
+                throw Error( "Cannot overwrite value with insert!", 1 );
             
             return *m_data.m_buckets[ hash_ ].insert_ptr_unchecked( std::move( ptr ) );
         }

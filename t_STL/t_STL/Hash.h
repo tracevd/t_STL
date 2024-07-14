@@ -2,9 +2,9 @@
 
 #include <assert.h>
 #include "Type.h"
-#include "DynamicArray.h"
-#include "Memory.h"
 #include "Array.h"
+#include "Memory.h"
+#include "StaticArray.h"
 #include "Tuple.h"
 
 
@@ -83,8 +83,8 @@ namespace t
                 return INVALID_INDEX;
             }
         public:
-            constexpr static uint8 INVALID_INDEX = 8;
-            t::Array< t::UniquePtr< T >, 8 > m_data;
+            constexpr static uint8 INVALID_INDEX = uint8( 8 );
+            t::StaticArray< t::UniquePtr< T >, 8 > m_data;
             HashNode* m_next = nullptr;
             uint8 m_validIndexes = 0;
             friend MultiValueLinkedList< T >;
@@ -250,7 +250,7 @@ namespace t
                     }
                     n->m_next = new Node_t( T( val ) );
                     ++m_size;
-                    return { n->m_next, 0, false };
+                    return { n->m_next, uint8(0), false };
                 }
             }
 
@@ -291,7 +291,7 @@ namespace t
                     }
                     n->m_next = new Node_t( T( std::move( val ) ) );
                     ++m_size;
-                    return { n->m_next, 0, false };
+                    return { n->m_next, uint8(0), false };
                 }
 
                 assert( std::get< 0 >( tuple_ ) != nullptr );
@@ -544,13 +544,22 @@ namespace t
             using ValueType = T;
             using NodeType = details::HashNode< T >;
             using BucketType = details::MultiValueLinkedList< T >;
-            using BucketListType = DynamicArray< BucketType >;
+            using BucketListType = Array< BucketType >;
 
             using Iterator = HashIterator< Hash< T > >;
             using ConstIterator = HashConstIterator< Hash< T > >;
         public:
             constexpr Hash():
                 m_buckets( 8 ) {}
+
+            constexpr Hash( std::initializer_list< T > const& init ):
+                Hash()
+            {
+                for ( auto const& val : init )
+                {
+                    insert( val );
+                }
+            }
 
             constexpr Hash( Hash&& other ):
                 m_buckets( std::move( other.m_buckets ) ) {}
@@ -571,7 +580,7 @@ namespace t
             constexpr Iterator begin()
             {
                 if ( size() == 0 )
-                    throw std::runtime_error( "Creating empty iterator!" );
+                    throw Error( "Creating empty iterator!", 1 );
 
                 return Iterator( m_buckets.data(), m_buckets.data() + m_buckets.size() );
             }
@@ -579,7 +588,7 @@ namespace t
             constexpr Iterator end()
             {
                 if ( size() == 0 )
-                    throw std::runtime_error( "Creating empty iterator!" );
+                    throw Error( "Creating empty iterator!", 1 );
 
                 BucketType* begin = m_buckets.data();
                 auto const size = m_buckets.size();
@@ -593,7 +602,7 @@ namespace t
             constexpr ConstIterator cbegin() const
             {
                 if ( size() == 0 )
-                    throw std::runtime_error( "Creating empty iterator!" );
+                    throw Error( "Creating empty iterator!", 1 );
 
                 return ConstIterator( m_buckets.data(), m_buckets.data() + m_buckets.size() );
             }
@@ -601,7 +610,7 @@ namespace t
             constexpr ConstIterator cend() const
             {
                 if ( size() == 0 )
-                    throw std::runtime_error( "Creating empty iterator!" );
+                    throw Error( "Creating empty iterator!", 1 );
 
                 const BucketType* begin = m_buckets.data();
                 auto const size = m_buckets.size();
@@ -632,7 +641,7 @@ namespace t
                 auto found = m_buckets[hash_].find( val );
 
                 if ( found == nullptr )
-                    throw std::runtime_error( "Could not find value!" );
+                    throw Error( "Could not find value!", 1 );
 
                 return *found;
             }
@@ -643,7 +652,7 @@ namespace t
                 auto found = m_buckets[hash_].find( val );
 
                 if ( found == nullptr )
-                    throw std::runtime_error( "Could not find value!" );
+                    throw Error( "Could not find value!", 1 );
 
                 return *found;
             }
@@ -665,7 +674,7 @@ namespace t
             constexpr ValueType& insert( ValueType&& val, uint64 hash_ )
             {
                 if ( m_buckets[hash_].find( val ) )
-                    throw std::runtime_error( "Cannot overwrite value with insert!" );
+                    throw Error( "Cannot overwrite value with insert!", 1 );
 
                 return *m_buckets[hash_].insert_unchecked( std::move( val ) );
             }

@@ -82,14 +82,14 @@ namespace t
 		constexpr T& at( uint64 index )
 		{
 			if ( index >= m_size )
-				throw std::runtime_error("Index too large!");
+				throw Error( "Index too large!", 1 );
 			return m_data[ index ];
 		}
 
 		constexpr T const& at( uint64 index ) const
 		{
 			if ( index >= m_size )
-				throw std::runtime_error( "Index too large!" );
+				throw Error( "Index too large!", 1 );
 			return m_data[ index ];
 		}
 

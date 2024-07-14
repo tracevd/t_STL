@@ -4,7 +4,7 @@
 
 #include "Tint.h"
 #include "Type.h"
-#include "Array.h"
+#include "StaticArray.h"
 
 namespace t
 {
@@ -253,13 +253,16 @@ namespace t
 			{
 				if ( m_refCount == nullptr )
 					return;
+
 				*m_refCount -= 1;
+
 				if ( *m_refCount )
 				{
 					m_refCount = nullptr;
 					m_data = nullptr;
 					return;
 				}
+
 				delete m_refCount;
 
 				if constexpr ( type::is_array< T > )
@@ -398,6 +401,9 @@ namespace t
 
 		constexpr ImmutableSharedPtr& operator=( ImmutableSharedPtr&& rhs ) noexcept
 		{
+			if ( &rhs == this )
+				return *this;
+
 			DestroyData();
 
 			m_data = rhs.m_data;
@@ -411,6 +417,9 @@ namespace t
 
 		constexpr ImmutableSharedPtr& operator=( ImmutableSharedPtr const& rhs )
 		{
+			if ( &rhs == this )
+				return *this;
+
 			DestroyData();
 
 			m_data = rhs.m_data;
@@ -445,11 +454,11 @@ namespace t
 
 		[[nodiscard]] constexpr T const& operator*() const { return *m_data; }
 
-		[[nodiscard]] constexpr T& operator*() { return *get(); }
+		[[nodiscard]] constexpr T& operator*() { return *m_data; }
 
 		[[nodiscard]] constexpr const T* operator->() const noexcept { return m_data; }
 
-		[[nodiscard]] constexpr T* operator->() noexcept { return get(); }
+		[[nodiscard]] constexpr T* operator->() noexcept { return m_data; }
 
 		[[nodiscard]] constexpr auto operator<=>( ImmutableSharedPtr const& rhs ) const { return m_data <=> rhs.m_data; }
 
@@ -470,13 +479,17 @@ namespace t
 	private:
 		constexpr void DestroyData()
 		{
-			if ( m_data == nullptr || m_refCount == nullptr )
+			if ( m_refCount == nullptr )
 				return;
 
 			*m_refCount -= 1;
 
-			if ( *m_refCount != 0 )
+			if ( *m_refCount )
+			{
+				m_refCount = nullptr;
+				m_data = nullptr;
 				return;
+			}
 			
 			delete m_refCount;
 			delete m_data;
@@ -507,7 +520,7 @@ namespace t
 		UniquePtr< T > ptr = new type::remove_array< T >[ args.size() ];
 		auto raw = ptr.get();
 		for ( auto it = args.begin(); it != args.end(); ++it, ++raw )
-			*raw = std::move( *it );
+			*raw = *it;
 		return ptr;
 	}
 
@@ -523,7 +536,7 @@ namespace t
 		SharedPtr< T > ptr = new type::remove_array< T >[ args.size() ];
 		auto raw = ptr.get();
 		for ( auto it = args.begin(); it != args.end(); ++it, ++raw )
-			*raw = std::move( *it );
+			*raw = *it;
 		return ptr;
 	}
 

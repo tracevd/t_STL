@@ -5,14 +5,14 @@ project( t_STL )
 set( CMAKE_CXX_STANDARD 20 )
 set( CMAKE_CXX_STANDARD_REQUIRED True )
 
-file( GLOB_RECURSE SRC "*.h" "*.cpp" )
-
-list( REMOVE_ITEM SRC "t_STL/t_STL/main.cpp" )
+file( GLOB_RECURSE SRC "*.h" )
 
 add_library( t_STL ${SRC} )
 
+file( GLOB_RECURSE CPPS "*.cpp" )
+
 # testing binary
-add_executable( cpp_test "t_STL/t_STL/main.cpp" )
+add_executable( cpp_test CPPS )
 target_link_libraries( cpp_test PRIVATE t_STL )
 
 if ( MSVC )

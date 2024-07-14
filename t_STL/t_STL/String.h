@@ -4,14 +4,60 @@
 
 #include "Tint.h"
 #include "Lib.h"
-#include "DynamicArray.h"
+#include "Array.h"
+#include "Algorithm.h"
+#include "Error.h"
+#include "Optional.h"
 
 namespace t
 {
-	template< class CharTy, class SizeTy >
+	class Char
+	{
+	public:
+		explicit constexpr Char( char c ):
+			data( c ) {}
+
+		constexpr auto operator<=>( Char c )
+		{
+			return data <=> c.data;
+		}
+
+		constexpr Char operator&( Char rhs )
+		{
+			return Char( data & rhs.data );
+		}
+
+		constexpr Char operator|( Char rhs )
+		{
+			return Char( data | rhs.data );
+		}
+
+		constexpr Char operator^( Char rhs )
+		{
+			return Char( data ^ rhs.data );
+		}
+	private:
+		char data;
+	};
+
+	template< typename CharTy >
+	struct CharTraits
+	{
+	public:
+		static constexpr bool equal( CharTy c1, CharTy c2 )
+		{
+			return c1 == c2;
+		}
+
+		static constexpr CharTy NullTerminator = CharTy( '\0' );
+
+
+	};
+
+	template< class CharTy >
 	class GenericStringView;
 
-	template< class CharTy, class SizeTy >
+	template< class CharTy >
 	class GenericString;
 
 	template< class String >
@@ -28,7 +74,7 @@ namespace t
 
 		constexpr CharType& operator*()
 		{
-			return *m_ptr;
+			return *( m_ptr - 1 );
 		}
 
 		constexpr bool operator==( StringReverseIterator const& rhs ) const
@@ -62,7 +108,7 @@ namespace t
 
 		constexpr CharType& operator*() const
 		{
-			return *m_ptr;
+			return *( m_ptr - 1 );
 		}
 
 		constexpr bool operator==( StringConstReverseIterator const& rhs ) const
@@ -82,116 +128,23 @@ namespace t
 		friend String;
 	};
 
-	template< class CharTy, class SizeTy >
+	template< class CharTy >
 	class GenericString
 	{
 	public:
 		using CharType = CharTy;
-		using SizeType = SizeTy;
+		using SizeType = uint64;
 	public:
-		constexpr static SizeTy npos = t::limit< SizeTy >::max;
+		constexpr static SizeType npos = t::limit< SizeType >::max;
 		using ReverseIterator = StringReverseIterator< GenericString >;
 		using ConstReverseIterator = StringConstReverseIterator< GenericString >;
 	public:
 		constexpr GenericString() = default;
 
-		//constexpr explicit GenericString( float number )
-		//{
-		//	constexpr double PRECISION = 0.00000000000001;
-		//	constexpr uint32 MAX_NUMBER_STRING_SIZE = 32;
-
-		//	// handle special cases
-		//	if ( number != number ) // NaN
-		//	{
-		//		m_data = new char[ 4 ];
-		//		m_size = m_capacity = 3;
-		//		strcpy( m_data, "NaN", 4 );
-		//		return;
-		//	}
-		//	else if ( number > FLT_MAX ) {
-		//		m_data = new char[ 4 ];
-		//		m_size = m_capacity = 3;
-		//		strcpy( m_data, "inf", 4 );
-		//		return;
-		//	}
-		//	else if ( number == 0.0 ) {
-		//		m_data = new char[ 2 ];
-		//		m_size = m_capacity = 1;
-		//		strcpy( m_data, "0", 2 );
-		//		return;
-		//	}
-
-		//	m_data = new char[ MAX_NUMBER_STRING_SIZE ];
-		//	m_size = MAX_NUMBER_STRING_SIZE;
-		//	m_capacity = MAX_NUMBER_STRING_SIZE;
-
-		//	int digit, m, m1;
-		//	char* c = m_data;
-		//	int neg = (number < 0);
-		//	if ( neg )
-		//		number = -number;
-		//	// calculate magnitude
-		//	m = static_cast< int >( log10( number ) );
-		//	int useExp = (m >= 14 || (neg && m >= 9) || m <= -9);
-		//	if ( neg )
-		//		*(c++) = '-';
-		//	// set up for scientific notation
-		//	if ( useExp ) {
-		//		if ( m < 0 )
-		//			m -= 1;
-		//		number = number / static_cast< float >( pow( 10.0f, m ) );
-		//		m1 = m;
-		//		m = 0;
-		//	}
-		//	if ( m < 1.0 ) {
-		//		m = 0;
-		//	}
-		//	// convert the number
-		//	while ( number > PRECISION || m >= 0 ) {
-		//		double weight = pow( 10.0, m );
-		//		if ( weight > 0 && !isinf( weight ) ) {
-		//			digit = static_cast< int >( floor( number / weight ) );
-		//			number -= static_cast< float >(digit * weight);
-		//			*(c++) = '0' + digit;
-		//		}
-		//		if ( m == 0 && number > 0 )
-		//			*(c++) = '.';
-		//		m--;
-		//	}
-		//	if ( useExp ) {
-		//		// convert the exponent
-		//		*(c++) = 'e';
-		//		if ( m1 > 0 ) {
-		//			*(c++) = '+';
-		//		}
-		//		else {
-		//			*(c++) = '-';
-		//			m1 = -m1;
-		//		}
-		//		m = 0;
-		//		while ( m1 > 0 ) {
-		//			*(c++) = '0' + m1 % 10;
-		//			m1 /= 10;
-		//			m++;
-		//		}
-		//		c -= m;
-		//		for ( uint32 i = 0, j = m - 1; i < j; ++i, --j ) {
-		//			// swap without temporary
-		//			c[ i ] ^= c[ j ];
-		//			c[ j ] ^= c[ i ];
-		//			c[ i ] ^= c[ j ];
-		//		}
-		//		c += m;
-		//	}
-		//	*(c) = '\0';
-
-		//	m_size = static_cast< uint32 >( c - m_data );
-		//}
-
-		template< typename T, typename = std::enable_if_t< std::is_arithmetic_v< T > && !std::is_floating_point_v< T > > >
+		template< typename T, typename = type::enable_if< type::is_arithmetic< T > && !type::is_floating_point< T > > >
 		constexpr explicit GenericString( T number )
 		{
-			if constexpr ( std::is_same_v< T, int64 > )
+			if constexpr ( type::is_same< T, int64 > )
 			{
 				if ( number == limit< int64 >::min )
 				{
@@ -205,7 +158,7 @@ namespace t
 
 			auto _number = number;
 				
-			if constexpr ( std::is_signed_v< T > )
+			if constexpr ( type::is_signed< T > )
 			{
 				if ( number < 0 )
 					number = 0 - number;
@@ -214,11 +167,11 @@ namespace t
 			do
 			{
 				auto mod = number % 10;
-				*--end = '0' + mod;
+				*--end = static_cast< CharTy >( '0' ) + static_cast< CharTy >(mod);
 				number /= 10;
 			} while( number );
 				
-			if constexpr ( std::is_signed_v< T > )
+			if constexpr ( type::is_signed< T > )
 			{
 				if ( _number < 0 )
 				{
@@ -226,43 +179,51 @@ namespace t
 				}
 			}
 
-			*this = GenericString( end, static_cast< SizeTy >( &buff[21] - end ) );
+			*this = GenericString( end, static_cast< SizeType >( &buff[ 21 ] - end ) );
 		}
 
 		template< uint64 N >
 		constexpr GenericString( char const ( &str )[ N ] )
 		{
-			*this = GenericString( str, static_cast< SizeTy >( N-1 ) );
+			*this = GenericString( str, static_cast< SizeType >( N-1 ) );
 		}
 
-		constexpr GenericString( const CharTy* str, SizeTy length ):
-			m_data( new CharTy[length + 1] ),
+		constexpr GenericString( const CharType* str, SizeType length ):
+			m_data( length ? new CharTy[ length + 1 ] : nullptr ),
 			m_size( length ),
-			m_capacity( length )			
+			m_capacity( length )
 		{
-			strcpy( m_data, str, m_size );
-			m_data[ m_size ] = '\0';
+			if ( length )
+			{
+				strcpy( m_data, str, m_size );
+				m_data[ m_size ] = '\0';
+			}
 		}
 
-		constexpr GenericString( const CharTy* str )
+		constexpr explicit GenericString( const CharType* str )
 		{
-			SizeTy length = static_cast< SizeTy >( strlen( str ) );
+			SizeType length = static_cast< SizeType >( strlen( str ) );
 			*this = GenericString( str, length );
 		}
 
 		constexpr GenericString( GenericString const& str ):
-			m_data( new CharTy[ str.m_size + 1 ] ),
+			m_data( str.m_size ? new CharTy[ str.m_size + 1 ] : nullptr ),
 			m_size( str.m_size ),
 			m_capacity( str.m_size )
 		{
-			strcpy( m_data, str.m_data, m_size );
-			m_data[ m_size ] = '\0';
+			if ( m_size )
+			{
+				strcpy( m_data, str.m_data, m_size );
+				m_data[ m_size ] = '\0';
+			}
 		}
 
 		constexpr GenericString( GenericString&& str ) noexcept
 		{
-			*this = std::move( str );
+			*this = move( str );
 		}
+
+		constexpr explicit GenericString( GenericStringView< CharTy > strv );
 
 		constexpr ~GenericString()
 		{
@@ -274,6 +235,9 @@ namespace t
 
 		constexpr GenericString& operator=( GenericString&& rhs ) noexcept
 		{
+			if ( &rhs == this )
+				return *this;
+
 			delete[] m_data;
 
 			m_data     = rhs.m_data;
@@ -289,25 +253,26 @@ namespace t
 
 		constexpr GenericString& operator=( GenericString const& rhs )
 		{
-			if ( m_capacity >= rhs.m_size && m_data != nullptr )
+			if ( m_capacity < rhs.m_size || m_data == nullptr || rhs.m_size == 0 )
 			{
-				strcpy< char >( m_data, rhs.m_data, rhs.m_size );
-				m_size = rhs.m_size;
-				m_data[m_size] = '\0';
+				*this = GenericString( rhs );
 				return *this;
 			}
-			*this = GenericString( rhs );
+
+			strcpy( m_data, rhs.m_data, rhs.m_size );
+			m_size = rhs.m_size;
+			m_data[ m_size ] = '\0';
 			return *this;
 		}
 
 		constexpr GenericString& operator=( const CharTy* rhs )
 		{
-			SizeTy length = (SizeTy) strlen( rhs );
+			SizeType length = strlen( rhs );
 			if ( m_capacity >= length && m_data != nullptr )
 			{
-				strcpy< CharTy >( m_data, rhs, length );
+				strcpy( m_data, rhs, length );
 				m_size = length;
-				m_data[m_size] = '\0';
+				m_data[ m_size ] = '\0';
 				return *this;
 			}
 			*this = GenericString( rhs, length );
@@ -321,133 +286,99 @@ namespace t
 		constexpr CharTy const* begin() const { return cbegin(); }
 		constexpr CharTy const* end() const { return cend(); }
 
-		constexpr auto crbegin() const { return ConstReverseIterator( m_data + m_size - 1 ); }
-		constexpr auto crend() const { return ConstReverseIterator( m_data - 1 ); }
-		constexpr auto rbegin() { return ReverseIterator( m_data + m_size - 1 ); }
-		constexpr auto rend() { return ReverseIterator( m_data - 1 ); }
+		constexpr auto crbegin() const { return ConstReverseIterator( m_data + m_size ); }
+		constexpr auto crend() const { return ConstReverseIterator( m_data ); }
+		constexpr auto rbegin() { return ReverseIterator( m_data + m_size ); }
+		constexpr auto rend() { return ReverseIterator( m_data ); }
 		constexpr auto rbegin() const { return crbegin(); }
 		constexpr auto rend() const { return crend(); }
 
-		constexpr GenericString substr( SizeTy start, SizeTy end = npos ) const
+		constexpr GenericString substr( SizeType start, SizeType end = npos ) const
 		{
 			if ( end <= start )
-				throw std::runtime_error("End cannot be less than or equal to start!");
+				throw Error( "End cannot be less than or equal to start!", 1 );
 
-			auto const size_ = m_size;
+			if ( m_size == 0 )
+				throw Error( "Empty string!", 1 );
 
-			if ( size_ == 0 )
-				throw std::runtime_error("Empty string!");
-
-			if ( end > size_ )
-				end = size_;
+			if ( end > m_size )
+				end = m_size;
 
 			return GenericString( m_data + start, end - start );
 		}
 
-		constexpr GenericStringView< CharTy, SizeTy > substrv( SizeTy start, SizeTy end = npos ) const;
+		constexpr GenericStringView< CharTy > substrv( SizeType start, SizeType end = npos ) const;
 
 		constexpr void replace( CharTy from, CharTy to )
 		{
-			if ( m_data == nullptr )
-				return;
-
-			for ( SizeTy i = 0; i < m_size; ++i )
-			{
-				if ( m_data[ i ] == from )
-				{
-					m_data[ i ] = std::move( to );
-				}
-			}
+			t::replace( *this, from, to );
 		}
 
 		constexpr void replaceFirst( CharTy from, CharTy to )
 		{
-			if ( m_data == nullptr )
-				return;
-
-			for ( SizeTy i = 0; i < m_size; ++i )
-			{
-				if ( m_data[ i ] == from )
-				{
-					m_data[ i ] = std::move( to );
-					return;
-				}
-			}
+			t::replaceFirst( *this, from, to );
 		}
 
 		constexpr void replaceLast( CharTy from, CharTy to )
 		{
-			if ( m_data == nullptr )
-				return;
-
-			const CharTy* const b4begin = m_data - 1;
-
-			for ( auto _data = m_data + m_size-1; _data > b4begin; --_data )
-			{
-				if ( *_data == from )
-				{
-					*_data = to;
-					return;
-				}
-			}
+			t::replaceFirst( rbegin(), rend(), from, to );
 		}
 
-		constexpr SizeTy indexOf( CharTy c ) const
+		constexpr SizeType indexOf( CharTy c ) const
 		{
-			if ( m_data == nullptr )
+			auto it = t::find( *this, c );
+
+			if ( it == cend() )
+			{
 				return npos;
-
-			for ( SizeTy i = 0; i < m_size; ++i )
-			{
-				if ( m_data[ i ] == c )
-					return i;
 			}
 
-			return npos;
+			return &*it - m_data;
 		}
 
-		constexpr CharTy lastIndexOf( CharTy c ) const
+		constexpr SizeType lastIndexOf( CharTy c ) const
 		{
-			if ( m_data == nullptr )
+			auto it = t::find( crbegin(), crend(), c );
+
+			if ( it == crend() )
+			{
 				return npos;
-
-			const CharTy* const b4begin = m_data - 1;
-
-			for ( auto _data = m_data + m_size - 1; _data > b4begin; --_data )
-			{
-				if ( *_data == c )
-					return _data - m_data;
 			}
 
-			return npos;
+			return &*it - m_data;
 		}
 
-		constexpr DynamicArray< GenericString > split( CharTy c ) const
+		constexpr Array< GenericString > split( CharTy delimeter ) const
 		{
-			if ( m_data == nullptr )
+			if ( m_size == 0 )
 				return {};
 
-			DynamicArray< SizeTy > indexes;
+			Array< SizeType > indexes;
 
-			for ( SizeTy i = 0; i < m_size; ++i )
+			for ( SizeType i = 0; i < m_size; ++i )
 			{
-				if ( m_data[ i ] == c )
+				if ( m_data[ i ] == delimeter )
 					indexes.pushBack( i );
 			}
 
-			if ( indexes.isEmpty() )
+			if ( indexes.size() == 0 )
 				return {};
 
-			indexes.pushBack( m_size );
+			Array< GenericString > strings( indexes.size() + 1 );
 
-			DynamicArray< GenericString > strings( indexes.size() );
+			auto it = strings.data();
 
-			auto stringptr = strings.data();
+			*it = GenericString( &m_data[ 0 ], indexes[ 0 ] );
+			++it;
 
-			for ( SizeTy i = 0; i < indexes.size()-1; ++i, ++stringptr )
+			for ( uint64 i = 0; i < indexes.size() - 1; ++i, ++it )
 			{
-				*stringptr = GenericString( &m_data[ indexes[ i ] ], indexes[ i+1 ] - indexes[ i ] );
+				auto const currentIndex = indexes[ i ];
+				auto const nextIndex    = indexes[ i + 1 ];
+				*it = GenericString( &m_data[ currentIndex ] + 1, nextIndex - currentIndex - 1 );
 			}
+
+			*it = GenericString( &m_data[ indexes[ indexes.size() - 1 ] ] + 1, m_size - indexes[ indexes.size() - 1 ] - 1 );
 
 			return strings;
 		}
@@ -455,27 +386,27 @@ namespace t
 		constexpr const CharTy* data() const { return m_data; }
 		constexpr CharTy* data() { return m_data; }
 
-		constexpr CharTy const& operator[]( SizeTy index ) const
+		constexpr CharTy const& operator[]( SizeType index ) const
 		{
 			return m_data[ index ];
 		}
 
-		constexpr CharTy& operator[]( SizeTy index )
+		constexpr CharTy& operator[]( SizeType index )
 		{
 			return m_data[ index ];
 		}
 
-		constexpr CharTy const& at( SizeTy index ) const
+		constexpr CharTy const& at( SizeType index ) const
 		{
 			if ( index >= m_size )
-				throw std::runtime_error("Past string length!");
+				throw Error( "Past string length!", 1 );
 			return m_data[ index ];
 		}
 
-		constexpr CharTy& at( SizeTy index )
+		constexpr CharTy& at( SizeType index )
 		{
 			if ( index >= m_size )
-				throw std::runtime_error( "Past string length!" );
+				throw Error( "Past string length!", 1 );
 			return m_data[ index ];
 		}
 
@@ -484,7 +415,7 @@ namespace t
 			if ( m_size < rhs.m_size )
 				return true;
 				
-			for ( SizeTy i = 0; i < rhs.m_size; ++i )
+			for ( SizeType i = 0; i < rhs.m_size; ++i )
 			{
 				if ( m_data[ i ] >= rhs.m_data[ i ] )
 					return false;
@@ -498,7 +429,7 @@ namespace t
 			if ( m_size > rhs.m_size )
 				return true;
 				
-			for ( SizeTy i = 0; i < rhs.m_size; ++i )
+			for ( SizeType i = 0; i < rhs.m_size; ++i )
 			{
 				if ( m_data[ i ] <= rhs.m_data[ i ] )
 					return false;
@@ -524,7 +455,7 @@ namespace t
 
 		constexpr GenericString& operator+=( const CharTy* rhs )
 		{
-			auto length = static_cast< SizeTy >( strlen( rhs ) );
+			auto length = static_cast< SizeType >( strlen( rhs ) );
 
 			if ( m_size + length > m_capacity )
 			{
@@ -548,13 +479,28 @@ namespace t
 				reallocate();
 			}
 
-			m_data[ m_size ] = std::move( c );
+			m_data[ m_size ]   = c;
 			m_data[ ++m_size ] = '\0';
 
 			return *this;
 		}
 
-		constexpr GenericString& operator+=( GenericStringView< CharTy, SizeTy > strv );
+		constexpr GenericString& operator+=( GenericStringView< CharTy > strv );
+
+		template< SizeType n >
+		constexpr bool operator==( char const( &arr )[ n ] ) const
+		{
+			if ( n-1 != size() )
+				return false;
+
+			for ( SizeType i = 0; i < size(); ++i )
+			{
+				if ( arr[ i ] != m_data[ i ] )
+					return false;
+			}
+
+			return true;
+		}
 
 		constexpr bool operator==( GenericString const& rhs ) const
 		{
@@ -567,7 +513,7 @@ namespace t
 			if ( m_size == 0 )
 				return true;
 				
-			for ( SizeTy i = 0; i < m_size; ++i )
+			for ( SizeType i = 0; i < m_size; ++i )
 			{
 				if ( m_data[ i ] != rhs.m_data[ i ] )
 					return false;
@@ -581,22 +527,28 @@ namespace t
 			return !( *this == rhs );
 		}
 
-		constexpr SizeTy size() const { return m_size; }
+		constexpr SizeType size() const { return m_size; }
+		constexpr SizeType length() const { return size(); }
 
-		constexpr SizeTy capacity() const { return m_capacity; }
+		constexpr bool isEmpty() const { return size() == 0; }
+		constexpr operator bool() const { return !isEmpty(); }
 
-		constexpr void reserve( SizeTy capacity )
+		constexpr SizeType capacity() const { return m_capacity; }
+
+		constexpr void reserve( SizeType capacity )
 		{
 			if ( m_capacity >= capacity )
-				throw std::runtime_error("Excepted a larger buffer to allocate");
+				return;
 				
-			auto newdata = new CharTy[ capacity ];
+			auto newdata = new CharTy[ capacity + 1 ];
 
 			if ( m_data != nullptr )
 			{
 				strcpy( newdata, m_data, m_size );
 				delete[] m_data;
 			}
+
+			newdata[ m_size ] = '\0';
 
 			m_data = newdata;
 			m_capacity = capacity;
@@ -614,22 +566,23 @@ namespace t
 		constexpr CharTy* c_str() { return m_data; }
 		constexpr const CharTy* c_str() const { return m_data; }
 
-		constexpr static inline GenericString makeString( CharTy* allocbuffer, SizeTy stringSize )
+		constexpr static inline GenericString makeString( CharTy* allocbuffer, SizeType stringSize )
 		{
 			return GenericString( allocbuffer, stringSize, stringSize );
 		}
 
-		constexpr static inline GenericString makeString( CharTy* allocbuffer, SizeTy stringSize, SizeTy bufferCapacity )
+		constexpr static inline GenericString makeString( CharTy* allocbuffer, SizeType stringSize, SizeType bufferCapacity )
 		{
 			return GenericString( allocbuffer, stringSize, bufferCapacity );
 		}
 		
 		friend std::istream& operator>>( std::istream& in, GenericString& str )
 		{
-			constexpr SizeTy buffSz = 256;
+			constexpr SizeType buffSz = 256;
 			CharTy buff[ buffSz ] = { 0 };
-			in.get( buff, buffSz, '\n' );
-			str = buff;
+			in.getline( buff, buffSz, '\n' );
+			auto const count = in.gcount();
+			str = GenericString( buff, count - 1 );
 			return in;
 		}
 
@@ -641,7 +594,7 @@ namespace t
 		}
 
 	private:
-		constexpr void reallocate( SizeTy newcap )
+		constexpr void reallocate( SizeType newcap )
 		{
 			auto newdata = new CharTy[ newcap + 1 ];
 			if ( m_data != nullptr )
@@ -659,60 +612,106 @@ namespace t
 			if ( m_capacity == 0 )
 			{
 				reallocate( 10 );
+				return;
 			}
 			reallocate( m_capacity * 2 );
 		}
 
-		constexpr GenericString( CharTy* allocbuffer, SizeTy bufferSize, SizeTy bufferCapacity ):
+		constexpr GenericString( CharTy* allocbuffer, SizeType bufferSize, SizeType bufferCapacity ):
 			m_data( allocbuffer ),
 			m_size( bufferSize + 1 ),
 			m_capacity( bufferCapacity ) {}
 
 	private:
 		CharTy* m_data = nullptr;
-		SizeTy m_size = 0;
-		SizeTy m_capacity = 0;
+		SizeType m_size = 0;
+		SizeType m_capacity = 0;
 	};
 
-	using String = GenericString< char, uint64 >;
+	using String = GenericString< char >;
 
-	template< class CharTy, class SizeTy >
+	template< class CharTy >
 	class GenericStringView
 	{
 	public:
-		static constexpr auto npos = t::limit< SizeTy >::max;
-	public:
 		using CharType = CharTy;
-		using SizeType = SizeTy;
+		using SizeType = uint64;
+		using ReverseIterator = StringConstReverseIterator< GenericStringView >;
+		using ConstReverseIterator = ReverseIterator;
 	public:
-		GenericStringView() = delete;
+		static constexpr auto npos = t::limit< SizeType >::max;
+	public:
+		GenericStringView()										 = default;
+		GenericStringView( GenericStringView const& )			 = default;
+		GenericStringView( GenericStringView&& )				 = default;
+		GenericStringView& operator=( GenericStringView const& ) = default;
+		GenericStringView& operator=( GenericStringView&& )		 = default;
 
-		template< SizeTy n >
+		template< SizeType n >
 		constexpr GenericStringView( char const ( &str )[ n ] ):
 			m_data( str ),
 			m_size( n - 1 ) {}
 		
-		constexpr GenericStringView( const CharTy* str, SizeTy length ):
+		constexpr GenericStringView( const CharTy* str, SizeType length ):
 			m_data( str ),
 			m_size( length ) {}
 
-		template< class Size >
-		constexpr GenericStringView( GenericString< CharTy, Size > const& str ):
-			m_data( str.c_str() ),
+		constexpr explicit GenericStringView( GenericString< CharTy > const& str ):
+			m_data( str.data() ),
 			m_size( str.size() ) {}
 
 		constexpr const CharTy* data() const { return m_data; }
-		constexpr SizeTy size() const { return m_size; }
+		constexpr SizeType size() const { return m_size; }
+		constexpr auto length() const { return size(); }
 
-		constexpr GenericStringView substrv( SizeTy begin, SizeTy end = npos ) const
+		constexpr bool isEmpty() const { return size() == 0; }
+		constexpr operator bool() const { return !isEmpty(); }
+
+		constexpr CharTy const* begin() const { return m_data; }
+		constexpr CharTy const* end() const { return m_data + m_size; }
+
+		constexpr CharTy const* cbegin() const { return begin(); }
+		constexpr CharTy const* cend() const { return end(); }
+
+		constexpr auto rbegin() const { return ReverseIterator( m_data + m_size ); }
+		constexpr auto rend() const { return ReverseIterator( m_data ); }
+
+		constexpr auto crbegin() const { return rbegin(); }
+		constexpr auto crend() const { return rend(); }
+
+		constexpr SizeType indexOf( CharTy c ) const
+		{
+			auto it = t::find( *this, c );
+
+			if ( it == cend() )
+			{
+				return npos;
+			}
+
+			return &*it - m_data;
+		}
+
+		constexpr SizeType lastIndexOf( CharTy c ) const
+		{
+			auto it = t::find( crbegin(), crend(), c );
+
+			if ( it == crend() )
+			{
+				return npos;
+			}
+
+			return &*it - m_data;
+		}
+
+		constexpr GenericStringView substrv( SizeType begin, SizeType end = npos ) const
 		{
 			if ( end <= begin )
-				throw std::runtime_error( "End cannot be less than or equal to start!" );
+				throw Error( "End cannot be less than or equal to start!", 1 );
 
 			auto const size_ = m_size;
 
 			if ( size_ == 0 )
-				throw std::runtime_error( "Empty string!" );
+				throw Error( "Empty string!", 1 );
 
 			if ( end > size_ )
 				end = size_;
@@ -720,33 +719,144 @@ namespace t
 			return GenericStringView( m_data + begin, end - begin );
 		}
 
-		constexpr char operator[]( SizeTy index ) const
+		constexpr char const& at( SizeType index ) const
+		{
+			if ( index >= m_size )
+			{
+				throw Error( "String index was too large!", 1 );
+			}
+
+			return m_data[ index ];
+		}
+
+		constexpr char const& operator[]( SizeType index ) const
 		{
 			return m_data[ index ];
 		}
 
 		friend std::ostream& operator<<( std::ostream& os, GenericStringView const& str )
 		{
-			return os << str.data();
+			os.write( str.data(), str.size() );
+			return os;
 		}
 
 	private:
-		const CharTy* const m_data;
-		const uint64 m_size;
+		const CharTy* m_data;
+		uint64 m_size;
 	};
 
-	using StringView = GenericStringView< char, uint64 >;
+	template< class CharTy >
+	constexpr GenericString< CharTy >::GenericString( GenericStringView< CharTy > strv ):
+		GenericString( strv.data(), strv.size() ) {}
 
-	template< class CharTy, class SizeTy >
-	constexpr GenericStringView< CharTy, SizeTy > GenericString< CharTy, SizeTy >::substrv( SizeTy start, SizeTy end ) const
+	template< typename CharTy >
+	constexpr bool operator==( GenericString< CharTy > const& lhs, GenericStringView< CharTy > rhs )
+	{
+		auto const size = rhs.size();
+
+		if ( lhs.size() != size )
+			return false;
+
+		for ( typename GenericString< CharTy >::SizeType i = 0; i < size; ++i )
+		{
+			if ( lhs[ i ] != rhs[ i ] )
+				return false;
+		}
+
+		return true;
+	}
+
+	template< typename CharTy >
+	constexpr bool operator==( GenericStringView< CharTy > lhs, GenericString< CharTy > const& rhs )
+	{
+		return rhs == lhs;
+	}
+
+	template< typename CharTy >
+	constexpr bool operator!=( GenericString< CharTy > const& lhs,  GenericStringView< CharTy > rhs )
+	{
+		return !( lhs == rhs );
+	}
+
+	template< typename CharTy >
+	constexpr bool operator!=( GenericStringView< CharTy > lhs, GenericString< CharTy > const& rhs )
+	{
+		return !( lhs == rhs );
+	}
+
+	template< typename CharTy >
+	constexpr GenericString< CharTy > operator+( GenericStringView< CharTy > lhs, GenericString< CharTy > const& rhs )
+	{
+		GenericString< CharTy > str;
+
+		str.reserve( lhs.size() + rhs.size() );
+
+		str += lhs;
+
+		str += rhs;
+
+		return str;
+	}
+
+	template< typename CharTy >
+	constexpr GenericString< CharTy > operator+( GenericString< CharTy > const& lhs, GenericString< CharTy > const& rhs )
+	{
+		GenericString< CharTy > str;
+
+		str.reserve( lhs.size() + rhs.size() );
+
+		str += lhs;
+		
+		str += rhs;
+
+		return str;
+	}
+
+	template< typename CharTy >
+	constexpr GenericString< CharTy > operator+( GenericString< CharTy > const& lhs, GenericStringView< CharTy > rhs )
+	{
+		GenericString< CharTy > str;
+
+		str.reserve( lhs.size() + rhs.size() );
+
+		str += lhs;
+
+		str += rhs;
+
+		return str;
+	}
+
+	template< typename CharTy, uint64 N >
+	constexpr GenericString< CharTy > operator+( GenericString< CharTy > const& lhs, CharTy const(&arr)[ N ] )
+	{
+		return lhs + GenericStringView< CharTy >( arr );
+	}
+
+	using StringView = GenericStringView< char >;
+
+	namespace string_literals
+	{
+		consteval StringView operator "" _sv( const char* str, size_t length ) noexcept
+		{
+			return StringView( str, length );
+		}
+
+		constexpr String operator "" _s( const char* str, size_t length )
+		{
+			return String( str, uint64( length ) );
+		}
+	}	
+
+	template< class CharTy >
+	constexpr GenericStringView< CharTy > GenericString< CharTy >::substrv( SizeType start, SizeType end ) const
 	{
 		if ( end <= start )
-			throw std::runtime_error( "End cannot be less than or equal to start!" );
+			throw Error( "End cannot be less than or equal to start!", 1 );
 
 		auto const size_ = m_size;
 
 		if ( size_ == 0 )
-			throw std::runtime_error( "Empty string!" );
+			throw Error( "Empty string!", 1 );
 
 		if ( end > size_ )
 			end = size_;
@@ -754,8 +864,8 @@ namespace t
 		return GenericStringView( m_data + start, end - start );
 	}
 
-	template< class CharTy, class SizeTy >
-	constexpr GenericString< CharTy, SizeTy >& GenericString< CharTy, SizeTy >::operator+=( GenericStringView< CharTy, SizeTy > strv )
+	template< class CharTy >
+	constexpr GenericString< CharTy >& GenericString< CharTy >::operator+=( GenericStringView< CharTy > strv )
 	{
 		if ( m_size + strv.size() > m_capacity )
 		{
@@ -765,10 +875,60 @@ namespace t
 				reallocate( m_size + strv.size() );
 		}
 
-		strcpy( &m_data[m_size], strv.data(), strv.size());
+		strcpy( &m_data[ m_size ], strv.data(), strv.size() );
 		m_size += strv.size();
-		m_data[m_size] = '\0';
+		m_data[ m_size ] = '\0';
 		return *this;
+	}
+
+	template< typename T, typename StringTy, typename = type::enable_if< type::is_integer< T > && !type::is_reference< T > > >
+	Optional< T > fromString( StringTy const& str )
+	{
+		bool isNeg = false;
+
+		if ( str.size() == 0 )
+		{
+			return {};
+		}
+
+		uint64 index = 0;
+
+		if constexpr ( type::is_signed< T > )
+		{
+			if ( str[ index ] == '-' )
+			{
+				isNeg = true;
+				++index;
+			}
+
+			if ( str.size() == index )
+			{
+				return {};
+			}
+		}
+
+		T val = 0;
+
+		for ( ; index < str.size(); ++index )
+		{
+			auto const c = str[ index ];
+
+			if ( c < '0' || c > '9' )
+				return {};
+
+			val *= 10;
+			val += c - '0';
+		}
+
+		if constexpr ( type::is_signed< T > )
+		{
+			if ( isNeg )
+			{
+				val *= -1;
+			}
+		}
+
+		return Optional< T >( val );
 	}
 }
 
@@ -823,7 +983,7 @@ struct std::hash< t::String >
 	{
 		return hash_fstring( str );
 
-		const uint64_t size = str.size();
+		/*const uint64_t size = str.size();
 
 		uint64_t hash = 0x7f'0f'7f'0f'7f;
 
@@ -873,7 +1033,7 @@ struct std::hash< t::String >
 
 		hash ^= static_cast< uint64_t >( *data ) << 56u;
 
-		return hash;
+		return hash;*/
 	}
 };
 
@@ -931,10 +1091,10 @@ namespace t
 					}
 					return false;
 				}
-				case '[': throw std::runtime_error("nope");
+				case '[': throw Error( "nope", 1 );
 				case '!': {
 					if ( patternIndex >= pattern.size() - 1 )
-						throw std::runtime_error("Invalid syntax!");
+						throw Error( "Invalid syntax!", 1 );
 					++patternIndex;
 					if ( pattern[ patternIndex ] == string[ stringIndex ] )
 						return false;
@@ -943,7 +1103,7 @@ namespace t
 				} break;
 				case '\\': {
 					if ( patternIndex >= pattern.size() - 1 )
-						throw std::runtime_error( "Invalid syntax!" );
+						throw Error( "Invalid syntax!", 1 );
 					++patternIndex;
 					if ( pattern[ patternIndex ] != string[ stringIndex ] )
 						return false;

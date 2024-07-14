@@ -23,7 +23,7 @@ namespace t
 		
 		for ( ; destination < end; ++destination, ++source )
 		{
-			*destination = std::move( *source );
+			*destination = *source;
 		}
 	}
 
