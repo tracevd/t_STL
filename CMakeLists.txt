@@ -9,9 +9,9 @@ file( GLOB_RECURSE SRC "*.h" "*.cpp" )
 
 file( GLOB_RECURSE TEST "*/tests/*.cpp" )
 
-list( ADD TEST "t_STL/t_STL/main.cpp" )
+list( APPEND TEST "t_STL/t_STL/main.cpp" )
 
-list( REMOVE SRC TEST )
+list( REMOVE_ITEM SRC TEST )
 
 add_library( t_STL ${SRC} )
 
