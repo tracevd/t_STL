@@ -235,7 +235,7 @@ namespace t
 
 		constexpr GenericString& operator=( GenericString&& rhs ) noexcept
 		{
-			if ( &rhs == this )
+			if ( this == &rhs )
 				return *this;
 
 			delete[] m_data;
