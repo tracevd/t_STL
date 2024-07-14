@@ -11,7 +11,7 @@ file( GLOB_RECURSE TEST "*/tests/*.cpp" )
 
 list( APPEND TEST "t_STL/t_STL/main.cpp" )
 
-list( REMOVE_ITEM SRC TEST )
+list( REMOVE_ITEM SRC ${TEST} )
 
 add_library( t_STL ${SRC} )
 
