@@ -70,6 +70,17 @@ namespace t
     public:
         constexpr HashMap() = default;
 
+        constexpr HashMap( HashMap&& other ):
+            m_data( move( other.m_data ) ) {}
+
+        constexpr HashMap( HashMap const& other )
+        {
+            for ( auto const& [key, value] : other )
+            {
+                insert({ key, value });
+            }
+        }
+
         constexpr HashMap( std::initializer_list< ValueType > const& list ):
             m_data( list ) {}
 
@@ -82,6 +93,16 @@ namespace t
             {
                 insert( pair );
             }
+
+            return *this;
+        }
+
+        constexpr HashMap& operator=( HashMap&& rhs )
+        {
+            if ( this == &rhs )
+                return *this;
+
+            m_data = move( rhs.m_data );
 
             return *this;
         }

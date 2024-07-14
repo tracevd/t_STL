@@ -72,7 +72,7 @@ constexpr int testVm()
     map.insert( { String( "test2" ), t::variant::Value( "value2" ) } );
     vm["vm"] = std::move( map );
 
-    auto vm2 = vm;
+    auto vm2 = Map( vm );
 
     if ( &vm2.at("int32").As< int32 const& >() != &vm.at("int32").As< int32 const& >() )
         throw std::runtime_error("wornfwr");

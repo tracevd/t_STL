@@ -575,7 +575,30 @@ namespace t
                 }
             }
 
-            constexpr Hash& operator=( Hash const& ) = delete;
+            constexpr Hash& operator=( Hash&& rhs )
+            {
+                if ( this == &rhs )
+                    return *this;
+
+                m_buckets = move( rhs.m_buckets );
+
+                return *this;
+            }
+
+            constexpr Hash& operator=( Hash const& rhs )
+            {
+                if ( this == &rhs )
+                    return *this;
+
+                m_buckets = BucketListType( 8 );
+
+                for ( auto const& [ val ] : rhs )
+                {
+                    insert( val );
+                }
+
+                return *this;
+            }
 
             constexpr Iterator begin()
             {
@@ -698,7 +721,7 @@ namespace t
                 uint64 size_ = 0;
 
                 for ( uint64 i = 0; i < m_buckets.size(); ++i )
-                    size_ += m_buckets[i].size();
+                    size_ += m_buckets[ i ].size();
 
                 return size_;
             }

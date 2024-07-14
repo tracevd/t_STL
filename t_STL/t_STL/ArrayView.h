@@ -81,6 +81,6 @@ namespace t
 		constexpr ConstReverseIterator crend() { return ConstReverseIterator( cbegin() ); }
 	private:
 		T* m_data = nullptr;
-		uint64 m_size = 0;;
+		uint64 m_size = 0;
 	};
 }

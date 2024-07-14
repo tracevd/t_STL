@@ -152,7 +152,7 @@ namespace t
 
 				for ( const auto& [key, value] : *this )
 				{
-					copy.insert( { key, value.Clone() } );
+					copy.insert({ key, value.Clone() });
 				}
 
 				return copy;
