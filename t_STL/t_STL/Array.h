@@ -1,5 +1,7 @@
 #pragma once
 
+#include <initializer_list>
+
 #include "Tint.h"
 #include "Error.h"
 #include "ArrayView.h"

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <compare>
+#include <initializer_list>
 
 #include "Tint.h"
 #include "Type.h"
