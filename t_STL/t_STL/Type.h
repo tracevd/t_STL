@@ -92,26 +92,52 @@ namespace t
         template< class T >
         static constexpr bool is_arithmetic = std::is_arithmetic_v< T >;
 
+    private:
         template< class T >
-        static constexpr bool is_plain_type = true;
+        struct is_plain_type_
+        {
+            static constexpr bool value = true;
+        };
 
         template< class T >
-        static constexpr bool is_plain_type< T& > = false;
+        struct is_plain_type_< T& >
+        {
+            static constexpr bool value = false;
+        };
 
         template< class T >
-        static constexpr bool is_plain_type< T const > = false;
+        struct is_plain_type_< T const >
+        {
+            static constexpr bool value = false;
+        };
 
         template< class T >
-        static constexpr bool is_plain_type< volatile T > = false;
+        struct is_plain_type_< volatile T >
+        {
+            static constexpr bool value = false;
+        };
 
         template< class T >
-        static constexpr bool is_plain_type< T* > = false;
+        struct is_plain_type_< T* >
+        {
+            static constexpr bool value = false;
+        };
 
         template< class T >
-        static constexpr bool is_plain_type< T[] > = false;
+        struct is_plain_type_< T[] >
+        {
+            static constexpr bool value = false;
+        };
 
         template< class T, uint64 N >
-        static constexpr bool is_plain_type< T[ N ] > = false;
+        struct is_plain_type_< T[ N ] >
+        {
+            static constexpr bool value = false;
+        };
+
+    public:
+        template< class T >
+        static constexpr bool is_plain_type = is_plain_type_< T >::value;
 
         template< class T >
         using remove_reference = std::remove_reference_t< T >;
@@ -185,10 +211,7 @@ namespace t
             return Removable::NONE;
         }
         template< class T, Removable r >
-        struct type_remover;
-
-        template< class T >
-        struct type_remover< T, Removable::NONE >
+        struct type_remover
         {
             using type = T;
         };

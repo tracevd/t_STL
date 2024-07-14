@@ -21,10 +21,10 @@ namespace t
 			m_type( other.m_type ) {}
 
 		Any( Any&& other ) noexcept:
-			m_ptr( exchange( other.m_ptr, nullptr ) ),
-			m_deleter( exchange( other.m_deleter, nullptr ) ),
-			m_copyer( exchange( other.m_copyer, empty_copyer ) ),
-			m_type( exchange( other.m_type, nullptr ) ) {}
+			m_ptr( t::exchange( other.m_ptr, nullptr ) ),
+			m_deleter( t::exchange( other.m_deleter, nullptr ) ),
+			m_copyer( t::exchange( other.m_copyer, empty_copyer ) ),
+			m_type( t::exchange( other.m_type, nullptr ) ) {}
 
 		Any& operator=( Any const& rhs )
 		{
@@ -48,10 +48,10 @@ namespace t
 
 			destroyData();
 			
-			m_ptr     = exchange( rhs.m_ptr, nullptr );
-			m_deleter = exchange( rhs.m_deleter, nullptr );
-			m_copyer  = exchange( rhs.m_copyer, empty_copyer );
-			m_type    = exchange( rhs.m_type, nullptr );
+			m_ptr     = t::exchange( rhs.m_ptr, nullptr );
+			m_deleter = t::exchange( rhs.m_deleter, nullptr );
+			m_copyer  = t::exchange( rhs.m_copyer, empty_copyer );
+			m_type    = t::exchange( rhs.m_type, nullptr );
 
 			return *this;
 		}

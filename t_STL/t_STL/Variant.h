@@ -126,8 +126,8 @@ namespace t
 			m_typeIndex( other.m_typeIndex ) {}
 
 		Variant( Variant&& other ) noexcept:
-			m_ptr( exchange( other.m_ptr, nullptr ) ),
-			m_typeIndex( exchange( other.m_typeIndex, NumTypes ) ) {}
+			m_ptr( t::exchange( other.m_ptr, nullptr ) ),
+			m_typeIndex( t::exchange( other.m_typeIndex, NumTypes ) ) {}
 
 		Variant& operator=( Variant const& rhs )
 		{
@@ -161,8 +161,8 @@ namespace t
 
 			destroyData();
 
-			m_ptr = exchange( rhs.m_ptr, nullptr );
-			m_typeIndex = exchange( rhs.m_typeIndex, NumTypes );
+			m_ptr = t::exchange( rhs.m_ptr, nullptr );
+			m_typeIndex = t::exchange( rhs.m_typeIndex, NumTypes );
 
 			return *this;
 		}
