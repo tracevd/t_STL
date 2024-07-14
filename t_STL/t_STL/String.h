@@ -235,8 +235,8 @@ namespace t
 
 		constexpr GenericString& operator=( GenericString&& rhs ) noexcept
 		{
-			if ( this == &rhs )
-				return *this;
+			/*if ( this == &rhs )
+				return *this;*/
 
 			delete[] m_data;
 
@@ -368,7 +368,7 @@ namespace t
 
 			auto it = strings.data();
 
-			*it = GenericString( &m_data[ 0 ], indexes[ 0 ] );
+			*it = GenericString( m_data, indexes[ 0 ] );
 			++it;
 
 			for ( uint64 i = 0; i < indexes.size() - 1; ++i, ++it )
