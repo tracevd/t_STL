@@ -213,48 +213,48 @@ namespace t
         template< class T, Removable r >
         struct type_remover
         {
-            using type = T;
+            using Type = T;
         };
 
         template< class T >
         struct type_remover< T, Removable::CONST >
         {
-            using temp = type::remove_const< T >;
-            using type = type_remover< temp, getRemovableType< temp >() >::type;
+            using Temp = type::remove_const< T >;
+            using Type = type_remover< Temp, getRemovableType< Temp >() >::Type;
         };
 
         template< class T >
         struct type_remover< T, Removable::REFERENCE >
         {
-            using temp = type::remove_reference< T >;
-            using type = type_remover< temp, getRemovableType< temp >() >::type;
+            using Temp = type::remove_reference< T >;
+            using Type = type_remover< Temp, getRemovableType< Temp >() >::Type;
         };
 
         template< class T >
         struct type_remover< T, Removable::POINTER >
         {
-            using temp = type::remove_pointer< T >;
-            using type = type_remover< temp, getRemovableType< temp >() >::type;
+            using Temp = type::remove_pointer< T >;
+            using Type = type_remover< Temp, getRemovableType< Temp >() >::Type;
         };
 
         template< class T >
         struct type_remover< T, Removable::ARRAY >
         {
-            using temp = type::remove_array< T >;
-            using type = type_remover< temp, getRemovableType< temp >() >::type;
+            using Temp = type::remove_array< T >;
+            using Type = type_remover< Temp, getRemovableType< Temp >() >::Type;
         };
 
         template< class T >
         struct type_remover< T, Removable::VOLATILE >
         {
-            using temp = type::remove_volatile< T >;
-            using type = type_remover< temp, getRemovableType< temp >() >::type;
+            using Temp = type::remove_volatile< T >;
+            using Type = type_remover< Temp, getRemovableType< Temp >() >::Type;
         };
 
     public:
 
         template< class T >
-        using plain = type_remover< T, getRemovableType< T >() >::type;
+        using plain = type_remover< T, getRemovableType< T >() >::Temp;
 
         template< class T >
         static constexpr bool is_expensive_hash = is_none_of< T,
